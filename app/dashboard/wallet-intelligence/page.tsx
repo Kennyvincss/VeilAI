@@ -100,7 +100,7 @@ function WalletIntelligence() {
           </div>
         </form>
         <p className="mt-2 text-[0.7rem] text-subtle">
-          Reads public data only (NEAR RPC, NearBlocks, FastNEAR). {demo ? "Demo visitors see the sample investigation; sign in for live lookups." : "Your lookup is not stored."}
+          Reads public on-chain data only (NEAR RPC, NearBlocks, FastNEAR) and labels it LIVE. Lookups are not stored.{demo ? " “Sample” runs the same analysis on fictional data." : ""}
         </p>
         {error && (
           <p role="alert" className="mt-3 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">

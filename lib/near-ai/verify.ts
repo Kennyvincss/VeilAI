@@ -4,7 +4,6 @@ import { nearAiConfig } from "@/lib/env";
 import {
   fetchAttestationReport,
   fetchSignature,
-  NearAiError,
   type AttestationReportResponse,
   type RawAttestation,
   type SignaturePayload,
@@ -119,7 +118,7 @@ export async function verifyModelAttestation(model = nearAiConfig().model, signi
   try {
     report = await fetchAttestationReport({ model, nonce, signingAlgo });
   } catch (err) {
-    const msg = err instanceof NearAiError ? err.message : "Attestation request failed";
+    const msg = err instanceof Error ? err.message : "Attestation request failed";
     return finish({ ...base, state: "unverified", errors: [msg], summary: summarise("unverified", [], ` ${msg}`) }, started);
   }
 

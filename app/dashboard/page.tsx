@@ -72,7 +72,7 @@ export default function DashboardPage() {
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         {/* Allocation + holdings */}
-        <div className="space-y-4 lg:col-span-2">
+        <div className="min-w-0 space-y-4 lg:col-span-2">
           <Card>
             <CardHeader icon={<PieIcon className="h-4 w-4" />} title="Asset allocation" subtitle="Priced assets by USD value" />
             {portfolio.loading ? (
@@ -162,7 +162,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Right column */}
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <WalletManager onChange={reloadAll} />
           <InsightsCard />
           <PrivacyStatusCard />

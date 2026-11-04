@@ -17,8 +17,8 @@ export function demoAnswer(question: string, p: PortfolioSnapshot, r: RiskAnalys
     return `## Risk overview (sample data)
 
 **Facts**
-- Overall risk score: **${r.overallScore ?? "n/a"} / 100** (${r.level}).
-${r.categories.map((c) => `- ${c.label}: ${c.score ?? "insufficient data"}`).join("\n")}
+- Overall risk score: **${r.overallScore === null ? "n/a" : Math.round(r.overallScore)} / 100** (${r.level}).
+${r.categories.map((c) => `- ${c.label}: ${c.score === null ? "insufficient data" : Math.round(c.score)}`).join("\n")}
 
 **Interpretation**
 - The largest contributors are ${[...r.categories].filter((c) => c.score !== null).sort((a, b) => (b.score ?? 0) * b.weight - (a.score ?? 0) * a.weight).slice(0, 2).map((c) => c.label.toLowerCase()).join(" and ")}.
@@ -31,7 +31,7 @@ This is not financial advice.${note}`;
 
 **Facts**
 - ${top?.symbol} represents **${formatPct(top?.pct ?? 0, { digits: 1 })}** of priced value.
-- Concentration score: ${cat("concentration")?.score ?? "n/a"} / 100 — ${cat("concentration")?.explanation}
+- Concentration score: ${Math.round(cat("concentration")?.score ?? 0)} / 100 — ${cat("concentration")?.explanation}
 
 **Interpretation**
 - A single-asset drawdown would dominate portfolio outcomes. Consider whether that matches your risk tolerance.

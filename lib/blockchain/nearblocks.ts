@@ -87,13 +87,16 @@ export async function accountTransactionCount(accountId: string): Promise<number
 
 /* ---------------- normalisation (pure) ---------------- */
 
-function toYoctoString(v: number | string | null | undefined): string {
-  if (v === null || v === undefined) return "0";
-  if (typeof v === "number") {
-    // NearBlocks serialises NUMERIC as JSON numbers in some routes; avoid exponent notation.
-    return BigInt(Math.trunc(v)).toString();
-  }
-  return v.split(".")[0] || "0";
+/**
+ * NearBlocks serialises NUMERIC yocto amounts as strings in most routes but
+ * as JSON numbers in some. Numbers above 2^53 are already rounded floats, so
+ * converting them through BigInt would add error (1e24 → 0.999999999999);
+ * divide them directly instead and use exact BigInt maths for strings.
+ */
+function yoctoAmountToNear(v: number | string | null | undefined): number {
+  if (v === null || v === undefined) return 0;
+  if (typeof v === "number") return Number.isFinite(v) ? v / 1e24 : 0;
+  return yoctoToNear(v.split(".")[0] || "0");
 }
 
 export function normalizeTxn(subject: string, t: NbTxn): NormalizedTx {
@@ -104,10 +107,10 @@ export function normalizeTxn(subject: string, t: NbTxn): NormalizedTx {
   const actions = (t.actions ?? []).map((a) => ({
     kind: String(a.action ?? "UNKNOWN"),
     method: a.method ?? null,
-    depositNear: yoctoToNear(toYoctoString(a.deposit)),
+    depositNear: yoctoAmountToNear(a.deposit),
   }));
   const depositNear = t.actions_agg?.deposit !== undefined && t.actions_agg !== null
-    ? yoctoToNear(toYoctoString(t.actions_agg.deposit))
+    ? yoctoAmountToNear(t.actions_agg.deposit)
     : actions.reduce((s, a) => s + a.depositNear, 0);
   return {
     hash: t.transaction_hash,
@@ -117,7 +120,7 @@ export function normalizeTxn(subject: string, t: NbTxn): NormalizedTx {
     direction,
     actions,
     depositNear,
-    feeNear: yoctoToNear(toYoctoString(t.outcomes_agg?.transaction_fee)),
+    feeNear: yoctoAmountToNear(t.outcomes_agg?.transaction_fee),
     success: t.outcomes?.status ?? null,
     blockHeight: t.block?.block_height,
   };
