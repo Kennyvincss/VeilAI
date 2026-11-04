@@ -32,6 +32,11 @@ export const chatRequestSchema = z.object({
     .optional(),
   demo: z.boolean().optional(),
   saveHistory: z.boolean().optional(),
+  /** Structured, untrusted data (e.g. a wallet report) — sanitised and wrapped in a <data> block server-side. */
+  attachment: z
+    .object({ kind: z.enum(["wallet_intel"]), data: z.record(z.string(), z.unknown()) })
+    .refine((a) => JSON.stringify(a.data).length <= 12_000, { message: "Attachment too large" })
+    .optional(),
 });
 
 export const trackedWalletSchema = z.object({

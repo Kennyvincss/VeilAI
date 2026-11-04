@@ -21,7 +21,7 @@ export type StreamEvent =
 
 /** POSTs to /api/ai/chat and dispatches each NDJSON event as it arrives. */
 export async function streamAnalyst(
-  body: { message: string; conversationId?: string | null; history?: { role: "user" | "assistant"; content: string }[]; saveHistory?: boolean },
+  body: { message: string; conversationId?: string | null; history?: { role: "user" | "assistant"; content: string }[]; saveHistory?: boolean; attachment?: { kind: "wallet_intel"; data: Record<string, unknown> } },
   onEvent: (e: StreamEvent) => void,
   signal?: AbortSignal,
 ): Promise<void> {

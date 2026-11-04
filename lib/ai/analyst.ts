@@ -7,7 +7,7 @@ import { createE2eeSession, type E2eeSession } from "@/lib/near-ai/e2ee";
 import { getAttestedEncryptionKey, verifyCompletion } from "@/lib/near-ai/verify";
 import { ANALYST_SYSTEM_PROMPT, INJECTION_REMINDER } from "@/lib/ai/prompts";
 import { buildContextMessage, detectIntents, Pseudonymizer } from "@/lib/ai/context";
-import { cleanUserText, screenUserInput } from "@/lib/security/prompt-guard";
+import { cleanUserText, dataBlock, screenUserInput } from "@/lib/security/prompt-guard";
 import { fetchLivePortfolio } from "@/lib/portfolio/service";
 import { liveRiskAnalysis } from "@/lib/risk/service";
 import { accountTransactions, normalizeTxn } from "@/lib/blockchain/nearblocks";
@@ -39,6 +39,7 @@ export interface AnalystInput {
   conversationId: string | null;
   clientHistory: { role: "user" | "assistant"; content: string }[];
   saveHistory: boolean;
+  attachment?: { kind: "wallet_intel"; data: Record<string, unknown> };
   emit: (e: AnalystEvent) => void;
   signal?: AbortSignal;
 }
@@ -122,7 +123,9 @@ export async function runAnalyst(input: AnalystInput): Promise<void> {
 
   /* 2b. Live confidential inference via NEAR AI Cloud. */
   const ps = new Pseudonymizer(ownWallets);
-  const contextText = buildContextMessage({ portfolio, risk, transactions: txs, preferences: prefs, ps });
+  const contextText =
+    buildContextMessage({ portfolio, risk, transactions: txs, preferences: prefs, ps }) +
+    (input.attachment ? `\n\n${dataBlock(input.attachment.kind, input.attachment.data)}` : "");
   const screen = screenUserInput(question);
   if (screen.suspicious) log("warn", "prompt_injection.screened", { matched: screen.matched });
 

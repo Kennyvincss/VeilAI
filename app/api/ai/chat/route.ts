@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
           conversationId: body.conversationId ?? null,
           clientHistory: body.history ?? [],
           saveHistory: body.saveHistory ?? true,
+          attachment: body.attachment,
           emit,
           signal: req.signal,
         });
