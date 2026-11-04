@@ -1,0 +1,39 @@
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+
+export const DEMO_COOKIE = "veil_demo";
+
+/**
+ * Refreshes the Supabase session cookie on each request and returns the
+ * verified user (if any). Runs in the Next.js proxy.
+ */
+export async function updateSession(request: NextRequest) {
+  let response = NextResponse.next({ request });
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return { response, userId: null as string | null, configured: false };
+
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet, headers) {
+        for (const { name, value } of cookiesToSet) request.cookies.set(name, value);
+        response = NextResponse.next({ request });
+        for (const { name, value, options } of cookiesToSet) response.cookies.set(name, value, options);
+        for (const [k, v] of Object.entries(headers ?? {})) response.headers.set(k, v);
+      },
+    },
+  });
+
+  // getUser() revalidates the token with Supabase Auth.
+  let userId: string | null = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    userId = data.user?.id ?? null;
+  } catch {
+    userId = null;
+  }
+  return { response, userId, configured: true };
+}
