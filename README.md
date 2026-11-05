@@ -1,1 +1,114 @@
-# VeilAI
+# VEIL AI
+
+**Confidential financial intelligence, powered by NEAR.**
+*Your financial intelligence. Your private data. Verified by NEAR.*
+
+VEIL AI analyses NEAR crypto portfolios, investigates public wallets, scores portfolio risk with transparent formulas, and answers financial questions using an LLM that runs inside a hardware Trusted Execution Environment on **NEAR AI Cloud**. Every answer is checked: the response signature, request/response hashes and a fresh-nonce TEE attestation (Intel TDX + NVIDIA GPU) are verified before VEIL AI shows **VERIFIED**.
+
+Built for the **NEAR Hackathon 2026 — Privacy & Private AI track**. Free for everyone, with no subscriptions, paid tiers or paywalls.
+
+---
+
+## Features
+
+| Page | What it does |
+|---|---|
+| `/` | Landing page: product, how it works, privacy model, features, NEAR integration, verification, FAQ |
+| `/dashboard` | Portfolio value, 24h change, allocation, holdings, tracked wallets, risk score, recent transactions, on-demand AI insights, privacy status |
+| `/dashboard/analyst` | Streaming AI analyst on NEAR AI Cloud, with conversation history (save/delete), sources, and per-answer verification details |
+| `/dashboard/wallet-intelligence` | Investigate any public NEAR account: overview, timeline, stats, counterparties, contract calls, large transfers, evidence-based indicators, AI explanation (labelled as interpretation) |
+| `/dashboard/risk-engine` | Seven risk categories (concentration/HHI, volatility, liquidity, exposure, performance/drawdown, activity, suspicious) with every input shown |
+| `/dashboard/privacy` | NEAR AI connection, live attestation verification with fresh nonces, every check with expected/actual values, model info, processing history, data-handling matrix |
+| `/dashboard/reports` | Portfolio, risk, wallet and AI-summary reports with sources and methodology; PDF rendered in the browser |
+| `/dashboard/memory` | Opt-in financial preferences the AI may use: inspect, edit, delete |
+
+Wallets connect through **NEAR Connect**. Ownership is proven with a **NEP-413** signed message, which cannot move funds. VEIL AI never asks for seed phrases or keys and never executes transactions.
+
+## Documentation
+
+- [docs/NEAR-INTEGRATION.md](docs/NEAR-INTEGRATION.md): exactly how NEAR powers the product, endpoint by endpoint
+- [docs/PRIVACY.md](docs/PRIVACY.md): privacy architecture, and what is and is not protected
+- [docs/SECURITY.md](docs/SECURITY.md): threat model and controls
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): structure, modes, pipeline, data model
+
+## Quick start
+
+Requires Node.js ≥ 20.9.
+
+```bash
+npm install
+```
+
+```bash
+cp .env.example .env.local
+```
+
+```bash
+npm run dev
+```
+
+Open http://localhost:3000. With **no configuration**, everything runs in clearly-labelled demo mode: sample portfolio, template AI answers, and attestation shown as NOT CONNECTED / UNVERIFIED.
+
+### Enable live NEAR AI confidential inference
+
+1. Create an API key at [cloud.near.ai](https://cloud.near.ai).
+2. Set `NEAR_AI_API_KEY` in `.env.local`. Optionally set `NEAR_AI_MODEL` to any model from `GET https://cloud-api.near.ai/v1/models`.
+3. Restart, then open **Privacy Centre → Verify attestation now**.
+
+### Enable accounts and persistence (Supabase)
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. Run the migration: paste `supabase/migrations/20261104000000_init.sql` into the SQL editor, or use `supabase db push`.
+3. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+4. Auth → URL configuration: add `http://localhost:3000/auth/callback` (and your production URL) as redirect URLs.
+5. Optional: enable the Google provider, then set `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`.
+6. Set `DATA_ENCRYPTION_KEY` (from `openssl rand -hex 32`) to encrypt stored messages, goals and reports, and `APP_SECRET` for signed NEP-413 challenges.
+
+Optional keys (`NEARBLOCKS_API_KEY`, `COINGECKO_API_KEY`, `FASTNEAR_API_KEY`) raise third-party rate limits. All variables are documented in [.env.example](.env.example). Missing configuration is reported clearly at server startup.
+
+## Scripts
+
+```bash
+npm run typecheck   # next typegen + tsc --noEmit
+```
+
+```bash
+npm run lint        # ESLint (next/core-web-vitals + typescript)
+```
+
+```bash
+npm test            # Vitest unit + integration tests
+```
+
+```bash
+npm run build       # production build
+```
+
+```bash
+npm run check       # all of the above
+```
+
+The tests cover account validation and secret detection, portfolio maths, risk scoring, wallet heuristics, NearBlocks normalisation, prompt-injection sanitisation, data minimisation, rate limiting, AES-GCM and signed tokens, TDX report-data and compose binding, ECDSA/Ed25519 completion signatures, E2EE v2 round-trips, NEP-413, and the verification orchestrator. The orchestrator tests check that VERIFIED only appears when every check passes. Route-level tests cover access control, CSRF, validation, rate limiting and the demo-mode analyst stream.
+
+## Deploying to Vercel
+
+1. Push the repository to GitHub and import it in Vercel. The framework preset is Next.js and needs no build settings.
+2. Add the environment variables from `.env.example` under Project → Settings → Environment Variables. At minimum, set `NEAR_AI_API_KEY`, the Supabase URL and anon key, `DATA_ENCRYPTION_KEY`, `APP_SECRET` and `NEXT_PUBLIC_APP_URL`.
+3. Add `https://<your-domain>/auth/callback` to Supabase's redirect URLs.
+4. Deploy. API routes run on the Node.js runtime. `@phala/dcap-qvl-node` is excluded from bundling and its `.wasm` file is traced into the API functions (`next.config.ts`).
+5. The chat route uses streaming responses with `maxDuration = 120`. If your Vercel plan caps duration lower, reduce `NEAR_AI_MAX_TOKENS`.
+
+## Costs and fees
+
+VEIL AI charges users nothing. The deployer pays for NEAR AI Cloud inference on their own NEAR AI account. Public data APIs may rate-limit anonymous traffic. VEIL AI never sends transactions, so users pay no network fees through it.
+
+## Limitations
+
+- Supported chain: **NEAR** (mainnet or testnet) only.
+- History-based analysis uses recent samples (the latest 50 transactions and 50 token transfers), not complete history.
+- VEIL AI's own server is not a TEE; see [docs/PRIVACY.md](docs/PRIVACY.md).
+- In-memory rate limits apply per server instance.
+
+## Disclaimer
+
+Informational analysis only. This is not financial, investment, tax or legal advice. Crypto assets are volatile.

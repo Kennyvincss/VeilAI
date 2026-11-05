@@ -1,0 +1,220 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------------
+ * VEIL AI design tokens
+ * A dark financial-intelligence terminal. The product is dark-only by
+ * design; tokens are defined once and consumed through Tailwind utilities.
+ * --------------------------------------------------------------------- */
+:root {
+  --bg: #08090d;
+  --bg-2: #10121a;
+  --card: #151824;
+  --card-2: #1a1e2d;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.13);
+  --text: #f5f6fa;
+  --muted: #8b90a5;
+  --subtle: #5d6278;
+  --accent: #8b5cf6; /* electric purple */
+  --accent-strong: #a78bfa;
+  --accent-2: #3b82f6; /* blue */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-2: var(--accent-2);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-pulse-soft: pulse-soft 2.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+html {
+  background: var(--bg);
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(139, 92, 246, 0.35);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Thin, unobtrusive scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+@layer components {
+  .glass {
+    background: linear-gradient(180deg, rgba(26, 30, 45, 0.72), rgba(21, 24, 36, 0.72));
+    border: 1px solid var(--border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+  }
+
+  .hairline {
+    border-color: var(--border);
+  }
+
+  .text-gradient {
+    background: linear-gradient(110deg, #ffffff 20%, var(--accent-strong) 60%, #93c5fd 95%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .grid-backdrop {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  }
+
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.04) 0%,
+      rgba(255, 255, 255, 0.09) 50%,
+      rgba(255, 255, 255, 0.04) 100%
+    );
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+    border-radius: 8px;
+  }
+
+  .prose-veil {
+    line-height: 1.7;
+    font-size: 0.925rem;
+  }
+  .prose-veil p {
+    margin: 0.5rem 0;
+  }
+  .prose-veil ul,
+  .prose-veil ol {
+    margin: 0.5rem 0;
+    padding-left: 1.25rem;
+  }
+  .prose-veil ul {
+    list-style: disc;
+  }
+  .prose-veil ol {
+    list-style: decimal;
+  }
+  .prose-veil li {
+    margin: 0.2rem 0;
+  }
+  .prose-veil h1,
+  .prose-veil h2,
+  .prose-veil h3 {
+    font-weight: 600;
+    margin: 0.9rem 0 0.35rem;
+    color: var(--text);
+  }
+  .prose-veil h1 {
+    font-size: 1.1rem;
+  }
+  .prose-veil h2 {
+    font-size: 1rem;
+  }
+  .prose-veil h3 {
+    font-size: 0.95rem;
+  }
+  .prose-veil code {
+    font-family: var(--font-mono);
+    font-size: 0.82em;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 0.1rem 0.35rem;
+    border-radius: 5px;
+  }
+  .prose-veil strong {
+    color: #fff;
+    font-weight: 600;
+  }
+  .prose-veil table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.6rem 0;
+    font-size: 0.85rem;
+  }
+  .prose-veil th,
+  .prose-veil td {
+    border: 1px solid var(--border);
+    padding: 0.35rem 0.5rem;
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Recharts: remove default focus outline on SVG surface (we provide our own) */
+.recharts-wrapper svg:focus,
+.recharts-surface:focus {
+  outline: none;
+}
