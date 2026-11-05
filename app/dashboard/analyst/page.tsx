@@ -305,7 +305,7 @@ function AssistantMessage({ m }: { m: UiMessage }) {
     <div className="min-w-0 max-w-[92%] flex-1 space-y-3">
       <div className="flex flex-wrap items-center gap-1.5">
         {m.meta?.mode && <ModeBadge mode={m.meta.mode} />}
-        {m.inference === "demo-template" && <Badge tone="warning">Demo response · not NEAR AI</Badge>}
+        {m.inference === "demo-template" && <Badge tone="warning">Template response · not NEAR AI</Badge>}
         {m.inference === "near-ai" && <Badge tone="accent">NEAR AI · {m.meta?.model}</Badge>}
         {m.meta?.e2ee && (
           <Badge tone="blue">
