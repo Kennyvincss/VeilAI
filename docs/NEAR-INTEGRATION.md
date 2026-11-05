@@ -30,7 +30,7 @@ The integration follows NEAR's own code, not guesses:
 ## 1. NEAR AI Cloud inference
 
 - **Auth:** `Authorization: Bearer $NEAR_AI_API_KEY`, sent from the server only (`lib/near-ai/client.ts`). The key never reaches the browser.
-- **Model:** `NEAR_AI_MODEL` (default `deepseek-ai/DeepSeek-V3.1`, the default used by NEAR's verifier). The Privacy Centre checks the model is listed in `GET /v1/models`.
+- **Model:** `NEAR_AI_MODEL`, default `deepseek-ai/DeepSeek-V4.1-Flash-1017`, which NEAR serves from its own attested TEE infrastructure (`owned_by: "nearai"` in `GET /v1/models`). Proxied third-party models in the catalogue (`openai/…`, `anthropic/…`, `google/…`) are not TEE-hosted, and their attestation reports contain no GPU enclave, so VEIL AI correctly reports them as FAILED. The Privacy Centre checks the configured model is listed in the catalogue. Verified live on 2026-11-05: gateway and model TDX quotes UpToDate, nonce bound, NVIDIA verdict true, compose hash equal to `mr_config`, and the E2EE key attested.
 - **Streaming:** `POST /v1/chat/completions` with `stream: true`. The server serialises the request body **once** and keeps the **raw SSE bytes**, because NEAR AI signs `sha256(request_body):sha256(response_text)`. Deltas are forwarded to the browser as NDJSON (`app/api/ai/chat/route.ts`).
 
 ## 2. Attestation verification (fresh nonce)

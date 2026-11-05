@@ -66,8 +66,13 @@ export function __resetEnvForTests() {
 }
 
 export const NEAR_AI_DEFAULT_BASE_URL = "https://cloud-api.near.ai";
-/** Default from NEAR's official verifier (nearai/nearai-cloud-verifier). */
-export const NEAR_AI_DEFAULT_MODEL = "deepseek-ai/DeepSeek-V3.1";
+/**
+ * Default model: served by NEAR AI from its own attested TEE infrastructure
+ * (owned_by "nearai" in GET /v1/models). Verified end-to-end (TDX + GPU +
+ * compose + E2EE key) against the live service. Third-party proxied models in
+ * the catalogue (openai/…, anthropic/…, google/…) are NOT TEE-hosted.
+ */
+export const NEAR_AI_DEFAULT_MODEL = "deepseek-ai/DeepSeek-V4.1-Flash-1017";
 
 export function nearAiConfig() {
   const env = getEnv();
@@ -76,7 +81,7 @@ export function nearAiConfig() {
     baseUrl: (env.NEAR_AI_BASE_URL ?? NEAR_AI_DEFAULT_BASE_URL).replace(/\/+$/, ""),
     model: env.NEAR_AI_MODEL ?? NEAR_AI_DEFAULT_MODEL,
     e2ee: env.NEAR_AI_E2EE ?? "preferred",
-    maxTokens: clampInt(env.NEAR_AI_MAX_TOKENS, 1200, 64, 4096),
+    maxTokens: clampInt(env.NEAR_AI_MAX_TOKENS, 3000, 256, 8192),
     configured: Boolean(env.NEAR_AI_API_KEY),
   } as const;
 }

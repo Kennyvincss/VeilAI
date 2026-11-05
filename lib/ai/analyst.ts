@@ -2,7 +2,7 @@ import "server-only";
 import type { DataSource, FinancialPreferences, NormalizedTx, PortfolioSnapshot, RiskAnalysis, VerificationResult, VerificationState } from "@/types";
 import type { RequestContext } from "@/lib/session";
 import { getAppStatus, nearAiConfig } from "@/lib/env";
-import { streamChatCompletion, NearAiError, type ChatMessageIn } from "@/lib/near-ai/client";
+import { explainNearAiError, streamChatCompletion, type ChatMessageIn } from "@/lib/near-ai/client";
 import { createE2eeSession, type E2eeSession } from "@/lib/near-ai/e2ee";
 import { getAttestedEncryptionKey, verifyCompletion } from "@/lib/near-ai/verify";
 import { ANALYST_SYSTEM_PROMPT, INJECTION_REMINDER } from "@/lib/ai/prompts";
@@ -191,13 +191,19 @@ export async function runAnalyst(input: AnalystInput): Promise<void> {
       input.signal,
     );
   } catch (err) {
-    const msg = err instanceof NearAiError ? err.message : "The NEAR AI request failed.";
-    emit({ type: "error", message: `${msg} Please retry in a moment.` });
+    emit({ type: "error", message: explainNearAiError(err) });
     return;
   }
   if (decryptFailures > 0) log("warn", "e2ee.decrypt_failures", { count: decryptFailures });
   if (!answer.trim()) {
-    emit({ type: "error", message: decryptFailures ? "The encrypted response could not be decrypted." : "The model returned an empty response." });
+    emit({
+      type: "error",
+      message: decryptFailures
+        ? "The encrypted response could not be decrypted."
+        : result.finishReason === "length"
+          ? "The model used its whole token budget on reasoning before answering. Increase NEAR_AI_MAX_TOKENS and retry."
+          : "The model returned an empty response.",
+    });
     return;
   }
 

@@ -2,6 +2,8 @@ import "server-only";
 import type { AttestationTarget, VerificationCheck, VerificationResult } from "@/types";
 import { nearAiConfig } from "@/lib/env";
 import {
+  explainNearAiError,
+  NearAiError,
   fetchAttestationReport,
   fetchSignature,
   type AttestationReportResponse,
@@ -118,7 +120,7 @@ export async function verifyModelAttestation(model = nearAiConfig().model, signi
   try {
     report = await fetchAttestationReport({ model, nonce, signingAlgo });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Attestation request failed";
+    const msg = err instanceof NearAiError ? explainNearAiError(err) : err instanceof Error ? err.message : "Attestation request failed";
     return finish({ ...base, state: "unverified", errors: [msg], summary: summarise("unverified", [], ` ${msg}`) }, started);
   }
 

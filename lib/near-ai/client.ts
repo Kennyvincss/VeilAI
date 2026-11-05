@@ -25,6 +25,31 @@ export class NearAiError extends Error {
   }
 }
 
+/**
+ * Turns a NEAR AI failure into an actionable message for the UI. Never
+ * includes credentials; upstream detail text is already truncated.
+ */
+export function explainNearAiError(err: unknown): string {
+  if (!(err instanceof NearAiError)) return "The NEAR AI request failed. Please try again.";
+  const detail = err.message;
+  switch (true) {
+    case err.code === "not_configured":
+      return "NEAR AI Cloud is not configured on this deployment (NEAR_AI_API_KEY is missing).";
+    case err.status === 402:
+      return "NEAR AI Cloud refused the request because the account has no credits or spending limit. The deployer must add credits / set a spending limit at cloud.near.ai, then retry.";
+    case err.status === 401 || err.status === 403:
+      return "NEAR AI Cloud rejected the API key. Check NEAR_AI_API_KEY (it may be wrong, revoked or lack access).";
+    case err.status === 400 && /model/i.test(detail) && /not (found|a valid)/i.test(detail):
+      return `${detail.replace(/^NEAR AI Cloud responded 400: /, "")} Set NEAR_AI_MODEL to a NEAR-hosted TEE model listed in the Privacy Centre.`;
+    case err.status === 429:
+      return "NEAR AI Cloud is rate-limiting requests. Please wait a moment and retry.";
+    case err.code === "timeout" || err.code === "network" || (err.status !== undefined && err.status >= 500):
+      return `${detail}. NEAR AI Cloud may be temporarily unavailable — please retry shortly.`;
+    default:
+      return detail;
+  }
+}
+
 function requireKey(): string {
   const { apiKey } = nearAiConfig();
   if (!apiKey) throw new NearAiError("NEAR AI Cloud is not configured (NEAR_AI_API_KEY missing).", undefined, "not_configured");

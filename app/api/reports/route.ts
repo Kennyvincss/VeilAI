@@ -11,7 +11,7 @@ import { assertSameOrigin, clientIp, HttpError, jsonError, jsonOk, limitOrNull, 
 import { firstIssue, reportRequestSchema } from "@/lib/security/validation";
 import { RATE_LIMITS } from "@/lib/security/rate-limit";
 import { getAppStatus, nearAiConfig } from "@/lib/env";
-import { chatCompletion } from "@/lib/near-ai/client";
+import { chatCompletion, explainNearAiError } from "@/lib/near-ai/client";
 import { verifyCompletion } from "@/lib/near-ai/verify";
 import { REPORT_SUMMARY_PROMPT, ANALYST_SYSTEM_PROMPT } from "@/lib/ai/prompts";
 import { dataBlock } from "@/lib/security/prompt-guard";
@@ -81,15 +81,20 @@ async function aiSummary(base: FinancialReport[], signedIn: boolean): Promise<{ 
     };
   }
   const data = base.map((r) => ({ title: r.title, sections: r.sections.map((s) => ({ heading: s.heading, body: s.body, rows: s.table?.rows.slice(0, 20), columns: s.table?.columns })) }));
-  const res = await chatCompletion({
+  let res: Awaited<ReturnType<typeof chatCompletion>>;
+  try {
+    res = await chatCompletion({
     model: ai.model,
-    max_tokens: 500,
+    max_tokens: Math.max(1500, ai.maxTokens),
     temperature: 0.2,
     messages: [
       { role: "system", content: `${ANALYST_SYSTEM_PROMPT}\n\n${REPORT_SUMMARY_PROMPT}` },
       { role: "user", content: `Summarise this report data.\n\n${dataBlock("report", data)}` },
     ],
-  });
+    });
+  } catch (err) {
+    return { summary: `AI summary unavailable: ${explainNearAiError(err)} The tables below contain the full factual report.`, verification: null, inference: "not generated" };
+  }
   let alternate: string[] = [];
   try {
     alternate = [JSON.stringify(JSON.parse(res.rawResponse))];
