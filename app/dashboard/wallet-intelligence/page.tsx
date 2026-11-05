@@ -323,7 +323,7 @@ function AiExplanation({ report }: { report: WalletIntelReport }) {
         icon={<BrainCircuit className="h-4 w-4" />}
         title="AI-generated explanation"
         subtitle="Interpretation — may be wrong; verify against the facts above"
-        action={<div className="flex gap-1.5">{demoTemplate && <Badge tone="warning">Demo template</Badge>}{state && <VerificationBadge state={state} />}<Badge tone="accent">AI interpretation</Badge></div>}
+        action={<div className="flex gap-1.5">{demoTemplate && <Badge tone="warning">Template · not NEAR AI</Badge>}{state && <VerificationBadge state={state} />}<Badge tone="accent">AI interpretation</Badge></div>}
       />
       {text ? (
         <Markdown>{text}</Markdown>

@@ -2,7 +2,7 @@ import "server-only";
 import type { DataSource, FinancialPreferences, NormalizedTx, PortfolioSnapshot, RiskAnalysis, VerificationResult, VerificationState } from "@/types";
 import type { RequestContext } from "@/lib/session";
 import { getAppStatus, nearAiConfig } from "@/lib/env";
-import { explainNearAiError, streamChatCompletion, type ChatMessageIn } from "@/lib/near-ai/client";
+import { explainNearAiError, NearAiError, streamChatCompletion, type ChatMessageIn } from "@/lib/near-ai/client";
 import { createE2eeSession, type E2eeSession } from "@/lib/near-ai/e2ee";
 import { getAttestedEncryptionKey, verifyCompletion } from "@/lib/near-ai/verify";
 import { ANALYST_SYSTEM_PROMPT, INJECTION_REMINDER } from "@/lib/ai/prompts";
@@ -12,7 +12,7 @@ import { fetchLivePortfolio } from "@/lib/portfolio/service";
 import { liveRiskAnalysis } from "@/lib/risk/service";
 import { accountTransactions, normalizeTxn } from "@/lib/blockchain/nearblocks";
 import { demoPortfolio, demoRiskAnalysis, demoTransactions } from "@/lib/demo/data";
-import { demoAnswer } from "@/lib/demo/responses";
+import { templateAnswer } from "@/lib/demo/responses";
 import * as repo from "@/lib/supabase/repo";
 import { log } from "@/lib/security/logger";
 
@@ -105,19 +105,33 @@ export async function runAnalyst(input: AnalystInput): Promise<void> {
   const sources = dedupeSources([...(portfolio?.provenance.sources ?? []), ...(risk?.provenance.sources ?? [])]);
   const liveAllowed = ai.configured && (ctx.user !== null || status.demoAllowsLiveAi);
 
-  /* 2a. No NEAR AI available → clearly-labelled template answer. */
-  if (!liveAllowed) {
-    const reason = ai.configured
-      ? "Live inference is disabled for demo visitors on this deployment."
-      : "NEAR AI Cloud is not configured on this deployment.";
-    emit({ type: "meta", mode, inference: "demo-template", model: null, e2ee: { enabled: false, reason }, sources, notes: [...notes, reason], conversationId: null });
-    const text = demoAnswer(question, portfolio ?? demoPortfolio(), risk ?? demoRiskAnalysis());
+  /**
+   * Clearly-labelled, rule-based template answer over the same data (no
+   * model involved, never marked verified). Used when live NEAR AI
+   * inference is unavailable for any non-transient reason.
+   */
+  const emitTemplate = async (reason: string, conversationId: string | null) => {
+    const basePortfolio = portfolio ?? demoPortfolio();
+    let templateRisk = risk;
+    if (!templateRisk) {
+      templateRisk = basePortfolio.provenance.mode === "live" ? await liveRiskAnalysis(basePortfolio).catch(() => null) : demoRiskAnalysis();
+    }
+    emit({ type: "meta", mode, inference: "demo-template", model: null, e2ee: { enabled: false, reason }, sources, notes: [...notes, reason], conversationId });
+    const text = templateAnswer(question, { portfolio: basePortfolio, risk: templateRisk, transactions: txs, reason });
     for (const chunk of text.match(/[\s\S]{1,48}/g) ?? []) {
       emit({ type: "delta", text: chunk });
       await new Promise((r) => setTimeout(r, 12));
     }
     emit({ type: "verification", result: notConnected(ai.model, reason) });
-    emit({ type: "done", messageId: null, conversationId: null });
+    emit({ type: "done", messageId: null, conversationId });
+  };
+
+  /* 2a. No NEAR AI available → clearly-labelled template answer. */
+  if (!liveAllowed) {
+    await emitTemplate(
+      ai.configured ? "Live inference is disabled for demo visitors on this deployment." : "NEAR AI Cloud is not configured on this deployment.",
+      null,
+    );
     return;
   }
 
@@ -191,6 +205,17 @@ export async function runAnalyst(input: AnalystInput): Promise<void> {
       input.signal,
     );
   } catch (err) {
+    // No credits / spending limit (HTTP 402): inference is unavailable for
+    // this deployment, not transiently failing. Fall back to a labelled
+    // template answer so the analyst stays useful, and say why.
+    if (err instanceof NearAiError && err.status === 402 && !answer) {
+      log("warn", "near_ai.no_credits_fallback", {});
+      await emitTemplate(
+        "Live NEAR AI inference is unavailable because the deployment's NEAR AI account has no credits. TEE attestation can still be verified in the Privacy Centre.",
+        conversationId,
+      );
+      return;
+    }
     emit({ type: "error", message: explainNearAiError(err) });
     return;
   }

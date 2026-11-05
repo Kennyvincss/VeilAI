@@ -55,7 +55,7 @@ export function InsightsCard() {
       <CardHeader
         icon={<Sparkles className="h-4 w-4" />}
         title="AI insights"
-        subtitle={inference === "demo-template" ? "Demo template — not NEAR AI" : "Confidential briefing via NEAR AI Cloud"}
+        subtitle={inference === "demo-template" ? "Template response — not NEAR AI" : "Confidential briefing via NEAR AI Cloud"}
         action={state ? <VerificationBadge state={state} /> : undefined}
       />
       <div className="flex-1">
@@ -89,7 +89,7 @@ export function InsightsCard() {
         <Link href="/dashboard/analyst" className={buttonClass("ghost", "sm")}>
           Open analyst <ArrowRight className="h-3.5 w-3.5" />
         </Link>
-        {inference === "demo-template" && <Badge tone="warning">Demo response</Badge>}
+        {inference === "demo-template" && <Badge tone="warning">Template response</Badge>}
       </div>
     </Card>
   );
