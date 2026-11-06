@@ -98,9 +98,9 @@ export default function PrivacyCentrePage() {
         <StatusTile
           icon={<Cpu className="h-4 w-4" />}
           label="Confidential inference"
-          value={status.nearAi.configured ? "TEE-hosted model" : "Demo templates only"}
+          value={status.nearAi.configured ? "TEE-hosted model" : "Unavailable"}
           tone={status.nearAi.configured ? "accent" : "warning"}
-          sub={status.nearAi.configured ? "Intel TDX + NVIDIA confidential computing" : "Set NEAR_AI_API_KEY to enable"}
+          sub={status.nearAi.configured ? "Intel TDX + NVIDIA confidential computing" : "Service not connected"}
         />
         <StatusTile icon={<ShieldCheck className="h-4 w-4" />} label="TEE verification" value={displayState === "not-connected" ? "Unverified" : displayState.replace("-", " ")} tone={displayState === "verified" ? "success" : displayState === "failed" ? "danger" : "warning"} sub={result ? formatDateTime(result.completedAt) : "Run a verification to check"} />
         <StatusTile
@@ -151,11 +151,11 @@ export default function PrivacyCentrePage() {
           ) : (
             <EmptyState
               icon={<ShieldCheck className="h-5 w-5" />}
-              title={status.nearAi.configured ? "No verification run yet" : "UNVERIFIED — NEAR AI Cloud not connected"}
+              title={status.nearAi.configured ? "No verification run yet" : "UNVERIFIED — confidential AI service not connected"}
               description={
                 status.nearAi.configured
                   ? "Click “Verify attestation now” to fetch a fresh attestation report with a random nonce and verify every component."
-                  : "This deployment has no NEAR AI Cloud API key, so no attestation evidence exists. Nothing is displayed as verified."
+                  : "The confidential AI service is not connected, so there is no attestation evidence to verify. Nothing is shown as verified."
               }
             />
           )}
@@ -174,7 +174,7 @@ export default function PrivacyCentrePage() {
               />
               <Row k="Catalogue size" v={models.data?.models.length ? `${models.data.models.length} models` : "—"} />
             </dl>
-            {models.data?.error && <p className="mt-2 text-[0.68rem] text-subtle">Catalogue unavailable: {models.data.error}</p>}
+            {models.data?.error && <p className="mt-2 text-[0.68rem] text-subtle">The model catalogue is temporarily unavailable.</p>}
             {models.data && models.data.models.length > 0 && (
               <details className="mt-3">
                 <summary className="cursor-pointer text-[0.7rem] text-subtle hover:text-muted">Available models</summary>
@@ -288,7 +288,7 @@ function DataHandling({ encryption }: { encryption: boolean }) {
             <li>• VEIL AI&apos;s own server (Vercel) handles your data in plaintext to build context — it is not an enclave.</li>
             <li>• Public data providers (RPC, NearBlocks, FastNEAR, CoinGecko, NEAR Intents) see which public accounts are queried.</li>
             <li>• On-chain balances and transactions are public to everyone, regardless of VEIL AI.</li>
-            <li>• Supabase can access stored rows at the infrastructure level; app-level encryption {encryption ? "is ON for messages and goals" : "is OFF on this deployment"}.</li>
+            <li>• Supabase can access stored rows at the infrastructure level; application-level encryption {encryption ? "additionally protects messages, goals and saved reports" : "is not currently enabled"}.</li>
           </ul>
         </div>
       </div>

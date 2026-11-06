@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { Activity, ArrowRight, Coins, Gauge, PieChart as PieIcon, RefreshCw, ShieldCheck, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import type { NormalizedTx, PortfolioSnapshot, RiskAnalysis } from "@/types";
 import { useApi } from "@/hooks/use-api";
@@ -14,6 +14,7 @@ import { ProvenanceBar } from "@/components/dashboard/sources";
 import { AllocationDonut, scoreColor } from "@/components/charts/charts";
 import { Badge, Button, buttonClass, Card, CardHeader, EmptyState, Skeleton } from "@/components/ui/primitives";
 import { ModeBadge } from "@/components/ui/status";
+import { Ago } from "@/components/ui/ago";
 import { cn, formatAmount, formatPct, formatUsd } from "@/lib/utils/format";
 
 export default function DashboardPage() {
@@ -28,6 +29,15 @@ export default function DashboardPage() {
     void activity.reload();
   }, [portfolio, risk, activity]);
 
+  // Keep balances and prices current while the dashboard is open and visible.
+  const reloadPortfolio = portfolio.reload;
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (document.visibilityState === "visible") void reloadPortfolio();
+    }, 60_000);
+    return () => clearInterval(t);
+  }, [reloadPortfolio]);
+
   const p = portfolio.data;
   const change = p?.change24hPct ?? null;
 
@@ -38,9 +48,16 @@ export default function DashboardPage() {
         description="Your portfolio, risk and confidential processing status at a glance."
         badges={<ModeBadge mode={p?.provenance.mode} />}
         actions={
-          <Button variant="secondary" size="sm" onClick={reloadAll} loading={portfolio.loading}>
-            {!portfolio.loading && <RefreshCw className="h-3.5 w-3.5" />} Refresh
-          </Button>
+          <div className="flex items-center gap-3">
+            {p && (
+              <span className="hidden text-xs text-subtle sm:inline">
+                <Ago iso={p.provenance.generatedAt} prefix="Updated " />
+              </span>
+            )}
+            <Button variant="secondary" size="sm" onClick={reloadAll} loading={portfolio.loading}>
+              {!portfolio.loading && <RefreshCw className="h-3.5 w-3.5" />} Refresh
+            </Button>
+          </div>
         }
       />
 
@@ -229,16 +246,16 @@ function PrivacyStatusCard() {
     <Card>
       <CardHeader icon={<ShieldCheck className="h-4 w-4" />} title="Privacy processing status" subtitle="NEAR AI Cloud · TEE" />
       <dl className="space-y-2 text-xs">
-        <Row k="NEAR AI Cloud" v={status.nearAi.configured ? <Badge tone="success">Connected</Badge> : <Badge tone="neutral">Not connected</Badge>} />
-        <Row k="E2EE policy" v={<span className="font-mono">{status.nearAi.e2eeMode}</span>} />
-        <Row k="App-level encryption" v={status.dataEncryption.configured ? <Badge tone="success">On</Badge> : <Badge tone="warning">Off</Badge>} />
+        <Row k="Confidential AI (TEE)" v={status.nearAi.configured ? <Badge tone="success">Online</Badge> : <Badge tone="neutral">Unavailable</Badge>} />
+        <Row k="End-to-end encryption" v={status.nearAi.e2eeMode === "off" ? <Badge tone="warning">Off</Badge> : <Badge tone="accent">Enabled</Badge>} />
+        <Row k="Encryption at rest" v={status.dataEncryption.configured ? <Badge tone="success">AES-256-GCM</Badge> : <Badge tone="neutral">Provider-level</Badge>} />
         <Row
           k="Last verification"
           v={
             last ? (
               <Badge tone={last.state === "verified" ? "success" : last.state === "failed" ? "danger" : "warning"}>{last.state}</Badge>
             ) : (
-              <span className="text-subtle">{history.data?.persisted ? "None yet" : "Not stored in demo"}</span>
+              <span className="text-subtle">{history.data?.persisted ? "None yet" : "Not stored for samples"}</span>
             )
           }
         />

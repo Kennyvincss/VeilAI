@@ -2,7 +2,7 @@ import "server-only";
 import type { DataSource, FinancialPreferences, NormalizedTx, PortfolioSnapshot, RiskAnalysis, VerificationResult, VerificationState } from "@/types";
 import type { RequestContext } from "@/lib/session";
 import { getAppStatus, nearAiConfig } from "@/lib/env";
-import { explainNearAiError, NearAiError, streamChatCompletion, type ChatMessageIn } from "@/lib/near-ai/client";
+import { explainNearAiError, NearAiError, nearAiOperatorHint, streamChatCompletion, type ChatMessageIn } from "@/lib/near-ai/client";
 import { createE2eeSession, type E2eeSession } from "@/lib/near-ai/e2ee";
 import { getAttestedEncryptionKey, verifyCompletion } from "@/lib/near-ai/verify";
 import { ANALYST_SYSTEM_PROMPT, INJECTION_REMINDER } from "@/lib/ai/prompts";
@@ -129,7 +129,7 @@ export async function runAnalyst(input: AnalystInput): Promise<void> {
   /* 2a. No NEAR AI available → clearly-labelled template answer. */
   if (!liveAllowed) {
     await emitTemplate(
-      ai.configured ? "Live inference is disabled for demo visitors on this deployment." : "NEAR AI Cloud is not configured on this deployment.",
+      ai.configured ? "Live AI analysis is available with a free account." : "Live AI analysis is temporarily unavailable.",
       null,
     );
     return;
@@ -168,10 +168,12 @@ export async function runAnalyst(input: AnalystInput): Promise<void> {
     } else {
       e2eeInfo = { enabled: false, reason: reason ?? "E2EE key unavailable" };
       if (ai.e2ee === "required") {
-        emit({ type: "error", message: `End-to-end encryption is required on this deployment but unavailable: ${e2eeInfo.reason}. Nothing was sent.` });
+        log("error", "e2ee.required_unavailable", { hint: e2eeInfo.reason });
+        emit({ type: "error", message: "A secure end-to-end encrypted connection to the AI enclave could not be established, so nothing was sent. Please try again shortly." });
         return;
       }
-      notes.push(`End-to-end encryption unavailable (${e2eeInfo.reason}); request protected by TLS to the NEAR AI gateway, inference still runs in TEE.`);
+      log("warn", "e2ee.fallback_tls", { hint: e2eeInfo.reason });
+      notes.push("End-to-end encryption was unavailable for this request; it was protected by TLS to NEAR AI Cloud and still processed inside the TEE.");
     }
   }
 
@@ -208,12 +210,9 @@ export async function runAnalyst(input: AnalystInput): Promise<void> {
     // No credits / spending limit (HTTP 402): inference is unavailable for
     // this deployment, not transiently failing. Fall back to a labelled
     // template answer so the analyst stays useful, and say why.
+    log("error", "near_ai.inference_failed", { status: err instanceof NearAiError ? (err.status ?? null) : null, hint: nearAiOperatorHint(err) });
     if (err instanceof NearAiError && err.status === 402 && !answer) {
-      log("warn", "near_ai.no_credits_fallback", {});
-      await emitTemplate(
-        "Live NEAR AI inference is unavailable because the deployment's NEAR AI account has no credits. TEE attestation can still be verified in the Privacy Centre.",
-        conversationId,
-      );
+      await emitTemplate("Live AI analysis is temporarily unavailable, so this answer was computed from your data with fixed rules.", conversationId);
       return;
     }
     emit({ type: "error", message: explainNearAiError(err) });
@@ -226,7 +225,7 @@ export async function runAnalyst(input: AnalystInput): Promise<void> {
       message: decryptFailures
         ? "The encrypted response could not be decrypted."
         : result.finishReason === "length"
-          ? "The model used its whole token budget on reasoning before answering. Increase NEAR_AI_MAX_TOKENS and retry."
+          ? "The answer was cut short. Please try a more specific question."
           : "The model returned an empty response.",
     });
     return;

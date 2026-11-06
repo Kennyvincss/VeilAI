@@ -26,27 +26,41 @@ export class NearAiError extends Error {
 }
 
 /**
- * Turns a NEAR AI failure into an actionable message for the UI. Never
- * includes credentials; upstream detail text is already truncated.
+ * Operator-facing diagnosis of a NEAR AI failure (what to fix). Written to
+ * server logs only — never shown to end users, because it names
+ * configuration and account details.
  */
-export function explainNearAiError(err: unknown): string {
-  if (!(err instanceof NearAiError)) return "The NEAR AI request failed. Please try again.";
+export function nearAiOperatorHint(err: unknown): string {
+  if (!(err instanceof NearAiError)) return err instanceof Error ? err.message : "unknown error";
   const detail = err.message;
   switch (true) {
     case err.code === "not_configured":
-      return "NEAR AI Cloud is not configured on this deployment (NEAR_AI_API_KEY is missing).";
+      return "NEAR_AI_API_KEY is not set.";
     case err.status === 402:
-      return "NEAR AI Cloud refused the request because the account has no credits or spending limit. The deployer must add credits / set a spending limit at cloud.near.ai, then retry.";
+      return "NEAR AI account has no credits or spending limit (HTTP 402). Add credits at cloud.near.ai.";
     case err.status === 401 || err.status === 403:
-      return "NEAR AI Cloud rejected the API key. Check NEAR_AI_API_KEY (it may be wrong, revoked or lack access).";
+      return "NEAR AI rejected the API key (check NEAR_AI_API_KEY).";
     case err.status === 400 && /model/i.test(detail) && /not (found|a valid)/i.test(detail):
-      return `${detail.replace(/^NEAR AI Cloud responded 400: /, "")} Set NEAR_AI_MODEL to a NEAR-hosted TEE model listed in the Privacy Centre.`;
-    case err.status === 429:
-      return "NEAR AI Cloud is rate-limiting requests. Please wait a moment and retry.";
-    case err.code === "timeout" || err.code === "network" || (err.status !== undefined && err.status >= 500):
-      return `${detail}. NEAR AI Cloud may be temporarily unavailable — please retry shortly.`;
+      return `${detail} Set NEAR_AI_MODEL to a NEAR-hosted TEE model.`;
     default:
       return detail;
+  }
+}
+
+/**
+ * End-user message for a NEAR AI failure: calm, actionable for the user,
+ * and free of configuration or account details (those go to the server log
+ * via nearAiOperatorHint).
+ */
+export function explainNearAiError(err: unknown): string {
+  if (!(err instanceof NearAiError)) return "The AI analyst could not complete this request. Please try again.";
+  switch (true) {
+    case err.status === 429:
+      return "The AI service is busy right now. Please wait a moment and try again.";
+    case err.code === "timeout" || err.code === "network" || (err.status !== undefined && err.status >= 500):
+      return "The AI service could not be reached. Please try again shortly.";
+    default:
+      return "Live AI analysis is temporarily unavailable. Please try again later.";
   }
 }
 

@@ -114,6 +114,6 @@ ${r && r.overallScore !== null ? `- Risk score: ${Math.round(r.overallScore)} / 
 }
 
 /** Back-compat wrapper for demo sessions. */
-export function demoAnswer(question: string, p: PortfolioSnapshot, r: RiskAnalysis, reason = "Configure `NEAR_AI_API_KEY` for confidential live analysis."): string {
+export function demoAnswer(question: string, p: PortfolioSnapshot, r: RiskAnalysis, reason = "Live AI analysis is temporarily unavailable."): string {
   return templateAnswer(question, { portfolio: p, risk: r, reason });
 }

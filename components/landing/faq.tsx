@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils/format";
 const ITEMS: { q: string; a: string }[] = [
   {
     q: "Is VEIL AI really free?",
-    a: "Yes. There are no subscriptions, premium tiers or paywalls. VEIL AI never charges you. The deployer pays for NEAR AI Cloud inference; public data providers may rate-limit heavy use. VEIL AI never sends transactions, so you never pay network fees through it.",
+    a: "Yes. There are no subscriptions, premium tiers or paywalls. VEIL AI never charges you. VEIL AI covers the cost of confidential AI processing; very heavy use may be briefly rate-limited. VEIL AI never sends transactions, so you never pay network fees through it.",
   },
   {
     q: "Do you need my seed phrase or private key?",

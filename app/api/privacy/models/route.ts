@@ -1,6 +1,7 @@
 import { listModels } from "@/lib/near-ai/client";
 import { nearAiConfig } from "@/lib/env";
 import { jsonOk } from "@/lib/security/http";
+import { log } from "@/lib/security/logger";
 
 /** NEAR AI Cloud model catalogue (public endpoint) + the configured model. */
 export async function GET() {
@@ -12,6 +13,7 @@ export async function GET() {
       { cache: "private, max-age=300" },
     );
   } catch (err) {
-    return jsonOk({ configuredModel: cfg.model, baseUrl: cfg.baseUrl, models: [], available: null, error: err instanceof Error ? err.message : "unavailable" });
+    log("warn", "near_ai.models_unavailable", { hint: err instanceof Error ? err.message : "unknown" });
+    return jsonOk({ configuredModel: cfg.model, baseUrl: cfg.baseUrl, models: [], available: null, error: "unavailable" });
   }
 }

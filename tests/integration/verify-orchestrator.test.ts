@@ -114,7 +114,9 @@ describe("verifyModelAttestation", () => {
     client.fetchAttestationReport.mockRejectedValue(new Error("network down"));
     const r = await verifyModelAttestation("m");
     expect(r.state).toBe("unverified");
-    expect(r.errors[0]).toContain("network down");
+    // The raw upstream error goes to server logs, not to the user.
+    expect(r.errors[0]).toMatch(/could not be retrieved/);
+    expect(r.summary).not.toContain("network down");
   });
 
   it("is NOT CONNECTED without an API key and makes no request", async () => {

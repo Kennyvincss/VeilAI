@@ -1,22 +1,35 @@
 import { describe, expect, it } from "vitest";
-import { explainNearAiError, NearAiError } from "@/lib/near-ai/client";
+import { explainNearAiError, NearAiError, nearAiOperatorHint } from "@/lib/near-ai/client";
 
-describe("explainNearAiError", () => {
-  it("explains missing credits (HTTP 402)", () => {
-    expect(explainNearAiError(new NearAiError("NEAR AI Cloud responded 402: No spending limit configured.", 402))).toMatch(/credits or spending limit.*cloud\.near\.ai/);
+const LEAKS = /NEAR_AI_|SUPABASE|deployer|deployment|credits|spending|api key|cloud\.near\.ai|responded \d{3}/i;
+
+const cases: [string, NearAiError][] = [
+  ["no credits", new NearAiError("NEAR AI Cloud responded 402: No spending limit configured.", 402)],
+  ["bad key", new NearAiError("NEAR AI Cloud responded 401: invalid key", 401)],
+  ["retired model", new NearAiError("NEAR AI Cloud responded 400: Model 'deepseek-ai/DeepSeek-V3.1' not found. It's not a valid model name or alias.", 400)],
+  ["not configured", new NearAiError("NEAR AI Cloud is not configured (NEAR_AI_API_KEY missing).", undefined, "not_configured")],
+  ["rate limited", new NearAiError("NEAR AI Cloud responded 429", 429)],
+  ["outage", new NearAiError("Could not reach NEAR AI Cloud", undefined, "network")],
+];
+
+describe("user-facing NEAR AI errors never reveal configuration or account details", () => {
+  it.each(cases)("%s", (_name, err) => {
+    const msg = explainNearAiError(err);
+    expect(msg.length).toBeGreaterThan(10);
+    expect(msg).not.toMatch(LEAKS);
   });
-  it("explains bad keys", () => {
-    expect(explainNearAiError(new NearAiError("x", 401))).toMatch(/NEAR_AI_API_KEY/);
+  it("gives users actionable wording for transient problems", () => {
+    expect(explainNearAiError(cases[4][1])).toMatch(/busy/);
+    expect(explainNearAiError(cases[5][1])).toMatch(/could not be reached/);
+    expect(explainNearAiError(new Error("boom"))).not.toContain("boom");
   });
-  it("explains a retired or unknown model", () => {
-    const m = explainNearAiError(new NearAiError("NEAR AI Cloud responded 400: Model 'deepseek-ai/DeepSeek-V3.1' not found. It's not a valid model name or alias.", 400));
-    expect(m).toContain("DeepSeek-V3.1");
-    expect(m).toMatch(/NEAR_AI_MODEL/);
-  });
-  it("handles missing configuration, rate limits and outages", () => {
-    expect(explainNearAiError(new NearAiError("x", undefined, "not_configured"))).toMatch(/not configured/);
-    expect(explainNearAiError(new NearAiError("x", 429))).toMatch(/rate-limiting/);
-    expect(explainNearAiError(new NearAiError("Could not reach NEAR AI Cloud", undefined, "network"))).toMatch(/temporarily unavailable/);
-    expect(explainNearAiError(new Error("boom"))).toMatch(/failed/);
+});
+
+describe("operator hints (server logs only) keep the diagnosis", () => {
+  it("names the fix for each failure", () => {
+    expect(nearAiOperatorHint(cases[0][1])).toMatch(/credits/);
+    expect(nearAiOperatorHint(cases[1][1])).toMatch(/NEAR_AI_API_KEY/);
+    expect(nearAiOperatorHint(cases[2][1])).toMatch(/NEAR_AI_MODEL/);
+    expect(nearAiOperatorHint(cases[3][1])).toMatch(/NEAR_AI_API_KEY/);
   });
 });

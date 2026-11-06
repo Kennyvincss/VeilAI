@@ -27,7 +27,7 @@ export function HeroVisual() {
               <span className="h-2.5 w-2.5 rounded-full bg-success/70" />
               <span className="ml-3 hidden text-xs text-subtle sm:inline">veil.ai/dashboard</span>
             </div>
-            <span className="rounded-full border border-white/10 px-2 py-0.5 text-[0.65rem] uppercase tracking-wider text-subtle">Illustration</span>
+            <span className="rounded-full border border-white/10 px-2 py-0.5 text-[0.65rem] uppercase tracking-wider text-subtle">Product preview</span>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">

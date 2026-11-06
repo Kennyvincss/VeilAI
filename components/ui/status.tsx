@@ -14,7 +14,7 @@ export function ModeBadge({ mode, className }: { mode: DataMode | undefined; cla
     </Badge>
   ) : (
     <Badge tone="warning" className={className} title="Illustrative sample data — not real">
-      <FlaskConical className="h-3 w-3" aria-hidden /> Demo · sample data
+      <FlaskConical className="h-3 w-3" aria-hidden /> Sample data
     </Badge>
   );
 }

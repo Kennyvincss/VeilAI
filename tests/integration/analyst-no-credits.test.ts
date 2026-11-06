@@ -50,10 +50,11 @@ describe("analyst without NEAR AI credits", () => {
     const metas = events.filter((e) => e.type === "meta");
     const last = metas.at(-1) as Extract<AnalystEvent, { type: "meta" }>;
     expect(last.inference).toBe("demo-template");
-    expect(last.notes.join(" ")).toMatch(/no credits/i);
+    expect(last.notes.join(" ")).toMatch(/temporarily unavailable/i);
     const text = events.filter((e) => e.type === "delta").map((e) => (e as { text: string }).text).join("");
     expect(text).toMatch(/not produced by NEAR AI/);
-    expect(text).toMatch(/no credits/i);
+    // Users never see account/billing/configuration details.
+    expect(JSON.stringify(events)).not.toMatch(/credits|spending|NEAR_AI_|deployer|deployment/i);
     const v = events.find((e) => e.type === "verification") as Extract<AnalystEvent, { type: "verification" }>;
     expect(v.result.state).toBe("not-connected");
     expect(events.some((e) => e.type === "error")).toBe(false);
