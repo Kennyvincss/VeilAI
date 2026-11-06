@@ -111,7 +111,7 @@ export default function ReportsPage() {
             </div>
           )}
           {type === "ai-summary" && !status.nearAi.configured && (
-            <p className="mt-4 rounded-lg border border-warning/30 bg-warning/[0.06] px-3 py-2 text-xs text-warning">NEAR AI Cloud is not configured: the report will contain the factual tables only and state that no AI summary was generated.</p>
+            <p className="mt-4 rounded-lg border border-warning/30 bg-warning/[0.06] px-3 py-2 text-xs text-warning">Live AI analysis is unavailable right now: the report will contain the full factual tables, without an AI summary.</p>
           )}
           {signedIn && (
             <div className="mt-4">

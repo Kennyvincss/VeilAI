@@ -11,7 +11,7 @@ import { assertSameOrigin, clientIp, HttpError, jsonError, jsonOk, limitOrNull, 
 import { firstIssue, reportRequestSchema } from "@/lib/security/validation";
 import { RATE_LIMITS } from "@/lib/security/rate-limit";
 import { getAppStatus, nearAiConfig } from "@/lib/env";
-import { chatCompletion, explainNearAiError } from "@/lib/near-ai/client";
+import { chatCompletion, explainNearAiError, nearAiOperatorHint } from "@/lib/near-ai/client";
 import { verifyCompletion } from "@/lib/near-ai/verify";
 import { REPORT_SUMMARY_PROMPT, ANALYST_SYSTEM_PROMPT } from "@/lib/ai/prompts";
 import { dataBlock } from "@/lib/security/prompt-guard";
@@ -75,7 +75,7 @@ async function aiSummary(base: FinancialReport[], signedIn: boolean): Promise<{ 
   const ai = nearAiConfig();
   if (!ai.configured || (!signedIn && !getAppStatus().demoAllowsLiveAi)) {
     return {
-      summary: "AI summary unavailable: NEAR AI Cloud is not configured on this deployment, so no AI-generated text is included. The tables below contain the full factual report.",
+      summary: "An AI summary is not available right now, so no AI-generated text is included. The tables below contain the full factual report.",
       verification: null,
       inference: "not generated",
     };
@@ -93,6 +93,7 @@ async function aiSummary(base: FinancialReport[], signedIn: boolean): Promise<{ 
     ],
     });
   } catch (err) {
+    log("error", "report.ai_summary_failed", { hint: nearAiOperatorHint(err) });
     return { summary: `AI summary unavailable: ${explainNearAiError(err)} The tables below contain the full factual report.`, verification: null, inference: "not generated" };
   }
   let alternate: string[] = [];

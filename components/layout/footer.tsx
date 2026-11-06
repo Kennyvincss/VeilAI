@@ -20,7 +20,7 @@ export function Footer() {
       </div>
       <div className="border-t border-border">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-6 text-xs text-subtle sm:flex-row sm:px-6">
-          <span>© {new Date().getFullYear()} VEIL AI · NEAR Hackathon 2026 · Privacy & Private AI track</span>
+          <span>© {new Date().getFullYear()} VEIL AI. All rights reserved.</span>
           <span>Your financial intelligence. Your private data. Verified by NEAR.</span>
         </div>
       </div>

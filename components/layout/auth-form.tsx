@@ -74,12 +74,9 @@ export function AuthForm({ mode, googleEnabled }: { mode: "login" | "signup"; go
       {!supabase ? (
         <div className="mt-8 rounded-2xl border border-warning/30 bg-warning/[0.06] p-5 text-sm">
           <div className="flex items-center gap-2 font-medium text-warning">
-            <AlertTriangle className="h-4 w-4" /> Authentication is not configured
+            <AlertTriangle className="h-4 w-4" /> Accounts are temporarily unavailable
           </div>
-          <p className="mt-2 leading-relaxed text-muted">
-            This deployment has no Supabase project configured, so accounts are unavailable. Set <code className="font-mono text-xs">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
-            <code className="font-mono text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> (see README). You can still explore everything with sample data.
-          </p>
+          <p className="mt-2 leading-relaxed text-muted">Sign-in is not available right now. You can still explore every feature of VEIL AI with sample data.</p>
           <Link href="/demo" className={buttonClass("primary", "md", "mt-4 w-full")}>
             <FlaskConical className="h-4 w-4" /> Explore demo
           </Link>

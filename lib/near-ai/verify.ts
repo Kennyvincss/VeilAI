@@ -4,6 +4,7 @@ import { nearAiConfig } from "@/lib/env";
 import {
   explainNearAiError,
   NearAiError,
+  nearAiOperatorHint,
   fetchAttestationReport,
   fetchSignature,
   type AttestationReportResponse,
@@ -114,13 +115,14 @@ export async function verifyModelAttestation(model = nearAiConfig().model, signi
     errors: [],
   };
   if (!nearAiConfig().configured) {
-    return finish({ ...base, state: "not-connected", summary: "NEAR AI Cloud is not configured — no attestation available. Showing UNVERIFIED." }, started);
+    return finish({ ...base, state: "not-connected", summary: "The confidential AI service is not connected, so there is no attestation evidence. Shown as UNVERIFIED." }, started);
   }
   let report: AttestationReportResponse;
   try {
     report = await fetchAttestationReport({ model, nonce, signingAlgo });
   } catch (err) {
-    const msg = err instanceof NearAiError ? explainNearAiError(err) : err instanceof Error ? err.message : "Attestation request failed";
+    log("error", "attestation.fetch_failed", { hint: nearAiOperatorHint(err) });
+    const msg = err instanceof NearAiError ? explainNearAiError(err) : "The attestation report could not be retrieved.";
     return finish({ ...base, state: "unverified", errors: [msg], summary: summarise("unverified", [], ` ${msg}`) }, started);
   }
 
@@ -193,8 +195,11 @@ export async function verifyCompletion(params: {
     const algos: ("ecdsa" | "ed25519")[] = params.preferredAlgo === "ecdsa" ? ["ecdsa", "ed25519"] : ["ed25519", "ecdsa"];
     sig = await fetchSignatureWithRetry(params.chatId, params.model, algos);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "signature unavailable";
-    return finish({ ...base, state: "unverified", errors: [msg], summary: `Unverified — completion signature unavailable (${msg}).` }, started);
+    log("warn", "completion.signature_unavailable", { hint: nearAiOperatorHint(err) });
+    return finish(
+      { ...base, state: "unverified", errors: ["The response signature could not be retrieved."], summary: "Unverified — the response signature could not be retrieved, so this answer is not shown as verified." },
+      started,
+    );
   }
 
   const { checks, signer } = completionChecks({
@@ -214,8 +219,11 @@ export async function verifyCompletion(params: {
   try {
     report = await fetchAttestationReport({ model: params.model, nonce, signingAlgo: sig.algo, signingAddress: signer });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "attestation unavailable";
-    return finish({ ...base, state: "unverified", errors: [msg], summary: `Unverified — signature valid, but attestation for the signer could not be fetched (${msg}).` }, started);
+    log("warn", "completion.attestation_unavailable", { hint: nearAiOperatorHint(err) });
+    return finish(
+      { ...base, state: "unverified", errors: ["The attestation report for the signing enclave could not be retrieved."], summary: "Unverified — the signature is valid, but the signing enclave's attestation could not be retrieved." },
+      started,
+    );
   }
   const match = modelAttestations(report).find((a) => a.signing_address?.toLowerCase() === signer.toLowerCase());
   if (!match) {
@@ -259,10 +267,11 @@ export async function getAttestedEncryptionKey(model: string): Promise<{ key: At
   try {
     report = await fetchAttestationReport({ model, nonce, signingAlgo: "ed25519" });
   } catch (err) {
-    return { key: null, reason: err instanceof Error ? err.message : "attestation unavailable" };
+    log("warn", "e2ee.key_attestation_unavailable", { hint: nearAiOperatorHint(err) });
+    return { key: null, reason: "The enclave's encryption key could not be attested." };
   }
   const candidate = modelAttestations(report).find((a) => typeof a.signing_public_key === "string" && a.signing_public_key.length >= 64);
-  if (!candidate?.signing_public_key) return { key: null, reason: "No Ed25519 encryption key in the model attestation." };
+  if (!candidate?.signing_public_key) return { key: null, reason: "The model enclave did not publish an encryption key." };
   const pub = candidate.signing_public_key.replace(/^0x/i, "").toLowerCase();
   const addr = (candidate.signing_address ?? "").replace(/^0x/i, "").toLowerCase();
   if (pub !== addr) return { key: null, reason: "Encryption key is not the attested signing key; refusing to encrypt to it." };

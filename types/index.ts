@@ -249,7 +249,6 @@ export interface AppStatus {
   };
   supabase: { configured: boolean };
   dataEncryption: { configured: boolean };
-  providers: { nearblocksKey: boolean; coingeckoKey: boolean };
   googleAuth: boolean;
   network: "mainnet" | "testnet";
   demoAllowsLiveAi: boolean;

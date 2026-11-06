@@ -20,6 +20,7 @@ import {
 import { Logo } from "@/components/ui/logo";
 import { Badge, buttonClass } from "@/components/ui/primitives";
 import { useAppStatus } from "@/components/layout/app-status";
+import { LiveStatus } from "@/components/layout/live-status";
 import { cn } from "@/lib/utils/format";
 
 export const NAV = [
@@ -67,8 +68,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     <div className="space-y-3">
       <div className="rounded-xl border border-border bg-bg-2/70 p-3 text-xs">
         <div className="flex items-center justify-between">
-          <span className="text-muted">NEAR AI Cloud</span>
-          {status.nearAi.configured ? <Badge tone="success">Connected</Badge> : <Badge tone="neutral">Not configured</Badge>}
+          <span className="text-muted">Confidential AI</span>
+          {status.nearAi.configured ? <Badge tone="success">Online</Badge> : <Badge tone="neutral">Unavailable</Badge>}
         </div>
         <div className="mt-2 truncate font-mono text-[0.65rem] text-subtle" title={status.nearAi.model}>
           {status.nearAi.model}
@@ -112,13 +113,18 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-bg/85 px-4 backdrop-blur-xl lg:hidden">
-        <Link href="/dashboard" aria-label="Dashboard">
-          <Logo />
-        </Link>
-        <button className="rounded-lg p-2 text-muted hover:text-text" onClick={() => setOpen(true)} aria-label="Open navigation">
-          <Menu className="h-5 w-5" />
-        </button>
+      <header className="sticky top-0 z-40 border-b border-border bg-bg/85 backdrop-blur-xl lg:hidden">
+        <div className="flex h-14 items-center justify-between px-4">
+          <Link href="/dashboard" aria-label="Dashboard">
+            <Logo />
+          </Link>
+          <button className="rounded-lg p-2 text-muted hover:text-text" onClick={() => setOpen(true)} aria-label="Open navigation">
+            <Menu className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="overflow-x-auto border-t border-border px-4 py-1.5">
+          <LiveStatus className="flex-nowrap whitespace-nowrap" showAi={false} />
+        </div>
       </header>
       <AnimatePresence>
         {open && (
@@ -148,11 +154,40 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       </AnimatePresence>
 
       <div className="lg:pl-64">
+        {/* Desktop top bar: live network status + account */}
+        <div className="sticky top-0 z-30 hidden h-12 items-center justify-between border-b border-border bg-bg/80 px-6 backdrop-blur-xl lg:flex">
+          <LiveStatus />
+          <div className="flex items-center gap-3 text-xs">
+            {status.session.signedIn ? (
+              <span className="flex items-center gap-2 text-muted">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/15 text-[0.7rem] font-semibold uppercase text-accent-strong">
+                  {(status.session.email ?? "?").slice(0, 1)}
+                </span>
+                <span className="max-w-[200px] truncate">{status.session.email}</span>
+              </span>
+            ) : (
+              <>
+                <Badge tone="warning">Sample workspace</Badge>
+                {status.supabase.configured && (
+                  <Link href="/signup" className={buttonClass("primary", "sm")}>
+                    Create free account
+                  </Link>
+                )}
+              </>
+            )}
+          </div>
+        </div>
         {demo && (
-          <div className="border-b border-warning/25 bg-warning/[0.07] px-4 py-2.5 text-center text-xs text-warning sm:px-6">
-            <FlaskConical className="mr-1.5 inline h-3.5 w-3.5 align-[-2px]" />
-            <strong className="font-semibold">Demo mode</strong> — portfolio, transactions and risk figures are <strong>sample data</strong>, not real accounts or prices.
-            {status.nearAi.configured && status.demoAllowsLiveAi ? " AI answers use live NEAR AI inference on the sample data." : " AI answers are template responses until NEAR AI Cloud is configured."}
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-b border-warning/20 bg-warning/[0.05] px-4 py-2 text-center text-xs text-warning/90 sm:px-6">
+            <span>
+              <FlaskConical className="mr-1.5 inline h-3.5 w-3.5 align-[-2px]" />
+              You&apos;re viewing a <strong className="font-semibold">sample workspace</strong>: balances, transactions and prices are illustrative, not real accounts.
+            </span>
+            {status.supabase.configured && (
+              <Link href="/signup" className="font-semibold underline underline-offset-2 hover:text-warning lg:hidden">
+                Use your own wallets →
+              </Link>
+            )}
           </div>
         )}
         <main id="main" className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:py-8">

@@ -118,10 +118,6 @@ export function getAppStatus(): AppStatus {
     },
     supabase: { configured: supabaseConfigured() },
     dataEncryption: { configured: dataEncryptionKey() !== null },
-    providers: {
-      nearblocksKey: Boolean(env.NEARBLOCKS_API_KEY),
-      coingeckoKey: Boolean(env.COINGECKO_API_KEY),
-    },
     googleAuth: env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true",
     network: nearNetwork(),
     demoAllowsLiveAi: ai.configured && env.DEMO_ALLOW_LIVE_AI !== "false",
