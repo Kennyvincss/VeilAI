@@ -162,11 +162,11 @@ export default function LandingPage() {
                   </thead>
                   <tbody className="divide-y divide-border bg-bg-2/60">
                     {[
-                      ["Your questions & AI answers", "TLS + E2EE to enclave*", "Inside TEE (Intel TDX + NVIDIA CC)", "Optional history, AES-256-GCM + Supabase encryption"],
+                      ["Your questions & AI answers", "TLS + E2EE to enclave*", "Inside TEE (Intel TDX + NVIDIA CC)", "Optional history · encrypted, owner-only access"],
                       ["Portfolio context sent to AI", "TLS + E2EE to enclave*", "Inside TEE; wallet IDs pseudonymised", "Not stored by VEIL AI"],
-                      ["Preferences (AI memory)", "TLS", "Only if you enable “use in AI”", "Supabase, RLS; goals AES-256-GCM"],
+                      ["Preferences (AI memory)", "TLS", "Only if you enable “use in AI”", "Encrypted, owner-only access"],
                       ["On-chain balances & transactions", "TLS", "—", "Public by nature on NEAR"],
-                      ["Email / account", "TLS", "Never sent to AI", "Supabase Auth"],
+                      ["Email / account", "TLS", "Never sent to AI", "Secure authentication provider"],
                     ].map((r) => (
                       <tr key={r[0]}>
                         {r.map((c, i) => (
@@ -180,8 +180,8 @@ export default function LandingPage() {
                 </table>
               </div>
               <p className="mt-3 text-xs leading-relaxed text-subtle">
-                * End-to-end encryption is used when the model&apos;s encryption key can be verified inside an attested enclave; otherwise traffic is TLS to the NEAR AI gateway and the UI says so. VEIL AI&apos;s own server
-                (Vercel) processes your data in plaintext to assemble context — it is not inside a TEE.
+                * End-to-end encryption is used when the model&apos;s encryption key can be verified inside an attested enclave; otherwise traffic is TLS to the NEAR AI gateway and the UI says so. VEIL AI&apos;s own application
+                server processes your data in plaintext to assemble context — it is not inside a TEE.
               </p>
             </FadeIn>
           </div>
@@ -226,7 +226,7 @@ export default function LandingPage() {
                   <SectionTitle
                     eyebrow="Built on NEAR"
                     title="NEAR is the infrastructure, not a logo."
-                    description="Every NEAR integration below is implemented and running in the product. See docs/NEAR-INTEGRATION.md for endpoint-level detail."
+                    description="Every NEAR integration below is implemented and running in the product today."
                   />
                 </FadeIn>
                 <FadeIn delay={0.1}>

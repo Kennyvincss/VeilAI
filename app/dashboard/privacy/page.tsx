@@ -35,7 +35,7 @@ interface HistoryEntry {
 
 export default function PrivacyCentrePage() {
   const { status } = useAppStatus();
-  const models = useApi<{ configuredModel: string; baseUrl: string; models: { id: string }[]; available: boolean | null; error?: string }>("/api/privacy/models");
+  const models = useApi<{ configuredModel: string; models: { id: string }[]; available: boolean | null; error?: string }>("/api/privacy/models");
   const history = useApi<{ entries: HistoryEntry[]; persisted: boolean }>("/api/privacy/history");
   const [phase, setPhase] = useState<VerificationState>(status.nearAi.configured ? "initialising" : "not-connected");
   const [result, setResult] = useState<VerificationResult | null>(null);
@@ -94,7 +94,7 @@ export default function PrivacyCentrePage() {
 
       {/* Status grid */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatusTile icon={<Server className="h-4 w-4" />} label="NEAR AI Cloud" value={status.nearAi.configured ? "Connected" : "Not connected"} tone={status.nearAi.configured ? "success" : "neutral"} sub={status.nearAi.baseUrl} />
+        <StatusTile icon={<Server className="h-4 w-4" />} label="NEAR AI Cloud" value={status.nearAi.configured ? "Connected" : "Not connected"} tone={status.nearAi.configured ? "success" : "neutral"} sub="Confidential inference provider" />
         <StatusTile
           icon={<Cpu className="h-4 w-4" />}
           label="Confidential inference"
@@ -106,8 +106,8 @@ export default function PrivacyCentrePage() {
         <StatusTile
           icon={<Lock className="h-4 w-4" />}
           label="End-to-end encryption"
-          value={status.nearAi.e2eeMode === "off" ? "Off" : status.nearAi.e2eeMode === "required" ? "Required" : "Preferred"}
-          tone={status.nearAi.e2eeMode === "off" ? "warning" : "accent"}
+          value={status.nearAi.e2ee ? "Enabled" : "Off"}
+          tone={status.nearAi.e2ee ? "accent" : "warning"}
           sub="Ed25519 · XChaCha20-Poly1305 (v2), attested key only"
         />
       </div>
@@ -166,8 +166,8 @@ export default function PrivacyCentrePage() {
           <Card>
             <CardHeader icon={<Cpu className="h-4 w-4" />} title="Model information" />
             <dl className="space-y-2 text-xs">
-              <Row k="Configured model" v={<span className="font-mono">{status.nearAi.model}</span>} />
-              <Row k="Gateway" v={<span className="font-mono">{status.nearAi.baseUrl.replace("https://", "")}</span>} />
+              <Row k="Model" v={<span className="font-mono">{status.nearAi.model}</span>} />
+              <Row k="Provider" v="NEAR AI Cloud" />
               <Row
                 k="In NEAR AI catalogue"
                 v={models.loading ? "…" : models.data?.available === true ? <Badge tone="success">Listed</Badge> : models.data?.available === false ? <Badge tone="warning">Not listed</Badge> : <Badge tone="neutral">Unknown</Badge>}
@@ -206,7 +206,7 @@ export default function PrivacyCentrePage() {
         </div>
       </div>
 
-      <DataHandling encryption={status.dataEncryption.configured} />
+      <DataHandling />
     </>
   );
 }
@@ -232,14 +232,14 @@ function HistoryList({ entries }: { entries: HistoryEntry[] }) {
   );
 }
 
-function DataHandling({ encryption }: { encryption: boolean }) {
+function DataHandling() {
   const rows: [string, string, string, string, string][] = [
-    ["Questions & AI answers", "TLS; E2EE to attested enclave when available", "Inside TEE on NEAR AI Cloud", encryption ? "Only if history is on · AES-256-GCM + Supabase disk encryption" : "Only if history is on · Supabase disk encryption (app-level key not set)", "Private"],
+    ["Questions & AI answers", "TLS; E2EE to attested enclave when available", "Inside TEE on NEAR AI Cloud", "Only if history is on · encrypted at rest, owner-only access", "Private"],
     ["Portfolio context sent to the model", "TLS; E2EE when available", "Inside TEE · wallet IDs pseudonymised", "Not stored", "Private (derived from public data)"],
-    ["Preferences / AI memory", "TLS", "Sent to model only if “use in AI” is on", encryption ? "Supabase + RLS · goals AES-256-GCM" : "Supabase + RLS", "Private"],
-    ["Tracked wallet list", "TLS", "Pseudonymised before inference", "Supabase + RLS", "Private (the link between you and the accounts)"],
+    ["Preferences / AI memory", "TLS", "Sent to model only if “use in AI” is on", "Encrypted at rest, owner-only access", "Private"],
+    ["Tracked wallet list", "TLS", "Pseudonymised before inference", "Encrypted at rest, owner-only access", "Private (the link between you and the accounts)"],
     ["Balances & transactions", "TLS", "—", "Not stored by VEIL AI", "Public on NEAR"],
-    ["Verification metadata", "TLS", "—", "Supabase + RLS (no content)", "Private"],
+    ["Verification metadata", "TLS", "—", "Owner-only access (no content)", "Private"],
   ];
   return (
     <Card className="mt-4">
@@ -285,10 +285,10 @@ function DataHandling({ encryption }: { encryption: boolean }) {
             <EyeOff className="h-4 w-4" /> Not protected by the TEE
           </div>
           <ul className="mt-2 space-y-1 text-xs leading-relaxed text-muted">
-            <li>• VEIL AI&apos;s own server (Vercel) handles your data in plaintext to build context — it is not an enclave.</li>
+            <li>• VEIL AI&apos;s application server handles your data in plaintext to build context — it is not an enclave.</li>
             <li>• Public data providers (RPC, NearBlocks, FastNEAR, CoinGecko, NEAR Intents) see which public accounts are queried.</li>
             <li>• On-chain balances and transactions are public to everyone, regardless of VEIL AI.</li>
-            <li>• Supabase can access stored rows at the infrastructure level; application-level encryption {encryption ? "additionally protects messages, goals and saved reports" : "is not currently enabled"}.</li>
+            <li>• Stored data is protected by encryption at rest and per-user access rules, not by the TEE.</li>
           </ul>
         </div>
       </div>

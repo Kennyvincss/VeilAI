@@ -53,8 +53,8 @@ export async function investigateWallet(accountId: string): Promise<WalletIntelR
   notes.push(`Analysis covers the most recent ${txs.length} transactions and ${fts.length} token transfers (sample), not full history.`);
   notes.push(
     riskListSize() > 0
-      ? `Counterparties were checked against ${riskListSize()} entries from operator-configured, sourced risk lists.`
-      : "No published risk list is configured, so no counterparty is labelled as risky by list membership.",
+      ? `Counterparties were checked against ${riskListSize()} entries from sourced public risk lists.`
+      : "Counterparties are only labelled as risky when they appear on a sourced public risk list; none matched.",
   );
 
   return {

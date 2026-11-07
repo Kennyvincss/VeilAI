@@ -71,9 +71,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <span className="text-muted">Confidential AI</span>
           {status.nearAi.configured ? <Badge tone="success">Online</Badge> : <Badge tone="neutral">Unavailable</Badge>}
         </div>
-        <div className="mt-2 truncate font-mono text-[0.65rem] text-subtle" title={status.nearAi.model}>
-          {status.nearAi.model}
-        </div>
+        <div className="mt-2 text-[0.65rem] text-subtle">Runs in a hardware TEE on NEAR AI Cloud</div>
       </div>
       {status.session.signedIn ? (
         <div className="flex items-center justify-between gap-2 px-1">
@@ -88,7 +86,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </div>
       ) : (
         <div className="grid gap-2">
-          {status.supabase.configured && (
+          {status.accounts.enabled && (
             <Link href="/signup" className={buttonClass("primary", "sm", "w-full")}>
               Create free account
             </Link>
@@ -168,7 +166,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             ) : (
               <>
                 <Badge tone="warning">Sample workspace</Badge>
-                {status.supabase.configured && (
+                {status.accounts.enabled && (
                   <Link href="/signup" className={buttonClass("primary", "sm")}>
                     Create free account
                   </Link>
@@ -183,7 +181,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               <FlaskConical className="mr-1.5 inline h-3.5 w-3.5 align-[-2px]" />
               You&apos;re viewing a <strong className="font-semibold">sample workspace</strong>: balances, transactions and prices are illustrative, not real accounts.
             </span>
-            {status.supabase.configured && (
+            {status.accounts.enabled && (
               <Link href="/signup" className="font-semibold underline underline-offset-2 hover:text-warning lg:hidden">
                 Use your own wallets →
               </Link>

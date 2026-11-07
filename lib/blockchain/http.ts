@@ -1,5 +1,6 @@
 import "server-only";
 import type { DataSource } from "@/types";
+import { log } from "@/lib/security/logger";
 
 export class ProviderError extends Error {
   constructor(
@@ -89,7 +90,8 @@ export class SourceTracker {
       this.add(name, url, purpose, true);
       return v;
     } catch (err) {
-      this.add(name, url, purpose, false, err instanceof Error ? err.message : "failed");
+      log("warn", "provider.failed", { provider: name, purpose, hint: err instanceof Error ? err.message : "failed" });
+      this.add(name, url, purpose, false, "temporarily unavailable");
       throw err;
     }
   }

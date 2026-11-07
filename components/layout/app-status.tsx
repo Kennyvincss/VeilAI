@@ -1,10 +1,10 @@
 "use client";
 
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
-import type { AppStatus } from "@/types";
+import type { PublicStatus } from "@/types";
 import { api } from "@/hooks/use-api";
 
-export type StatusPayload = AppStatus & { session: { signedIn: boolean; email: string | null; demo: boolean } };
+export type StatusPayload = PublicStatus & { session: { signedIn: boolean; email: string | null; demo: boolean } };
 
 const Ctx = createContext<{ status: StatusPayload; reload: () => void } | null>(null);
 

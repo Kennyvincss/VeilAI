@@ -9,11 +9,11 @@ export async function GET() {
   try {
     const models = await listModels();
     return jsonOk(
-      { configuredModel: cfg.model, baseUrl: cfg.baseUrl, models: models.slice(0, 100), available: models.some((m) => m.id === cfg.model) },
+      { configuredModel: cfg.model, models: models.slice(0, 100).map((m) => ({ id: m.id })), available: models.some((m) => m.id === cfg.model) },
       { cache: "private, max-age=300" },
     );
   } catch (err) {
     log("warn", "near_ai.models_unavailable", { hint: err instanceof Error ? err.message : "unknown" });
-    return jsonOk({ configuredModel: cfg.model, baseUrl: cfg.baseUrl, models: [], available: null, error: "unavailable" });
+    return jsonOk({ configuredModel: cfg.model, models: [], available: null, error: "unavailable" });
   }
 }

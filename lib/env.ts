@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import type { AppStatus } from "@/types";
+import type { AppStatus, PublicStatus } from "@/types";
 
 /**
  * Server-side environment validation.
@@ -121,6 +121,16 @@ export function getAppStatus(): AppStatus {
     googleAuth: env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true",
     network: nearNetwork(),
     demoAllowsLiveAi: ai.configured && env.DEMO_ALLOW_LIVE_AI !== "false",
+  };
+}
+
+/** Browser-safe subset of the app status (see PublicStatus). */
+export function getPublicStatus(): PublicStatus {
+  const ai = nearAiConfig();
+  return {
+    nearAi: { configured: ai.configured, model: ai.model, e2ee: ai.e2ee !== "off" },
+    accounts: { enabled: supabaseConfigured() },
+    network: nearNetwork(),
   };
 }
 

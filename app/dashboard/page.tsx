@@ -247,8 +247,8 @@ function PrivacyStatusCard() {
       <CardHeader icon={<ShieldCheck className="h-4 w-4" />} title="Privacy processing status" subtitle="NEAR AI Cloud · TEE" />
       <dl className="space-y-2 text-xs">
         <Row k="Confidential AI (TEE)" v={status.nearAi.configured ? <Badge tone="success">Online</Badge> : <Badge tone="neutral">Unavailable</Badge>} />
-        <Row k="End-to-end encryption" v={status.nearAi.e2eeMode === "off" ? <Badge tone="warning">Off</Badge> : <Badge tone="accent">Enabled</Badge>} />
-        <Row k="Encryption at rest" v={status.dataEncryption.configured ? <Badge tone="success">AES-256-GCM</Badge> : <Badge tone="neutral">Provider-level</Badge>} />
+        <Row k="End-to-end encryption" v={status.nearAi.e2ee ? <Badge tone="accent">Enabled</Badge> : <Badge tone="warning">Off</Badge>} />
+        <Row k="Stored data" v={<Badge tone="success">Encrypted · owner-only</Badge>} />
         <Row
           k="Last verification"
           v={

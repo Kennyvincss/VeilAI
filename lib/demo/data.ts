@@ -26,7 +26,7 @@ export const DEMO_WALLETS = ["veil-demo-main.near", "veil-demo-trading.near"];
 function demoProvenance(extra: string[] = []): Provenance {
   return {
     mode: "demo",
-    sources: [{ name: "VEIL AI sample dataset", url: "/docs/ARCHITECTURE.md#demo-mode", purpose: "Illustrative demo data", fetchedAt: new Date().toISOString(), ok: true }],
+    sources: [{ name: "Sample dataset", url: "", purpose: "Illustrative data for the sample workspace", fetchedAt: new Date().toISOString(), ok: true }],
     generatedAt: new Date().toISOString(),
     notes: [DEMO_NOTE, ...extra],
   };
