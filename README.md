@@ -15,6 +15,7 @@ Built for the **NEAR Hackathon 2026 — Privacy & Private AI track**. Free for e
 |---|---|
 | `/` | Landing page: product, how it works, privacy model, features, NEAR integration, verification, FAQ |
 | `/dashboard` | Portfolio value, 24h change, allocation, holdings, tracked wallets, risk score, recent transactions, on-demand AI insights, privacy status |
+| `/dashboard/wallet` | Connect, create or import a NEAR wallet; send, receive (QR), swap via NEAR Intents, stake/unstake/withdraw with validators. Every transaction is reviewed in-app and approved in the user's wallet |
 | `/dashboard/analyst` | Streaming AI analyst on NEAR AI Cloud, with conversation history (save/delete), sources, and per-answer verification details |
 | `/dashboard/wallet-intelligence` | Investigate any public NEAR account: overview, timeline, stats, counterparties, contract calls, large transfers, evidence-based indicators, AI explanation (labelled as interpretation) |
 | `/dashboard/risk-engine` | Seven risk categories (concentration/HHI, volatility, liquidity, exposure, performance/drawdown, activity, suspicious) with every input shown |
@@ -22,7 +23,9 @@ Built for the **NEAR Hackathon 2026 — Privacy & Private AI track**. Free for e
 | `/dashboard/reports` | Portfolio, risk, wallet and AI-summary reports with sources and methodology; PDF rendered in the browser |
 | `/dashboard/memory` | Opt-in financial preferences the AI may use: inspect, edit, delete |
 
-Wallets connect through **NEAR Connect**. Ownership is proven with a **NEP-413** signed message, which cannot move funds. VEIL AI never asks for seed phrases or keys and never executes transactions.
+Wallets connect through **NEAR Connect**. Ownership is proven with a **NEP-413** signed message, which cannot move funds. VEIL AI never asks for seed phrases or keys and never moves funds on its own.
+
+The **Wallet** page (`/dashboard/wallet`) lets users connect a wallet, or create/import one in a trusted wallet app (guided — keys never touch VEIL AI), then **send, receive, swap (NEAR Intents) and stake**. Every transaction is prepared and checked server-side, shown in a plain-language review, and signed only by the user's own wallet.
 
 ## Documentation
 
@@ -64,6 +67,8 @@ Open http://localhost:3000. With **no configuration**, everything runs in clearl
 5. Optional: enable the Google provider, then set `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`.
 6. Set `DATA_ENCRYPTION_KEY` (from `openssl rand -hex 32`) to encrypt stored messages, goals and reports, and `APP_SECRET` for signed NEP-413 challenges.
 
+To enable swaps, request a NEAR Intents 1Click API key (JWT) from the NEAR Intents team and set `ONECLICK_JWT` (server-side only). Without it, the Swap tab shows that swaps are unavailable.
+
 Optional keys (`NEARBLOCKS_API_KEY`, `COINGECKO_API_KEY`, `FASTNEAR_API_KEY`) raise third-party rate limits. All variables are documented in [.env.example](.env.example). Missing configuration is reported clearly at server startup.
 
 ## Scripts
@@ -100,7 +105,7 @@ The tests cover account validation and secret detection, portfolio maths, risk s
 
 ## Costs and fees
 
-VEIL AI charges users nothing. The deployer pays for NEAR AI Cloud inference on their own NEAR AI account. Public data APIs may rate-limit anonymous traffic. VEIL AI never sends transactions, so users pay no network fees through it.
+VEIL AI charges users nothing. The deployer pays for NEAR AI Cloud inference on their own NEAR AI account. Public data APIs may rate-limit anonymous traffic. VEIL AI charges no fee on transactions. If a user sends, swaps or stakes, their wallet pays standard NEAR gas (typically under 0.001 NEAR), and swaps include the NEAR Intents route fee shown in the quote before approval.
 
 ## Limitations
 

@@ -138,8 +138,20 @@ export function WalletManager({ onChange }: { onChange?: () => void }) {
             )}
           </div>
         )}
+        {!wallet.accountId && (
+          <p className="mt-2 text-xs text-muted">
+            New to NEAR?{" "}
+            <Link href="/dashboard/wallet?start=create" className="font-medium text-accent-strong hover:underline">
+              Create a wallet
+            </Link>{" "}
+            ·{" "}
+            <Link href="/dashboard/wallet?start=import" className="font-medium text-accent-strong hover:underline">
+              Import a wallet
+            </Link>
+          </p>
+        )}
         <p className="mt-2 text-[0.68rem] leading-relaxed text-subtle">
-          Ownership proof signs a NEP-413 message — it cannot move funds. VEIL AI never requests transactions, keys or seed phrases.
+          Ownership proof signs a NEP-413 message — it cannot move funds. VEIL AI never asks for keys or seed phrases; any transaction is approved by you in your wallet.
         </p>
       </div>
 

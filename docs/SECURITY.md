@@ -40,7 +40,13 @@ Wallet indicators are **heuristics with cited evidence**, never verdicts:
 
 ## Transactions
 
-VEIL AI never signs, sends or requests transactions. If transaction features are added later, they must require explicit per-transaction user approval in the wallet.
+VEIL AI never holds keys and never signs or sends anything on its own. The Wallet page (send, swap, stake) works like this:
+
+1. **Server-side preparation** (`lib/defi/service.ts`): inputs are validated with zod; amounts are converted to base units with exact integer maths (no floating point); balances, storage registration (NEP-145), receiver existence and staking-pool validity are checked against the chain. The server returns a plan: the exact transactions plus plain-language review rows and warnings.
+2. **In-app review** (`components/wallet/review-dialog.tsx`): the user sees what will happen and can expand the exact transactions.
+3. **Wallet approval**: the plan is passed to the user's wallet through NEAR Connect. The wallet shows its own confirmation and signs. Cancelling at any point sends nothing.
+
+Swap quotes from NEAR Intents are checked before a plan is built: the quote's `recipient` and `refundTo` must equal the user's account and `amountIn` must not exceed the requested amount, otherwise the quote is discarded. The server never signs, holds funds or has function-call keys. POST routes require a same-origin request and are rate-limited.
 
 ## Reporting a vulnerability
 

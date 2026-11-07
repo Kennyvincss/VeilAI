@@ -11,7 +11,7 @@ export function Footer() {
             Confidential financial intelligence for crypto users. Free, with no subscriptions or paywalls. Built on NEAR AI Cloud.
           </p>
           <p className="mt-4 text-xs leading-relaxed text-subtle">
-            Informational only — not financial, investment, tax or legal advice. Third-party API rate limits may apply. VEIL AI never executes transactions; if you choose to transact elsewhere, standard NEAR network gas fees apply.
+            Informational only — not financial, investment, tax or legal advice. Third-party API rate limits may apply. VEIL AI never moves funds on its own: any send, swap or stake is approved by you in your wallet, and standard NEAR network gas fees (plus any route fee shown in a swap quote) apply.
           </p>
         </div>
         <FooterCol title="Product" links={[["Dashboard", "/dashboard"], ["AI Analyst", "/dashboard/analyst"], ["Wallet Intelligence", "/dashboard/wallet-intelligence"], ["Risk Engine", "/dashboard/risk-engine"]]} />

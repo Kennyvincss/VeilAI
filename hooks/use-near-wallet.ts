@@ -7,12 +7,15 @@ import type { NearConnector } from "@hot-labs/near-connect";
  * NEAR wallet connection via NEAR Connect (@hot-labs/near-connect), which
  * runs each wallet's integration inside a sandboxed iframe.
  *
- * VEIL AI only ever requests:
- *   - sign-in (account ID + public key), and
- *   - a NEP-413 off-chain signed message proving account ownership.
- * It never requests transaction signing or function-call keys, and never
- * touches private keys. The wallet library stores only its own session
- * metadata; no private keys are placed in browser storage by VEIL AI.
+ * VEIL AI requests:
+ *   - sign-in (account ID + public key);
+ *   - a NEP-413 off-chain signed message proving account ownership;
+ *   - transactions the user has explicitly reviewed in VEIL AI (send,
+ *     stake, swap). Each one is shown again in the user's own wallet, which
+ *     does the signing — VEIL AI never holds keys and never signs, and
+ *     nothing is sent automatically.
+ * VEIL AI never requests function-call access keys and never touches
+ * private keys or seed phrases.
  */
 
 let connectorPromise: Promise<NearConnector> | null = null;
@@ -27,6 +30,41 @@ function getConnector(network: "mainnet" | "testnet"): Promise<NearConnector> {
       }),
   );
   return connectorPromise;
+}
+
+export interface PlannedTx {
+  receiverId: string;
+  actions: (
+    | { type: "Transfer"; params: { deposit: string } }
+    | { type: "FunctionCall"; params: { methodName: string; args: Record<string, unknown>; gas: string; deposit: string } }
+  )[];
+}
+
+export interface ManifestWallet {
+  id: string;
+  name: string;
+  icon?: string;
+  website?: string;
+  description?: string;
+  platform?: Record<string, string>;
+}
+
+/** Wallets listed in NEAR Connect's official manifest (loaded at runtime). */
+export async function loadManifestWallets(network: "mainnet" | "testnet"): Promise<ManifestWallet[]> {
+  const c = await getConnector(network);
+  await c.whenManifestLoaded.catch(() => undefined);
+  return (c.manifest?.wallets ?? []) as unknown as ManifestWallet[];
+}
+
+/** Pull transaction hashes out of wallet outcomes (shape varies slightly by wallet). */
+function outcomeHashes(outcomes: unknown): string[] {
+  const list = Array.isArray(outcomes) ? outcomes : [outcomes];
+  return list
+    .map((o) => {
+      const x = o as { transaction?: { hash?: string }; transaction_outcome?: { id?: string } } | null;
+      return x?.transaction?.hash ?? x?.transaction_outcome?.id ?? null;
+    })
+    .filter((h): h is string => typeof h === "string");
 }
 
 export interface OwnershipProof {
@@ -103,11 +141,35 @@ export function useNearWallet(network: "mainnet" | "testnet") {
     [network],
   );
 
+  /**
+   * Ask the user's wallet to sign and send transactions they already
+   * reviewed in VEIL AI. The wallet shows its own approval screen; if the
+   * user rejects there, this throws and nothing is sent.
+   */
+  const signAndSend = useCallback(
+    async (transactions: PlannedTx[]): Promise<string[]> => {
+      if (!accountId) throw new Error("Connect a wallet first.");
+      setBusy(true);
+      try {
+        const c = await getConnector(network);
+        const wallet = await c.wallet();
+        const outcomes =
+          transactions.length === 1
+            ? await wallet.signAndSendTransaction({ signerId: accountId, receiverId: transactions[0].receiverId, actions: transactions[0].actions as never })
+            : await wallet.signAndSendTransactions({ signerId: accountId, transactions: transactions.map((t) => ({ receiverId: t.receiverId, actions: t.actions as never })) });
+        return outcomeHashes(outcomes);
+      } finally {
+        if (mounted.current) setBusy(false);
+      }
+    },
+    [accountId, network],
+  );
+
   const disconnect = useCallback(async () => {
     const c = await getConnector(network);
     await c.disconnect().catch(() => undefined);
     setAccountId(null);
   }, [network]);
 
-  return { accountId, busy, connect, connectWithProof, disconnect };
+  return { accountId, busy, connect, connectWithProof, disconnect, signAndSend };
 }

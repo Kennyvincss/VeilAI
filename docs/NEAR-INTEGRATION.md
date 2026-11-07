@@ -73,11 +73,23 @@ After each streamed answer (`verifyCompletion`):
 - derive the **liquidity** risk signal: the share of value not routable through NEAR Intents (plus staked NEAR, which has an unbonding period);
 - pass `coingeckoId` through to CoinGecko for price history.
 
-VEIL AI does **not** create swaps or deposits. It never executes transactions. A future "rebalance preview" could call `POST /v0/quote` with `dry: true` (this needs a 1Click JWT).
+**Swaps** (Wallet → Swap) use the 1Click API with the deployer's JWT (`ONECLICK_JWT`, server-side only):
+
+- `POST /v0/quote` with `swapType: EXACT_INPUT`, `depositType`/`refundType: ORIGIN_CHAIN`, `recipientType: DESTINATION_CHAIN`, `refundTo` and `recipient` set to the connected account, user-chosen slippage (0.5–2%) and a 20-minute deadline. Previews use `dry: true`; the final quote uses `dry: false` to get a deposit address.
+- The quote is rejected unless `recipient` and `refundTo` equal the user's account and `amountIn` ≤ the requested amount.
+- Deposit: native NEAR is a plain `Transfer` to the deposit address; NEP-141 tokens are `storage_deposit` (registration only) + `ft_transfer` to the deposit address. The user's wallet signs.
+- After signing, `POST /v0/deposit/submit` speeds up detection and `GET /v0/status` is polled to show progress (pending → processing → success / refunded / failed).
+
+Without `ONECLICK_JWT`, the Swap tab says swaps are unavailable; nothing else is affected.
+
+## 5b. Send and stake
+
+- **Send:** NEAR is a `Transfer` (limited to the spendable balance: total − storage-locked − 0.05 NEAR gas reserve). NEP-141 tokens use `ft_transfer` (1 yoctoNEAR, 30 Tgas), preceded by `storage_deposit` when `storage_balance_of` shows the receiver isn't registered. The receiver must exist, except a new 64-hex implicit account for NEAR only.
+- **Stake:** validators come from RPC `validators` (current set, `.poolv1.near`/`.pool.near`), with fees from `get_reward_fee_fraction`. Actions follow the core staking-pool interface: `deposit_and_stake`, `unstake { amount }`, `withdraw_all`, with positions from `get_account`. Minimum 1 NEAR; unstaked NEAR is withdrawable after ~4 epochs (2–3 days).
 
 ## 6. Wallets and NEP-413
 
-- `NearConnector` is created with `features: { signMessage: true }`. VEIL AI only requests sign-in, or sign-in plus a signed message. It never requests transactions or function-call keys.
+- `NearConnector` is created with `features: { signMessage: true }`. VEIL AI requests sign-in, sign-in plus a signed message, and — only from the Wallet page after the user reviews a plan — `signAndSendTransaction(s)`. It never requests function-call access keys.
 - **Ownership proof:** the server issues a 32-byte nonce and a message inside an HMAC-signed, httpOnly, 5-minute, single-use cookie (`/api/wallet/challenge`). The wallet signs it via NEP-413. `/api/wallet/verify` rebuilds the Borsh payload (tag `2^31+413`), verifies the Ed25519 signature, and confirms via RPC `view_access_key` that the key is a **FullAccess** key on the claimed account.
 
 ## 7. Public chain data
@@ -88,4 +100,4 @@ VEIL AI does **not** create swaps or deposits. It never executes transactions. A
 
 ## Fees
 
-VEIL AI is free. NEAR AI Cloud inference is billed to the **deployer's** NEAR AI account, not to users. Public data APIs may rate-limit anonymous traffic. VEIL AI never sends transactions, so users pay no gas through it.
+VEIL AI is free. NEAR AI Cloud inference is billed to the **deployer's** NEAR AI account, not to users. Public data APIs may rate-limit anonymous traffic. VEIL AI charges no fee on transactions. When a user sends, swaps or stakes, their wallet pays standard NEAR gas (typically under 0.001 NEAR); swaps also include the NEAR Intents route fee, which is reflected in the quote shown before approval.
