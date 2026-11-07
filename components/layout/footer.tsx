@@ -15,7 +15,7 @@ export function Footer() {
           </p>
         </div>
         <FooterCol title="Product" links={[["Dashboard", "/dashboard"], ["AI Analyst", "/dashboard/analyst"], ["Wallet Intelligence", "/dashboard/wallet-intelligence"], ["Risk Engine", "/dashboard/risk-engine"]]} />
-        <FooterCol title="Trust" links={[["Privacy Centre", "/dashboard/privacy"], ["Privacy architecture", "https://github.com/kennyvincss/VeilAI/blob/main/docs/PRIVACY.md"], ["Security", "https://github.com/kennyvincss/VeilAI/blob/main/docs/SECURITY.md"], ["NEAR integration", "https://github.com/kennyvincss/VeilAI/blob/main/docs/NEAR-INTEGRATION.md"]]} />
+        <FooterCol title="Trust" links={[["Privacy Centre", "/dashboard/privacy"], ["How your data is protected", "/#privacy"], ["Privacy architecture", "https://github.com/kennyvincss/VeilAI/blob/main/docs/PRIVACY.md"]]} />
         <FooterCol title="NEAR" links={[["NEAR AI Cloud", "https://cloud.near.ai"], ["Attestation verifier", "https://github.com/nearai/nearai-cloud-verifier"], ["NEAR Intents", "https://docs.near-intents.org"], ["NEAR Protocol", "https://near.org"]]} />
       </div>
       <div className="border-t border-border">

@@ -114,7 +114,7 @@ export default function MemoryPage() {
                   placeholder="e.g. Build a stablecoin buffer covering 6 months of expenses."
                   className="w-full rounded-xl border border-border-strong bg-bg-2 px-3.5 py-2.5 text-sm text-text placeholder:text-subtle focus:border-accent/60 focus:outline-none focus:ring-2 focus:ring-accent/25"
                 />
-                <p className="mt-1 text-[0.68rem] text-subtle">Avoid personal identifiers. {status.dataEncryption.configured ? "Encrypted with AES-256-GCM before storage." : "Stored with Supabase encryption at rest."}</p>
+                <p className="mt-1 text-[0.68rem] text-subtle">Avoid personal identifiers. Stored encrypted and visible only to you.</p>
               </div>
               <div className="space-y-4 rounded-xl border border-border p-4">
                 <Toggle id="use-in-ai" checked={p.useInAi} onChange={(useInAi) => setP({ ...p, useInAi })} label="Use these preferences in AI analysis" description="When on, they are included (as data) in confidential inference requests." />

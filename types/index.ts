@@ -254,6 +254,16 @@ export interface AppStatus {
   demoAllowsLiveAi: boolean;
 }
 
+/**
+ * The ONLY status information sent to browsers. Deliberately minimal: no
+ * endpoints, configuration modes or security-posture flags.
+ */
+export interface PublicStatus {
+  nearAi: { configured: boolean; model: string; e2ee: boolean };
+  accounts: { enabled: boolean };
+  network: "mainnet" | "testnet";
+}
+
 export interface FinancialPreferences {
   timeframe: "short" | "medium" | "long" | null;
   riskTolerance: "conservative" | "balanced" | "aggressive" | null;
