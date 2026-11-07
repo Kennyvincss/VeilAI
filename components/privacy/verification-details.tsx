@@ -86,16 +86,19 @@ export function VerificationDetails({ result, compact }: { result: VerificationR
             <Lock className="h-3 w-3" /> E2EE · {result.e2ee.algo} v{result.e2ee.version}
           </Badge>
         ) : (
-          <Badge tone="neutral" title={result.e2ee.reason}>
-            TLS only
-          </Badge>
+          // Transport only matters for a specific answer, not for a hardware check.
+          result.completionChecks.length > 0 && (
+            <Badge tone="neutral" title={result.e2ee.reason}>
+              TLS only
+            </Badge>
+          )
         )}
         <span className="text-[0.7rem] text-subtle">
           {formatDateTime(result.completedAt)} · {(result.durationMs / 1000).toFixed(1)}s
         </span>
       </div>
       <p className="text-xs leading-relaxed text-muted">{result.summary}</p>
-      {!result.e2ee.enabled && result.e2ee.reason && <p className="text-[0.7rem] text-subtle">E2EE: {result.e2ee.reason}</p>}
+      {!result.e2ee.enabled && result.e2ee.reason && result.completionChecks.length > 0 && <p className="text-[0.7rem] text-subtle">E2EE: {result.e2ee.reason}</p>}
       {result.nonce && (
         <div className="break-all rounded-lg bg-bg-2/70 px-3 py-2 font-mono text-[0.65rem] text-subtle">
           <span className="text-muted">fresh nonce </span>
