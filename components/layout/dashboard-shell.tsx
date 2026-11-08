@@ -15,6 +15,7 @@ import {
   Menu,
   ScanSearch,
   ShieldCheck,
+  Wallet,
   X,
 } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
@@ -25,6 +26,7 @@ import { cn } from "@/lib/utils/format";
 
 export const NAV = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+  { href: "/dashboard/wallet", label: "Wallet", icon: Wallet },
   { href: "/dashboard/analyst", label: "AI Analyst", icon: BrainCircuit },
   { href: "/dashboard/wallet-intelligence", label: "Wallet Intelligence", icon: ScanSearch },
   { href: "/dashboard/risk-engine", label: "Risk Engine", icon: Gauge },

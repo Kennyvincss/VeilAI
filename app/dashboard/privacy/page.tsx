@@ -186,7 +186,7 @@ export default function PrivacyCentrePage() {
             </li>
             <li className="flex gap-2.5">
               <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-accent-strong" />
-              We will never ask for your seed phrase or private key, and we never move your funds.
+              We will never ask for your seed phrase or private key, and we can never move your funds — every transaction is approved by you in your own wallet.
             </li>
           </ul>
         </Card>

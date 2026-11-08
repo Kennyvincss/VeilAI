@@ -12,8 +12,8 @@ app/
   login/, signup/              Supabase email (+ optional Google) auth
   auth/callback, auth/signout  PKCE code exchange, sign-out
   demo/, demo/exit             start/stop a no-account demo session (cookie)
-  dashboard/                   overview, analyst, wallet-intelligence, risk-engine,
-                               privacy, reports, memory
+  dashboard/                   overview, wallet (DeFi), analyst, wallet-intelligence,
+                               risk-engine, privacy, reports, memory
   api/
     ai/chat                    NDJSON streaming analyst
     ai/conversations[/id]      list / load / delete conversations
@@ -21,6 +21,8 @@ app/
     wallet/tracked|challenge|verify|intelligence
     privacy/attestation|models|history
     preferences, reports[/id]
+    defi/overview|send|stake   prepare (never sign) send/stake plans
+    defi/swap/tokens|quote|status|submit   NEAR Intents 1Click
 components/                    ui, layout, landing, dashboard, analyst, wallet, privacy, charts
 hooks/                         use-api, use-analyst-stream, use-near-wallet
 lib/
@@ -28,6 +30,7 @@ lib/
   session.ts                   request context (user | demo)
   near-ai/                     client, e2ee, checks (pure), hardware (TDX/GPU), verify (orchestrator)
   near/                        account validation, RPC, NEP-413, challenge constants
+  defi/                        exact amounts, transaction builders, 1Click client, prepare service
   blockchain/                  http helper + source tracking, FastNEAR, NearBlocks, prices (1Click, CoinGecko)
   portfolio/                   compute (pure), service (live), resolve
   wallet-intel/                analyze (pure), service (live), known contracts & risk lists
@@ -46,7 +49,7 @@ tests/                         unit + integration (Vitest)
 1. **Pure core, thin I/O.** Every calculation (portfolio maths, risk scores, wallet heuristics, attestation checks, NEP-413, E2EE) is a pure function with unit tests. Network code sits in thin `service`/`client` modules.
 2. **Provenance everywhere.** Every payload carries `provenance: { mode: "live" | "demo", sources[], notes[] }`. The UI renders a LIVE/DEMO badge and source chips next to data.
 3. **Honest failure.** A failed provider yields missing values plus a note. It is never replaced with made-up numbers. Verification failures surface as FAILED or UNVERIFIED with reasons.
-4. **Least privilege.** User queries run under RLS with the anon key. Secrets are server-only. The wallet integration requests no transaction permissions.
+4. **Least privilege.** User queries run under RLS with the anon key. Secrets are server-only. The wallet integration requests no function-call keys; transactions are only requested from the Wallet page after an in-app review, and the user's wallet signs each one.
 
 ## Modes
 

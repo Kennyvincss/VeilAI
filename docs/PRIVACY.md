@@ -30,6 +30,7 @@ Browser ◀──TLS── answer + verification evidence
 | Preferences (AI memory) | TLS | Sent to the model only if "use in AI" is on | Supabase + RLS; goals AES-256-GCM | Private |
 | Tracked-wallet list | TLS | Pseudonymised before inference | Supabase + RLS | Private (the link between you and the accounts) |
 | Balances & transactions | TLS | — | Not stored by VEIL AI | **Public** on NEAR |
+| Send / swap / stake requests | TLS | Never sent to the model | Not stored by VEIL AI. Swap quotes go to NEAR Intents (1Click), which sees your account, the tokens and amounts | Transactions are **public** on NEAR once signed |
 | Verification metadata (nonces, check results) | TLS | — | Supabase + RLS, no content | Private |
 | Email / auth | TLS | Never sent to the model | Supabase Auth | Private |
 

@@ -36,6 +36,7 @@ const schema = z.object({
   COINGECKO_API_KEY: optionalString,
   COINGECKO_API_PLAN: z.enum(["demo", "pro"]).optional(),
   ONECLICK_API_BASE: optionalString,
+  ONECLICK_JWT: optionalString,
 
   DATA_ENCRYPTION_KEY: optionalString,
   APP_SECRET: optionalString,

@@ -4,8 +4,8 @@ import { getEnv, nearNetwork } from "@/lib/env";
 
 /**
  * Minimal NEAR JSON-RPC client (https://docs.near.org/api/rpc/introduction).
- * Only read-only `query` requests are used; VEIL AI never signs or sends
- * transactions.
+ * Only read-only requests are made here. VEIL AI never signs or sends
+ * transactions itself: DeFi transactions are signed by the user's wallet.
  */
 
 const DEFAULT_RPC: Record<"mainnet" | "testnet", string[]> = {
@@ -140,6 +140,78 @@ export async function ftMetadata(contractId: string): Promise<FtMetadata | null>
 export async function stakedBalance(poolId: string, accountId: string): Promise<string | null> {
   try {
     return await callView<string>(poolId, "get_account_total_balance", { account_id: accountId });
+  } catch {
+    return null;
+  }
+}
+
+/* ---------------- DeFi helpers (read-only) ---------------- */
+
+export interface CurrentValidator {
+  account_id: string;
+  stake: string;
+  is_slashed?: boolean;
+  num_produced_blocks?: number;
+  num_expected_blocks?: number;
+}
+
+/** Current epoch validators (JSON-RPC `validators` method). */
+export async function currentValidators(): Promise<CurrentValidator[]> {
+  let lastErr: unknown;
+  for (const endpoint of rpcEndpoints()) {
+    try {
+      const r = await fetchJson<{ result?: { current_validators?: CurrentValidator[] }; error?: unknown }>("NEAR RPC", endpoint, {
+        method: "POST",
+        body: { jsonrpc: "2.0", id: "veil", method: "validators", params: [null] },
+        timeoutMs: 10_000,
+        retries: 0,
+      });
+      if (r.result?.current_validators) return r.result.current_validators;
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new ProviderError("NEAR RPC", "validators unavailable");
+}
+
+/** NEP-145 storage balance; null when the account is not registered with the contract. */
+export async function storageBalanceOf(contractId: string, accountId: string): Promise<{ total: string; available: string } | null> {
+  return callView<{ total: string; available: string } | null>(contractId, "storage_balance_of", { account_id: accountId });
+}
+
+/** NEP-145 storage bounds (minimum registration deposit). */
+export async function storageBalanceBounds(contractId: string): Promise<{ min: string; max: string | null } | null> {
+  try {
+    return await callView<{ min: string; max: string | null }>(contractId, "storage_balance_bounds");
+  } catch {
+    return null;
+  }
+}
+
+export async function ftBalanceOf(contractId: string, accountId: string): Promise<string> {
+  const b = await callView<string>(contractId, "ft_balance_of", { account_id: accountId });
+  return typeof b === "string" && /^\d+$/.test(b) ? b : "0";
+}
+
+export interface PoolAccount {
+  account_id: string;
+  unstaked_balance: string;
+  staked_balance: string;
+  can_withdraw: boolean;
+}
+
+export async function poolAccount(poolId: string, accountId: string): Promise<PoolAccount | null> {
+  try {
+    return await callView<PoolAccount>(poolId, "get_account", { account_id: accountId });
+  } catch {
+    return null;
+  }
+}
+
+export async function poolFee(poolId: string): Promise<{ numerator: number; denominator: number } | null> {
+  try {
+    const f = await callView<{ numerator: number; denominator: number }>(poolId, "get_reward_fee_fraction");
+    return f && typeof f.numerator === "number" && f.denominator > 0 ? f : null;
   } catch {
     return null;
   }
