@@ -10,7 +10,9 @@ export const amountSchema = z.string().trim().min(1, "Enter an amount").max(40).
 export const tokenSchema = z.union([z.literal("near"), accountIdSchema]);
 export const assetIdSchema = z.string().max(200).regex(/^nep141:[a-z0-9._-]{2,128}$/, "Unsupported token");
 
-export const sendSchema = z.object({ from: accountIdSchema, to: accountIdSchema, token: tokenSchema, amount: amountSchema, memo: z.string().trim().max(120).optional().nullable(), contacts: z.array(accountIdSchema).max(100).optional() });
+/** "@alice" — a VEIL username, resolved server-side to its owner's verified wallet. */
+export const usernameRefSchema = z.string().trim().toLowerCase().regex(/^@[a-z0-9_]{3,20}$/, "Enter a valid @username");
+export const sendSchema = z.object({ from: accountIdSchema, to: z.union([usernameRefSchema, accountIdSchema]), token: tokenSchema, amount: amountSchema, memo: z.string().trim().max(120).optional().nullable(), contacts: z.array(accountIdSchema).max(100).optional() });
 export const stakeSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("stake"), from: accountIdSchema, pool: accountIdSchema, amount: amountSchema }),
   z.object({ action: z.literal("unstake"), from: accountIdSchema, pool: accountIdSchema, amount: amountSchema }),

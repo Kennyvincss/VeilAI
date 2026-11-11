@@ -26,6 +26,7 @@ Built for the **NEAR Hackathon 2026 — Privacy & Private AI track**. Free for e
 | `/dashboard` | Portfolio value, 24h change, allocation, holdings, tracked wallets, risk score, recent transactions, on-demand AI insights, privacy status |
 | `/dashboard/wallet` | Connect, create or import a NEAR wallet; send, receive (QR), swap via NEAR Intents, stake/unstake/withdraw with validators; activity history; address book. Sends get a **receiver safety check** (look-alike/address-poisoning, new or empty accounts, token/contract receivers, risk lists, wallet-intelligence heuristics). Every transaction is reviewed in-app and approved in the user's wallet |
 | `/dashboard/analyst` | Streaming AI analyst on NEAR AI Cloud, with conversation history (save/delete), sources, and per-answer verification details. Ask "stake 5 NEAR with the lowest-fee validator" or "send 2 NEAR to bob.near" and an action card prepares it for review and wallet approval. Verified answers get a **shareable proof link** |
+| `/dashboard/account` | Claim a **username**, link an ownership-verified wallet so people can send NEAR to **@username**, and notification settings |
 | `/proof/[token]` | Public, content-free proof that an answer was signed inside a verified enclave: the enclave signature is re-checked on load, and anyone can request a fresh attestation |
 | `/dashboard/wallet-intelligence` | Investigate any public NEAR account: overview, timeline, stats, counterparties, contract calls, large transfers, evidence-based indicators, AI explanation (labelled as interpretation) |
 | `/dashboard/risk-engine` | Seven risk categories (concentration/HHI, volatility, liquidity, exposure, performance/drawdown, activity, suspicious) with every input shown |
@@ -36,6 +37,8 @@ Built for the **NEAR Hackathon 2026 — Privacy & Private AI track**. Free for e
 Wallets connect through **NEAR Connect**. Ownership is proven with a **NEP-413** signed message, which cannot move funds. VEIL AI never asks for seed phrases or keys and never moves funds on its own.
 
 The **Wallet** page (`/dashboard/wallet`) lets users connect a wallet, or create/import one in a trusted wallet app (guided — keys never touch VEIL AI), then **send, receive, swap (NEAR Intents) and stake**. Every transaction is prepared and checked server-side, shown in a plain-language review, and signed only by the user's own wallet.
+
+Accounts can sign in with **username or email** plus password. A **notification bell** shows money received, swap results, unstaked NEAR ready to withdraw and transactions sent — with optional browser alerts while VEIL AI is open (stored only in that browser).
 
 VEIL AI is installable as an app (web app manifest) and runs on NEAR **testnet** by setting `NEXT_PUBLIC_NEAR_NETWORK=testnet` — useful as a risk-free judging deployment (swaps are mainnet-only, because NEAR Intents doesn't run on testnet).
 
@@ -74,11 +77,13 @@ Open http://localhost:3000. With **no configuration**, everything runs in clearl
 ### Enable accounts and persistence (Supabase)
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Run the migrations in order: paste `supabase/migrations/20261104000000_init.sql`, then `supabase/migrations/20261111000000_contacts.sql` (address book) into the SQL editor, or use `supabase db push`.
+2. Run the migrations in order: paste `supabase/migrations/20261104000000_init.sql`, then `supabase/migrations/20261111000000_contacts.sql` (address book), then `supabase/migrations/20261112000000_usernames.sql` (usernames) into the SQL editor, or use `supabase db push`.
 3. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 4. Auth → URL configuration: add `http://localhost:3000/auth/callback` (and your production URL) as redirect URLs.
 5. Optional: enable the Google provider, then set `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`.
 6. Set `DATA_ENCRYPTION_KEY` (from `openssl rand -hex 32`) to encrypt stored messages, goals and reports, and `APP_SECRET` for signed NEP-413 challenges and shareable proof links (keep it stable — changing it invalidates existing proof links).
+
+To enable **username sign-in**, set `SUPABASE_SERVICE_ROLE_KEY` (server-only; Supabase → Project Settings → API). It is used solely to look up the email behind a username during sign-in. Without it, people sign in with their email; usernames and @username payments still work.
 
 To enable swaps, request a NEAR Intents 1Click API key (JWT) from the NEAR Intents team and set `ONECLICK_JWT` (server-side only). Without it, the Swap tab shows that swaps are unavailable.
 

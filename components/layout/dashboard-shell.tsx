@@ -15,9 +15,11 @@ import {
   Menu,
   ScanSearch,
   ShieldCheck,
+  UserRound,
   Wallet,
   X,
 } from "lucide-react";
+import { NotificationBell, NotificationPoller } from "@/components/notifications/notification-center";
 import { Logo } from "@/components/ui/logo";
 import { Badge, buttonClass } from "@/components/ui/primitives";
 import { useAppStatus } from "@/components/layout/app-status";
@@ -33,6 +35,7 @@ export const NAV = [
   { href: "/dashboard/privacy", label: "Privacy Centre", icon: ShieldCheck },
   { href: "/dashboard/reports", label: "Reports", icon: FileText },
   { href: "/dashboard/memory", label: "AI Memory", icon: KeyRound },
+  { href: "/dashboard/account", label: "Account", icon: UserRound },
 ];
 
 export function DashboardShell({ children }: { children: ReactNode }) {
@@ -103,6 +106,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-bg">
+      <NotificationPoller />
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-border bg-bg-2/80 px-4 py-5 backdrop-blur-xl lg:flex">
         <Link href="/" className="mb-8 px-2" aria-label="VEIL AI home">
@@ -118,9 +122,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <Link href="/dashboard" aria-label="Dashboard">
             <Logo />
           </Link>
-          <button className="rounded-lg p-2 text-muted hover:text-text" onClick={() => setOpen(true)} aria-label="Open navigation">
-            <Menu className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            <button className="rounded-lg p-2 text-muted hover:text-text" onClick={() => setOpen(true)} aria-label="Open navigation">
+              <Menu className="h-5 w-5" />
+            </button>
+          </div>
         </div>
         <div className="overflow-x-auto border-t border-border px-4 py-1.5">
           <LiveStatus className="flex-nowrap whitespace-nowrap" showAi={false} />
@@ -158,6 +165,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         <div className="sticky top-0 z-30 hidden h-12 items-center justify-between border-b border-border bg-bg/80 px-6 backdrop-blur-xl lg:flex">
           <LiveStatus />
           <div className="flex items-center gap-3 text-xs">
+            <NotificationBell />
             {status.session.signedIn ? (
               <span className="flex items-center gap-2 text-muted">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/15 text-[0.7rem] font-semibold uppercase text-accent-strong">

@@ -72,6 +72,16 @@ The analyst detects wallet actions only in the **user's own message** (`lib/ai/a
 
 `lib/near-ai/proof.ts` issues proof tokens **only from verification results the server itself just produced** — never from browser input. Tokens are `deflate(JSON)` + HMAC-SHA256 (domain-separated, `APP_SECRET`), capped at 8 KB with a 64 KB inflate limit, and contain no question or answer text. The proof page re-verifies the enclave signature on every load; `/api/proof/attest` (rate-limited, VEIL-issued tokens only) runs a fresh nonce-bound attestation of the signing key. The server never signs, holds funds or has function-call keys. POST routes require a same-origin request and are rate-limited.
 
+## Usernames and username sign-in
+
+- Usernames (`profiles` table) are 3–20 chars `[a-z0-9_]`, unique, with a reserved list (admin, support, near, veil, …) enforced in the database as well as the app.
+- **Receiving at @username** requires linking a wallet the user proved they own (NEP-413). A database trigger rejects any `payout_account` that isn't an ownership-verified tracked wallet of the same user, and unlinks it if the wallet is removed. Senders resolve `@username` server-side via a `security definer` function that returns only `username → account` for linked profiles; the review screen shows "@alice → account" and the safety check explains the link.
+- **Username sign-in** (`/api/auth/login`): the server maps the username to its email with a function granted **only to `service_role`**, then Supabase verifies the password and sets the session cookies. The email never reaches the browser. Errors are uniform ("Incorrect username or password"), same-origin is required, and attempts are rate-limited per IP and per username. `SUPABASE_SERVICE_ROLE_KEY` is used for nothing else; without it, username sign-in is disabled and email sign-in still works.
+
+## Notifications
+
+Created in the browser and stored in `localStorage` only. While the dashboard is open and a wallet is connected, the page polls a cheap balance fingerprint (`/api/defi/pulse`, RPC + FastNEAR) every 45 s and only fetches activity when it changes. Browser alerts use the Notification API after the user grants permission. Nothing is tracked server-side or in the background.
+
 ## Reporting a vulnerability
 
 Please open a private security advisory on the GitHub repository.

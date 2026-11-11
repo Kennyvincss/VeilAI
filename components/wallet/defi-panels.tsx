@@ -8,6 +8,7 @@ import { api, useApi } from "@/hooks/use-api";
 import { Badge, Button, Card, CardHeader, EmptyState, Input, Label, Skeleton } from "@/components/ui/primitives";
 import type { ReviewPlan } from "@/components/wallet/review-dialog";
 import type { Contact } from "@/hooks/use-contacts";
+import { notify } from "@/components/notifications/notification-center";
 import { fromBaseUnits } from "@/lib/defi/amounts";
 import { isValidAccountId, looksLikeSecret, normalizeAccountId } from "@/lib/near/account";
 import { cn, formatUsd, shortAccount } from "@/lib/utils/format";
@@ -108,8 +109,9 @@ export function SendPanel({
       setMemo("");
       return setError("That looks like a private key or recovery phrase. It was cleared and never sent. Never share it.");
     }
-    const receiver = normalizeAccountId(to);
-    if (!isValidAccountId(receiver)) return setError("Enter a valid NEAR account, e.g. alice.near");
+    const isUsername = to.trim().startsWith("@");
+    const receiver = isUsername ? to.trim().toLowerCase() : normalizeAccountId(to);
+    if (isUsername ? !/^@[a-z0-9_]{3,20}$/.test(receiver) : !isValidAccountId(receiver)) return setError("Enter a NEAR account (alice.near) or a VEIL @username");
     const plan = await run(() => api<ReviewPlan>("/api/defi/send", { method: "POST", json: { from: accountId, to: receiver, token, amount, memo: memo || null, contacts: contacts.map((c) => c.accountId).slice(0, 100) } }));
     if (plan) onPlan(plan);
   }
@@ -130,7 +132,7 @@ export function SendPanel({
         </div>
         <div>
           <Label htmlFor="send-to">Recipient</Label>
-          <Input id="send-to" placeholder="alice.near" value={to} onChange={(e) => setTo(e.target.value)} spellCheck={false} autoComplete="off" className="font-mono text-sm" />
+          <Input id="send-to" placeholder="alice.near or @username" value={to} onChange={(e) => setTo(e.target.value)} spellCheck={false} autoComplete="off" className="font-mono text-sm" />
           {contacts.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5" aria-label="Saved contacts">
               {contacts.slice(0, 12).map((c) => (
@@ -428,7 +430,18 @@ export function SwapTracker({ depositAddress, onClose }: { depositAddress: strin
     const tick = async () => {
       try {
         const s = await api<{ status: string }>(`/api/defi/swap/status?depositAddress=${encodeURIComponent(depositAddress)}`);
-        if (!stop) setStatus(s.status);
+        if (stop) return;
+        setStatus(s.status);
+        const final: Record<string, string> = { SUCCESS: "Swap completed", REFUNDED: "Swap refunded", FAILED: "Swap failed" };
+        if (final[s.status]) {
+          notify({
+            id: `swap:${depositAddress}:${s.status}`,
+            kind: "swap",
+            title: final[s.status],
+            body: s.status === "SUCCESS" ? "Your tokens have arrived in your wallet." : s.status === "REFUNDED" ? "The swap couldn't complete; your tokens were refunded." : "If funds were taken, they'll be refunded to your account.",
+            href: "/dashboard/wallet?tab=activity",
+          });
+        }
       } catch {
         /* keep polling */
       }

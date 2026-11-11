@@ -6,6 +6,7 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/primitives";
 import { cn } from "@/lib/utils/format";
 import type { PlannedTx } from "@/hooks/use-near-wallet";
+import { notify } from "@/components/notifications/notification-center";
 
 export interface ReviewPlan {
   kind: "send" | "stake" | "unstake" | "withdraw" | "swap";
@@ -25,6 +26,20 @@ const TITLES: Record<ReviewPlan["kind"], string> = {
   withdraw: "Review withdrawal",
   swap: "Review swap",
 };
+
+const SENT_TITLE: Record<ReviewPlan["kind"], string> = { send: "Transfer sent", stake: "Stake submitted", unstake: "Unstake submitted", withdraw: "Withdrawal submitted", swap: "Swap deposit sent" };
+
+/** Notification for a transaction the user just approved in their wallet. */
+export function sentNotification(plan: ReviewPlan, hashes: string[]) {
+  const first = plan.review[0];
+  return {
+    id: `sent:${hashes[hashes.length - 1] ?? Date.now()}`,
+    kind: (plan.kind === "swap" ? "swap" : plan.kind === "send" ? "sent" : "stake") as "swap" | "sent" | "stake",
+    title: SENT_TITLE[plan.kind],
+    body: first ? `${first.label}: ${first.value}` : "Submitted to the NEAR network.",
+    href: "/dashboard/wallet?tab=activity",
+  };
+}
 
 export function explorerTx(hash: string, network: "mainnet" | "testnet") {
   return network === "testnet" ? `https://testnet.nearblocks.io/txns/${hash}` : `https://nearblocks.io/txns/${hash}`;
@@ -60,6 +75,7 @@ export function ReviewDialog({
     setError(null);
     setShowRaw(false);
     setAck(false);
+    if (wasDone && plan) notify(sentNotification(plan, hashes));
     if (wasDone) onDone(hashes);
     else onCancel();
     setHashes([]);

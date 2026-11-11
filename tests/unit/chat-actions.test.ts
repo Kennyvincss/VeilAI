@@ -7,6 +7,7 @@ describe("parseAction (user's own words only)", () => {
     expect(parseAction("Send 5 NEAR to bob.near")).toEqual({ kind: "send", amount: "5", token: "NEAR", to: "bob.near" });
     expect(parseAction("please transfer 2.5 usdc to alice.near now")).toEqual({ kind: "send", amount: "2.5", token: "USDC", to: "alice.near" });
     expect(parseAction("pay carol.near 0,5 near")).toEqual({ kind: "send", amount: "0.5", token: "NEAR", to: "carol.near" });
+    expect(parseAction("send 3 NEAR to @alice_99")).toEqual({ kind: "send", amount: "3", token: "NEAR", to: "@alice_99" });
     const implicit = "a".repeat(64);
     expect(parseAction(`send .1 near to ${implicit}`)).toMatchObject({ amount: "0.1", to: implicit });
   });
