@@ -2,14 +2,18 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { AlertTriangle, ArrowRight, FlaskConical, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { api } from "@/hooks/use-api";
 import { Button, buttonClass, Input, Label } from "@/components/ui/primitives";
 import { Logo } from "@/components/ui/logo";
 
-export function AuthForm({ mode, googleEnabled }: { mode: "login" | "signup"; googleEnabled: boolean }) {
+const looksLikeEmail = (v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim());
+const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
+
+export function AuthForm({ mode, googleEnabled, usernameLogin = false }: { mode: "login" | "signup"; googleEnabled: boolean; usernameLogin?: boolean }) {
   const router = useRouter();
   const params = useSearchParams();
   const next = safeNext(params.get("next"));
@@ -19,6 +23,21 @@ export function AuthForm({ mode, googleEnabled }: { mode: "login" | "signup"; go
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(params.get("error") ? "Sign-in link was invalid or expired. Please try again." : null);
   const [sent, setSent] = useState(false);
+  const [username, setUsername] = useState("");
+  const [check, setCheck] = useState<{ for: string; available: boolean | null; problem: string | null } | null>(null);
+  const uname = username.trim().replace(/^@/, "").toLowerCase();
+
+  // Live availability check for the sign-up username.
+  useEffect(() => {
+    if (mode !== "signup" || uname.length < 3) return;
+    const t = setTimeout(() => {
+      api<{ available: boolean | null; problem: string | null }>(`/api/username/check?u=${encodeURIComponent(uname)}`)
+        .then((r) => setCheck({ for: uname, ...r }))
+        .catch(() => undefined);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [mode, uname]);
+  const unameCheck = check && check.for === uname ? check : null;
 
   const redirectTo = () => `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
@@ -30,13 +49,19 @@ export function AuthForm({ mode, googleEnabled }: { mode: "login" | "signup"; go
     setLoading(true);
     try {
       if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (usernameLogin && !looksLikeEmail(email)) {
+          await api("/api/auth/login", { method: "POST", json: { identifier: email, password } });
+        } else {
+          const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+          if (error) throw error;
+        }
         toast.success("Signed in");
         router.replace(next);
         router.refresh();
       } else {
-        const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectTo() } });
+        if (!USERNAME_RE.test(uname)) throw new Error("Choose a username: 3–20 characters, lowercase letters, numbers and _.");
+        if (unameCheck?.available === false) throw new Error(unameCheck.problem ?? "That username isn't available.");
+        const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: redirectTo(), data: { username: uname } } });
         if (error) throw error;
         if (data.session) {
           toast.success("Account created");
@@ -101,9 +126,33 @@ export function AuthForm({ mode, googleEnabled }: { mode: "login" | "signup"; go
             </>
           )}
           <form onSubmit={onSubmit} className={googleEnabled ? "space-y-4" : "mt-8 space-y-4"} noValidate>
+            {mode === "signup" && (
+              <div>
+                <Label htmlFor="username" hint="You can sign in with it, and get paid at @username">
+                  Username
+                </Label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-subtle">@</span>
+                  <Input id="username" autoComplete="username" required maxLength={21} value={username} onChange={(e) => setUsername(e.target.value)} placeholder="alice" spellCheck={false} className="pl-7" />
+                </div>
+                {uname.length >= 3 && unameCheck && unameCheck.available !== null && (
+                  <p className={`mt-1 text-[0.72rem] ${unameCheck.available ? "text-success" : "text-warning"}`}>{unameCheck.available ? `@${uname} is available` : unameCheck.problem}</p>
+                )}
+              </div>
+            )}
             <div>
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+              <Label htmlFor="email">{mode === "login" && usernameLogin ? "Email or username" : "Email"}</Label>
+              <Input
+                id="email"
+                type={mode === "login" && usernameLogin ? "text" : "email"}
+                autoComplete={mode === "login" && usernameLogin ? "username" : "email"}
+                autoCapitalize="none"
+                spellCheck={false}
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={mode === "login" && usernameLogin ? "you@example.com or @username" : "you@example.com"}
+              />
             </div>
             <div>
               <Label htmlFor="password" hint={mode === "signup" ? "Min. 8 characters" : undefined}>

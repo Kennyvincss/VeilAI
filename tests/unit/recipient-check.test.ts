@@ -76,6 +76,11 @@ describe("analyzeRecipient", () => {
     expect(r.level).toBe("danger");
     expect(r.findings[0].detail).toContain("(a saved contact)");
   });
+  it("explains a username-resolved receiver instead of flagging it as a look-alike", () => {
+    const r = analyzeRecipient(base({ to: "fr1end.near", viaUsername: "@friend" }));
+    expect(r.findings.map((f) => f.id)).toContain("username");
+    expect(r.findings.map((f) => f.id)).not.toContain("lookalike");
+  });
   it("says so when history is unavailable instead of claiming it's safe", () => {
     const r = analyzeRecipient(base({ receiverTxs: null, senderTxs: null }));
     expect(r.level).toBe("unknown");

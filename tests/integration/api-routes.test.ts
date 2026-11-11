@@ -20,6 +20,10 @@ import { PUT as prefsPUT } from "@/app/api/preferences/route";
 import { POST as verifyPOST } from "@/app/api/wallet/verify/route";
 import { GET as contactsGET, POST as contactsPOST } from "@/app/api/contacts/route";
 import { POST as proofAttestPOST } from "@/app/api/proof/attest/route";
+import { POST as loginPOST } from "@/app/api/auth/login/route";
+import { GET as profileGET, PUT as profilePUT } from "@/app/api/profile/route";
+import { GET as usernameCheckGET } from "@/app/api/username/check/route";
+import { POST as sendPOST } from "@/app/api/defi/send/route";
 import { __resetRateLimitsForTests } from "@/lib/security/rate-limit";
 
 const ORIGIN = "http://localhost:3000";
@@ -139,5 +143,28 @@ describe("address book and proofs", () => {
     const res = await proofAttestPOST(req("/api/proof/attest", { method: "POST", body: { token: "forged.token-value" } }));
     expect(res.status).toBe(400);
     delete process.env.APP_SECRET;
+  });
+});
+
+describe("usernames and username sign-in", () => {
+  it("validates usernames publicly without revealing anything else", async () => {
+    expect(await (await usernameCheckGET(req("/api/username/check?u=ab"))).json()).toMatchObject({ available: false });
+    expect(await (await usernameCheckGET(req("/api/username/check?u=support"))).json()).toMatchObject({ available: false, problem: expect.stringMatching(/reserved/) });
+  });
+  it("requires an account to claim a username", async () => {
+    expect(await (await profileGET()).json()).toMatchObject({ signedIn: false, profile: null });
+    expect((await profilePUT(req("/api/profile", { method: "PUT", body: { username: "alice" } }))).status).toBe(401);
+  });
+  it("username sign-in is same-origin only, validated, and fails closed without the server key", async () => {
+    expect((await loginPOST(req("/api/auth/login", { method: "POST", body: { identifier: "alice", password: "x" }, origin: "https://evil.example" }))).status).toBe(403);
+    expect((await loginPOST(req("/api/auth/login", { method: "POST", body: { identifier: "not valid!", password: "x" } }))).status).toBe(400);
+    const res = await loginPOST(req("/api/auth/login", { method: "POST", body: { identifier: "@alice", password: "x" } }));
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toMatch(/email/);
+  });
+  it("sending to an @username fails clearly when usernames aren't available", async () => {
+    const res = await sendPOST(req("/api/defi/send", { method: "POST", body: { from: "me.near", to: "@alice", token: "near", amount: "1" } }));
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toMatch(/usernames/i);
   });
 });

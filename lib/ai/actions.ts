@@ -18,7 +18,7 @@ export type ChatAction =
 
 const AMOUNT = String.raw`(\d{1,15}(?:[.,]\d{1,24})?|\.\d{1,24})`;
 const TOKEN = String.raw`(\$?[a-z][a-z0-9.]{0,15})`;
-const ACCOUNT = String.raw`([a-z0-9][a-z0-9_-]*(?:\.[a-z0-9_-]+)*\.(?:near|testnet|tg)|[0-9a-f]{64})`;
+const ACCOUNT = String.raw`(@[a-z0-9_]{3,20}|[a-z0-9][a-z0-9_-]*(?:\.[a-z0-9_-]+)*\.(?:near|testnet|tg)|[0-9a-f]{64})`;
 const POOL = String.raw`([a-z0-9][a-z0-9_-]*(?:\.[a-z0-9_-]+)*\.(?:poolv1\.near|pool\.near|pool\.f863973\.m0))`;
 
 const normAmount = (a: string) => (a.startsWith(".") ? `0${a}` : a).replace(",", ".");

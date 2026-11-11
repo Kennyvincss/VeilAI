@@ -333,3 +333,49 @@ export async function removeContact(db: SupabaseClient, userId: string, id: stri
   const { error } = await db.from("contacts").delete().eq("user_id", userId).eq("id", id);
   if (error) throw new Error("Could not delete contact");
 }
+
+/* ---------------- Profile (username) ---------------- */
+
+export interface Profile {
+  username: string;
+  payoutAccount: string | null;
+  payoutNetwork: string | null;
+}
+
+const isMissingTable = (code?: string) => code === "42P01" || code === "PGRST205";
+
+export async function getProfile(db: SupabaseClient, userId: string): Promise<Profile | null> {
+  const { data, error } = await db.from("profiles").select("username, payout_account, payout_network").eq("user_id", userId).maybeSingle();
+  if (error) {
+    if (isMissingTable(error.code)) throw new NotSetUpError("profiles table missing");
+    throw new Error("Could not load profile");
+  }
+  return data ? { username: data.username, payoutAccount: data.payout_account, payoutNetwork: data.payout_network } : null;
+}
+
+export class UsernameTakenError extends Error {}
+
+/** Create or rename the user's username. */
+export async function setUsername(db: SupabaseClient, userId: string, username: string): Promise<void> {
+  const { error } = await db.from("profiles").upsert({ user_id: userId, username }, { onConflict: "user_id" });
+  if (error) {
+    if (isMissingTable(error.code)) throw new NotSetUpError("profiles table missing");
+    if (error.code === "23505" || error.code === "23514") throw new UsernameTakenError("taken");
+    throw new Error("Could not save username");
+  }
+}
+
+/** Link (or unlink with null) the account that receives NEAR sent to @username. */
+export async function setPayoutAccount(db: SupabaseClient, userId: string, accountId: string | null): Promise<void> {
+  const { data, error } = await db
+    .from("profiles")
+    .update({ payout_account: accountId, payout_network: accountId ? nearNetwork() : null })
+    .eq("user_id", userId)
+    .select("user_id");
+  if (error) {
+    if (isMissingTable(error.code)) throw new NotSetUpError("profiles table missing");
+    if (error.code === "23514") throw new Error("That wallet isn't ownership-verified.");
+    throw new Error("Could not link wallet");
+  }
+  if (!data || data.length === 0) throw new Error("Choose a username first.");
+}
