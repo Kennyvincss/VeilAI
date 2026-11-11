@@ -289,3 +289,47 @@ export async function deleteReport(db: SupabaseClient, userId: string, id: strin
   const { error } = await db.from("reports").delete().eq("user_id", userId).eq("id", id);
   if (error) throw new Error("Could not delete report");
 }
+
+/* ---------------- Address book ---------------- */
+
+export interface Contact {
+  id: string;
+  label: string;
+  accountId: string;
+  createdAt: string;
+}
+
+/** Thrown when the contacts table hasn't been created (migration not run). */
+export class NotSetUpError extends Error {}
+
+export async function listContacts(db: SupabaseClient, userId: string): Promise<Contact[]> {
+  const { data, error } = await db
+    .from("contacts")
+    .select("id, label, account_id, created_at")
+    .eq("user_id", userId)
+    .eq("network", nearNetwork())
+    .order("created_at", { ascending: true });
+  if (error) {
+    if (error.code === "42P01" || error.code === "PGRST205") throw new NotSetUpError("contacts table missing");
+    throw new Error("Could not load contacts");
+  }
+  return (data ?? []).map((r) => ({ id: r.id, label: decryptField(r.label), accountId: decryptField(r.account_id), createdAt: r.created_at }));
+}
+
+export async function addContact(db: SupabaseClient, userId: string, label: string, accountId: string): Promise<string> {
+  const { data, error } = await db
+    .from("contacts")
+    .insert({ user_id: userId, network: nearNetwork(), label: encryptField(label), account_id: encryptField(accountId) })
+    .select("id")
+    .single();
+  if (error) {
+    if (error.code === "42P01" || error.code === "PGRST205") throw new NotSetUpError("contacts table missing");
+    throw new Error("Could not save contact");
+  }
+  return data.id as string;
+}
+
+export async function removeContact(db: SupabaseClient, userId: string, id: string): Promise<void> {
+  const { error } = await db.from("contacts").delete().eq("user_id", userId).eq("id", id);
+  if (error) throw new Error("Could not delete contact");
+}

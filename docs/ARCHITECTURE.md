@@ -12,6 +12,8 @@ app/
   login/, signup/              Supabase email (+ optional Google) auth
   auth/callback, auth/signout  PKCE code exchange, sign-out
   demo/, demo/exit             start/stop a no-account demo session (cookie)
+  proof/[token]                public, content-free proof of a verified AI answer
+  manifest.ts                  installable web app manifest
   dashboard/                   overview, wallet (DeFi), analyst, wallet-intelligence,
                                risk-engine, privacy, reports, memory
   api/
@@ -21,7 +23,9 @@ app/
     wallet/tracked|challenge|verify|intelligence
     privacy/attestation|models|history
     preferences, reports[/id]
-    defi/overview|send|stake   prepare (never sign) send/stake plans
+    defi/overview|send|stake|history   prepare (never sign) send/stake plans; activity
+    contacts                   encrypted address book (signed-in users)
+    proof/attest               fresh attestation for a VEIL-issued proof
     defi/swap/tokens|quote|status|submit   NEAR Intents 1Click
 components/                    ui, layout, landing, dashboard, analyst, wallet, privacy, charts
 hooks/                         use-api, use-analyst-stream, use-near-wallet
@@ -30,7 +34,10 @@ lib/
   session.ts                   request context (user | demo)
   near-ai/                     client, e2ee, checks (pure), hardware (TDX/GPU), verify (orchestrator)
   near/                        account validation, RPC, NEP-413, challenge constants
-  defi/                        exact amounts, transaction builders, 1Click client, prepare service
+  defi/                        exact amounts, transaction builders, 1Click client, prepare service,
+                               receiver safety check, activity describer
+  ai/actions.ts                wallet actions parsed from the user's own chat message
+  near-ai/proof.ts             HMAC-signed, content-free proof tokens
   blockchain/                  http helper + source tracking, FastNEAR, NearBlocks, prices (1Click, CoinGecko)
   portfolio/                   compute (pure), service (live), resolve
   wallet-intel/                analyze (pure), service (live), known contracts & risk lists

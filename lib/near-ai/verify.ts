@@ -183,6 +183,7 @@ export async function verifyCompletion(params: {
     targets: [] as AttestationTarget[],
     completionChecks: [] as VerificationCheck[],
     chatId: params.chatId,
+    signature: undefined as VerificationResult["signature"],
     e2ee: params.e2ee,
     errors: [] as string[],
   };
@@ -202,6 +203,7 @@ export async function verifyCompletion(params: {
     );
   }
 
+  base.signature = { text: sig.payload.text, signature: sig.payload.signature, signingAddress: sig.payload.signing_address, algo: sig.algo };
   const { checks, signer } = completionChecks({
     payload: sig.payload,
     algo: sig.algo,
@@ -284,4 +286,35 @@ export async function getAttestedEncryptionKey(model: string): Promise<{ key: At
 
 function finish(r: Omit<VerificationResult, "completedAt" | "durationMs">, started: number): VerificationResult {
   return { ...r, completedAt: new Date().toISOString(), durationMs: Date.now() - started };
+}
+
+/**
+ * Fresh, nonce-bound attestation of one signing key (used by public proof
+ * pages). "unverified" when NEAR AI no longer reports that key — e.g. the
+ * enclave restarted since the answer — which is not a failure of the
+ * original proof.
+ */
+export async function reattestSigner(model: string, signingAddress: string, algo: "ecdsa" | "ed25519") {
+  const nonce = newNonce();
+  const checkedAt = new Date().toISOString();
+  if (!nearAiConfig().configured) return { state: "unverified" as const, nonce, checkedAt, checks: [], message: "A fresh check isn't available on this deployment right now." };
+  let report: AttestationReportResponse;
+  try {
+    report = await fetchAttestationReport({ model, nonce, signingAlgo: algo, signingAddress });
+  } catch (err) {
+    log("warn", "proof.reattest_unavailable", { hint: nearAiOperatorHint(err) });
+    return { state: "unverified" as const, nonce, checkedAt, checks: [], message: "NEAR AI Cloud couldn't be reached for a fresh attestation. Please try again later." };
+  }
+  const match = modelAttestations(report).find((a) => a.signing_address?.toLowerCase() === signingAddress.toLowerCase());
+  if (!match) {
+    return { state: "unverified" as const, nonce, checkedAt, checks: [], message: "This enclave key is no longer active (enclaves rotate keys when restarted). The check made at answer time still stands." };
+  }
+  const target = await verifyTarget("model", match, nonce, { requireGpu: true });
+  return {
+    state: target.verified ? ("verified" as const) : ("failed" as const),
+    nonce,
+    checkedAt,
+    checks: target.checks.map((c) => ({ id: c.id, label: c.label, status: c.status, required: c.required })),
+    message: target.verified ? "The same enclave key passed a fresh attestation just now." : "The fresh attestation did not pass every required check.",
+  };
 }

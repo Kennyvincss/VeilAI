@@ -1,5 +1,5 @@
 import "server-only";
-import { accountKind } from "@/lib/near/account";
+import { accountKind, isValidAccountId } from "@/lib/near/account";
 import {
   currentValidators,
   ftBalanceOf,
@@ -26,6 +26,9 @@ import {
   type TransactionPlan,
 } from "@/lib/defi/transactions";
 import { requestQuote, type OneClickQuoteResponse } from "@/lib/defi/oneclick";
+import { accountFtTransfers, accountTransactions, normalizeFtTxn, normalizeTxn } from "@/lib/blockchain/nearblocks";
+import { analyzeRecipient, type SafetyCheck } from "@/lib/defi/recipient-check";
+import { yoctoToNear } from "@/lib/utils/units";
 
 /** A validation failure with a message that is safe to show the user. */
 export class DefiError extends Error {
@@ -52,6 +55,42 @@ async function requireAccount(accountId: string) {
   if (acct === undefined) throw new DefiError("The NEAR network could not be reached. Please try again.", 502);
   if (acct === null) throw new DefiError(`Account ${accountId} does not exist on NEAR.`, 404);
   return acct;
+}
+
+/** Resolves to null instead of waiting longer than `ms` or throwing. */
+function within<T>(p: Promise<T>, ms: number): Promise<T | null> {
+  return Promise.race([p.catch(() => null), new Promise<null>((r) => setTimeout(() => r(null), ms))]);
+}
+
+const SAFETY_SAMPLE = 25;
+
+/** Gathers public facts about the receiver (fail-soft, ~6s budget) and analyses them. */
+export async function recipientSafety(params: {
+  from: string;
+  to: string;
+  tokenContract: string | null;
+  receiver: { amount: string; isContract: boolean } | null;
+  contacts?: string[];
+}): Promise<SafetyCheck> {
+  const [rtx, rft, stx, tokens] = await Promise.all([
+    params.receiver ? within(accountTransactions(params.to, SAFETY_SAMPLE), 6000) : Promise.resolve([]),
+    params.receiver ? within(accountFtTransfers(params.to, SAFETY_SAMPLE), 6000) : Promise.resolve([]),
+    within(accountTransactions(params.from, 50), 6000),
+    within(intentsTokens(), 4000),
+  ]);
+  return analyzeRecipient({
+    from: params.from,
+    to: params.to,
+    tokenContract: params.tokenContract,
+    receiverIsContract: params.receiver?.isContract ?? false,
+    receiverBalanceNear: params.receiver ? yoctoToNear(params.receiver.amount) : null,
+    receiverTxs: rtx ? rtx.map((t) => normalizeTxn(params.to, t)) : null,
+    receiverFts: rft ? rft.map(normalizeFtTxn) : null,
+    sampleSize: SAFETY_SAMPLE,
+    senderTxs: stx ? stx.map((t) => normalizeTxn(params.from, t)) : null,
+    contacts: params.contacts,
+    knownTokenContracts: (tokens ?? []).filter((t) => t.blockchain === "near" && t.contractAddress).map((t) => t.contractAddress as string),
+  });
 }
 
 /* ------------------------------------------------------------------ */
@@ -94,7 +133,7 @@ export async function walletOverview(accountId: string) {
 /* Send                                                                */
 /* ------------------------------------------------------------------ */
 
-export async function prepareSend(input: { from: string; to: string; token: string; amount: string; memo?: string | null }): Promise<TransactionPlan> {
+export async function prepareSend(input: { from: string; to: string; token: string; amount: string; memo?: string | null; contacts?: string[] }): Promise<TransactionPlan> {
   const { from, to, token } = input;
   if (from === to) throw new DefiError("You can't send to the same account.");
   const sender = await requireAccount(from);
@@ -107,6 +146,8 @@ export async function prepareSend(input: { from: string; to: string; token: stri
 
   const warnings: string[] = ["Blockchain transfers are final. Double-check the receiving account."];
   if (implicitNew) warnings.push("This is a new implicit account: the transfer will create it.");
+
+  const safetyPromise = recipientSafety({ from, to, tokenContract: token === "near" ? null : token, receiver, contacts: input.contacts });
 
   if (token === "near") {
     const raw = parse(input.amount, NEAR_DECIMALS);
@@ -122,6 +163,7 @@ export async function prepareSend(input: { from: string; to: string; token: stri
         { label: "Network fee", value: "≈ 0.0001 NEAR (paid by your wallet)" },
       ],
       warnings,
+      safety: await safetyPromise,
     };
   }
 
@@ -155,6 +197,7 @@ export async function prepareSend(input: { from: string; to: string; token: stri
       { label: "Network fee", value: "≈ 0.0005 NEAR + 1 yoctoNEAR security deposit" },
     ],
     warnings,
+    safety: await safetyPromise,
   };
 }
 
@@ -168,7 +211,7 @@ export async function validators() {
   if (validatorCache && Date.now() - validatorCache.at < 30 * 60_000) return validatorCache.list;
   const current = await currentValidators();
   const top = current
-    .filter((v) => !v.is_slashed && /\.(poolv1|pool)\.near$|\.pool\.f863973\.m0$/.test(v.account_id))
+    .filter((v) => !v.is_slashed && STAKING_POOL_RE.test(v.account_id))
     .sort((a, b) => (BigInt(b.stake) > BigInt(a.stake) ? 1 : -1))
     .slice(0, 40);
   const list = await Promise.all(
@@ -204,7 +247,15 @@ export async function stakingPositions(accountId: string) {
   return rows.filter((r): r is NonNullable<typeof r> => r !== null && (r.stakedYocto !== "0" || r.unstakedYocto !== "0"));
 }
 
+/** Accounts created by the official staking-pool factories (mainnet + testnet). */
+export const STAKING_POOL_RE = /\.(poolv1|pool)\.near$|\.pool\.f863973\.m0$/;
+
+function requirePoolAccount(poolId: string) {
+  if (!STAKING_POOL_RE.test(poolId)) throw new DefiError(`${poolId} is not a staking pool created by the official NEAR staking-pool factory.`);
+}
+
 async function requirePool(poolId: string) {
+  requirePoolAccount(poolId);
   const fee = await poolFee(poolId);
   if (!fee) throw new DefiError(`${poolId} is not a valid staking pool.`);
   return fee;
@@ -231,6 +282,7 @@ export async function prepareStake(input: { from: string; pool: string; amount: 
 }
 
 export async function prepareUnstake(input: { from: string; pool: string; amount: string }): Promise<TransactionPlan> {
+  requirePoolAccount(input.pool);
   await requireAccount(input.from);
   const a = await poolAccount(input.pool, input.from);
   if (!a) throw new DefiError(`No stake found with ${input.pool}.`);
@@ -249,6 +301,7 @@ export async function prepareUnstake(input: { from: string; pool: string; amount
 }
 
 export async function prepareWithdraw(input: { from: string; pool: string }): Promise<TransactionPlan> {
+  requirePoolAccount(input.pool);
   await requireAccount(input.from);
   const a = await poolAccount(input.pool, input.from);
   if (!a || a.unstaked_balance === "0") throw new DefiError("There is nothing to withdraw from this validator.");
@@ -347,11 +400,20 @@ export async function prepareSwap(input: {
   // Safety: funds must go back to the user's own account, and the quote must not ask for more than they approved.
   let amountInOk = false;
   try {
-    amountInOk = BigInt(quote.quote.amountIn) <= BigInt(raw);
+    amountInOk = BigInt(quote.quote.amountIn) === BigInt(raw);
   } catch {
     amountInOk = false;
   }
-  if (!amountInOk || quote.quoteRequest.recipient !== input.from || quote.quoteRequest.refundTo !== input.from) {
+  const r = quote.quoteRequest;
+  const matches =
+    amountInOk &&
+    r.recipient === input.from &&
+    r.refundTo === input.from &&
+    r.originAsset === origin.assetId &&
+    r.destinationAsset === destination.assetId &&
+    !(Number(r.slippageTolerance) > input.slippageBps) &&
+    isValidAccountId(depositAddress);
+  if (!matches) {
     throw new DefiError("The swap quote did not match your request, so it was discarded. Please try again.", 502);
   }
 

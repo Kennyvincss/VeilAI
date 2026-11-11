@@ -9,6 +9,8 @@
  * ({ type: "Transfer" | "FunctionCall", params }).
  */
 
+import type { SafetyCheck } from "@/lib/defi/recipient-check";
+
 export type ConnectorAction =
   | { type: "Transfer"; params: { deposit: string } }
   | { type: "FunctionCall"; params: { methodName: string; args: Record<string, unknown>; gas: string; deposit: string } };
@@ -24,6 +26,8 @@ export interface TransactionPlan {
   /** Plain-language lines shown on the review screen, in order. */
   review: { label: string; value: string }[];
   warnings: string[];
+  /** Pre-send safety check on the receiver (send only). */
+  safety?: SafetyCheck;
 }
 
 export const TGAS = BigInt("1000000000000");

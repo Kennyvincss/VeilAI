@@ -21,6 +21,12 @@ vi.mock("@/lib/near/rpc", () => ({
   currentValidators: vi.fn(async () => []),
 }));
 vi.mock("@/lib/blockchain/fastnear", () => ({ accountStakingPools: vi.fn(async () => []) }));
+const history = { receiver: [] as unknown[], sender: [] as unknown[] };
+vi.mock("@/lib/blockchain/nearblocks", async (orig) => ({
+  ...(await orig<typeof import("@/lib/blockchain/nearblocks")>()),
+  accountTransactions: vi.fn(async (id: string) => (id === "me.near" ? history.sender : history.receiver)),
+  accountFtTransfers: vi.fn(async () => []),
+}));
 vi.mock("@/lib/portfolio/service", () => ({ fetchLivePortfolio: vi.fn(async () => null) }));
 
 const intents = [
@@ -32,14 +38,14 @@ vi.mock("@/lib/blockchain/prices", async (orig) => ({ ...(await orig<typeof impo
 const quote = { response: null as unknown };
 vi.mock("@/lib/defi/oneclick", () => ({ requestQuote: vi.fn(async () => quote.response) }));
 
-import { DefiError, prepareSend, prepareStake, prepareSwap, prepareWithdraw } from "@/lib/defi/service";
+import { DefiError, prepareSend, prepareStake, prepareSwap, prepareUnstake, prepareWithdraw } from "@/lib/defi/service";
 
 function q(over: Record<string, unknown> = {}, reqOver: Record<string, unknown> = {}) {
   return {
     correlationId: "c",
     timestamp: "",
     signature: "",
-    quoteRequest: { recipient: "me.near", refundTo: "me.near", ...reqOver },
+    quoteRequest: { recipient: "me.near", refundTo: "me.near", originAsset: "nep141:wrap.near", destinationAsset: "nep141:usdc.near", slippageTolerance: 100, ...reqOver },
     quote: { amountIn: "2" + "0".repeat(24), amountInFormatted: "2", amountInUsd: "6", minAmountIn: "0", amountOut: "6000000", amountOutFormatted: "6", amountOutUsd: "6", minAmountOut: "5900000", timeEstimate: 10, depositAddress: "d".repeat(64), ...over },
   };
 }
@@ -53,7 +59,22 @@ beforeEach(() => {
   chain.storage = null;
   chain.pool = null;
   chain.fee = { numerator: 5, denominator: 100 };
+  history.receiver = [nbTx("bob.near", "carol.near", 30)];
+  history.sender = [];
 });
+
+function nbTx(signer: string, receiver: string, daysAgo: number) {
+  return {
+    transaction_hash: `h${Math.random()}`,
+    block_timestamp: String((Date.now() - daysAgo * 86_400_000) * 1_000_000),
+    predecessor_account_id: signer,
+    receiver_account_id: receiver,
+    actions: [{ action: "TRANSFER", method: null, deposit: 1 }],
+    actions_agg: { deposit: 1 },
+    outcomes: { status: true },
+    outcomes_agg: { transaction_fee: 0 },
+  };
+}
 
 describe("prepareSend", () => {
   it("builds a native transfer within the spendable balance", async () => {
@@ -87,6 +108,24 @@ describe("prepareSend", () => {
     const plan = await prepareSend({ from: "me.near", to: "bob.near", token: "usdc.near", amount: "1" });
     expect(plan.transactions).toHaveLength(1);
   });
+  it("runs a receiver safety check and flags first-time sends", async () => {
+    const plan = await prepareSend({ from: "me.near", to: "bob.near", token: "near", amount: "1" });
+    expect(plan.safety?.findings.map((f) => f.id)).toContain("first-time");
+  });
+  it("flags a look-alike of an account the user sent to before", async () => {
+    chain.accounts.set("bob1.near", { amount: NEAR, storage_usage: 100, isContract: false });
+    history.sender = [nbTx("me.near", "bob.near", 3)];
+    const plan = await prepareSend({ from: "me.near", to: "bob1.near", token: "near", amount: "1" });
+    expect(plan.safety?.level).toBe("danger");
+    expect(plan.safety?.findings[0].detail).toMatch(/bob\.near/);
+  });
+  it("flags sending a token to its own contract", async () => {
+    chain.accounts.set("usdc.near", { amount: NEAR, storage_usage: 100, isContract: true });
+    chain.ftBalance = "5000000";
+    chain.storage = { total: "1", available: "0" };
+    const plan = await prepareSend({ from: "me.near", to: "usdc.near", token: "usdc.near", amount: "1" });
+    expect(plan.safety?.findings[0].id).toBe("token-to-own-contract");
+  });
   it("refuses more tokens than the balance", async () => {
     chain.ftBalance = "1000000";
     await expect(prepareSend({ from: "me.near", to: "bob.near", token: "usdc.near", amount: "2" })).rejects.toThrow(/Insufficient USDC/);
@@ -97,8 +136,10 @@ describe("staking", () => {
   it("requires a real pool, at least 1 NEAR and enough balance", async () => {
     await expect(prepareStake({ from: "me.near", pool: "x.poolv1.near", amount: "0.5" })).rejects.toThrow(/minimum stake/);
     await expect(prepareStake({ from: "me.near", pool: "x.poolv1.near", amount: "50" })).rejects.toThrow(/Insufficient/);
+    await expect(prepareStake({ from: "me.near", pool: "evil.near", amount: "2" })).rejects.toThrow(/official NEAR staking-pool factory/);
+    await expect(prepareUnstake({ from: "me.near", pool: "evil.near", amount: "2" })).rejects.toThrow(/official/);
     chain.fee = null;
-    await expect(prepareStake({ from: "me.near", pool: "fake.near", amount: "2" })).rejects.toThrow(/not a valid staking pool/);
+    await expect(prepareStake({ from: "me.near", pool: "fake.poolv1.near", amount: "2" })).rejects.toThrow(/not a valid staking pool/);
   });
   it("builds deposit_and_stake and shows the validator fee", async () => {
     const plan = await prepareStake({ from: "me.near", pool: "x.poolv1.near", amount: "2" });
@@ -136,8 +177,18 @@ describe("prepareSwap (NEAR Intents)", () => {
   it("rejects a quote asking for more than approved, or without a deposit address", async () => {
     quote.response = q({ amountIn: "3" + "0".repeat(24) });
     await expect(prepareSwap({ ...base, dry: false })).rejects.toThrow(/did not match/);
+    quote.response = q({ amountIn: "1" + "0".repeat(24) });
+    await expect(prepareSwap({ ...base, dry: false })).rejects.toThrow(/did not match/);
     quote.response = q({ depositAddress: undefined });
     await expect(prepareSwap({ ...base, dry: false })).rejects.toThrow(/deposit address/);
+  });
+  it("rejects a quote for different tokens, looser slippage or an invalid deposit address", async () => {
+    quote.response = q({}, { destinationAsset: "nep141:scam.near" });
+    await expect(prepareSwap({ ...base, dry: false })).rejects.toThrow(/did not match/);
+    quote.response = q({}, { slippageTolerance: 5000 });
+    await expect(prepareSwap({ ...base, dry: false })).rejects.toThrow(/did not match/);
+    quote.response = q({ depositAddress: "Not An Account!" });
+    await expect(prepareSwap({ ...base, dry: false })).rejects.toThrow(/did not match/);
   });
   it("checks the balance and refuses same-token or unsupported swaps", async () => {
     await expect(prepareSwap({ ...base, amount: "100", dry: true })).rejects.toThrow(/Insufficient/);

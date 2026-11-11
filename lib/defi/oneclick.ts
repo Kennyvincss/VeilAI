@@ -1,5 +1,5 @@
 import "server-only";
-import { getEnv } from "@/lib/env";
+import { getEnv, nearNetwork } from "@/lib/env";
 import { oneClickBase } from "@/lib/blockchain/prices";
 import { log } from "@/lib/security/logger";
 
@@ -63,6 +63,12 @@ export type OneClickStatus = "KNOWN_DEPOSIT_TX" | "PENDING_DEPOSIT" | "INCOMPLET
 
 export function oneClickConfigured(): boolean {
   return Boolean(getEnv().ONECLICK_JWT);
+}
+
+/** Swaps need a 1Click JWT and NEAR mainnet (NEAR Intents doesn't run on testnet). */
+export function swapAvailability(): { available: boolean; reason: "ok" | "testnet" | "not-configured" } {
+  if (nearNetwork() !== "mainnet") return { available: false, reason: "testnet" };
+  return oneClickConfigured() ? { available: true, reason: "ok" } : { available: false, reason: "not-configured" };
 }
 
 async function call<T>(path: string, init: { method: "GET" | "POST"; body?: unknown; query?: Record<string, string> } = { method: "GET" }): Promise<T> {

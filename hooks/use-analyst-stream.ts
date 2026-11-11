@@ -1,6 +1,7 @@
 "use client";
 
 import type { DataSource, VerificationResult, VerificationState } from "@/types";
+import type { ChatAction } from "@/lib/ai/actions";
 
 export type StreamEvent =
   | { type: "status"; state: VerificationState; message: string }
@@ -15,7 +16,8 @@ export type StreamEvent =
       conversationId: string | null;
     }
   | { type: "delta"; text: string }
-  | { type: "verification"; result: VerificationResult }
+  | { type: "action"; action: ChatAction }
+  | { type: "verification"; result: VerificationResult; proofToken?: string | null }
   | { type: "done"; messageId: string | null; conversationId: string | null }
   | { type: "error"; message: string };
 

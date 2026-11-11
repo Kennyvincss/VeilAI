@@ -10,7 +10,7 @@ export const amountSchema = z.string().trim().min(1, "Enter an amount").max(40).
 export const tokenSchema = z.union([z.literal("near"), accountIdSchema]);
 export const assetIdSchema = z.string().max(200).regex(/^nep141:[a-z0-9._-]{2,128}$/, "Unsupported token");
 
-export const sendSchema = z.object({ from: accountIdSchema, to: accountIdSchema, token: tokenSchema, amount: amountSchema, memo: z.string().trim().max(120).optional().nullable() });
+export const sendSchema = z.object({ from: accountIdSchema, to: accountIdSchema, token: tokenSchema, amount: amountSchema, memo: z.string().trim().max(120).optional().nullable(), contacts: z.array(accountIdSchema).max(100).optional() });
 export const stakeSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("stake"), from: accountIdSchema, pool: accountIdSchema, amount: amountSchema }),
   z.object({ action: z.literal("unstake"), from: accountIdSchema, pool: accountIdSchema, amount: amountSchema }),

@@ -9,14 +9,24 @@ Built for the **NEAR Hackathon 2026 — Privacy & Private AI track**. Free for e
 
 ---
 
+| | |
+|---|---|
+| ![Landing page](docs/screenshots/landing.jpg) | ![Portfolio overview (sample workspace)](docs/screenshots/dashboard.jpg) |
+| ![Wallet: connect, create or import](docs/screenshots/wallet.jpg) | ![AI analyst preparing a stake from chat](docs/screenshots/analyst-action.jpg) |
+
+![Shareable proof page (example data)](docs/screenshots/proof.jpg)
+
+*Screenshots from the sample workspace; the proof page is shown with example data.*
+
 ## Features
 
 | Page | What it does |
 |---|---|
 | `/` | Landing page: product, how it works, privacy model, features, NEAR integration, verification, FAQ |
 | `/dashboard` | Portfolio value, 24h change, allocation, holdings, tracked wallets, risk score, recent transactions, on-demand AI insights, privacy status |
-| `/dashboard/wallet` | Connect, create or import a NEAR wallet; send, receive (QR), swap via NEAR Intents, stake/unstake/withdraw with validators. Every transaction is reviewed in-app and approved in the user's wallet |
-| `/dashboard/analyst` | Streaming AI analyst on NEAR AI Cloud, with conversation history (save/delete), sources, and per-answer verification details |
+| `/dashboard/wallet` | Connect, create or import a NEAR wallet; send, receive (QR), swap via NEAR Intents, stake/unstake/withdraw with validators; activity history; address book. Sends get a **receiver safety check** (look-alike/address-poisoning, new or empty accounts, token/contract receivers, risk lists, wallet-intelligence heuristics). Every transaction is reviewed in-app and approved in the user's wallet |
+| `/dashboard/analyst` | Streaming AI analyst on NEAR AI Cloud, with conversation history (save/delete), sources, and per-answer verification details. Ask "stake 5 NEAR with the lowest-fee validator" or "send 2 NEAR to bob.near" and an action card prepares it for review and wallet approval. Verified answers get a **shareable proof link** |
+| `/proof/[token]` | Public, content-free proof that an answer was signed inside a verified enclave: the enclave signature is re-checked on load, and anyone can request a fresh attestation |
 | `/dashboard/wallet-intelligence` | Investigate any public NEAR account: overview, timeline, stats, counterparties, contract calls, large transfers, evidence-based indicators, AI explanation (labelled as interpretation) |
 | `/dashboard/risk-engine` | Seven risk categories (concentration/HHI, volatility, liquidity, exposure, performance/drawdown, activity, suspicious) with every input shown |
 | `/dashboard/privacy` | NEAR AI connection, live attestation verification with fresh nonces, every check with expected/actual values, model info, processing history, data-handling matrix |
@@ -27,12 +37,15 @@ Wallets connect through **NEAR Connect**. Ownership is proven with a **NEP-413**
 
 The **Wallet** page (`/dashboard/wallet`) lets users connect a wallet, or create/import one in a trusted wallet app (guided — keys never touch VEIL AI), then **send, receive, swap (NEAR Intents) and stake**. Every transaction is prepared and checked server-side, shown in a plain-language review, and signed only by the user's own wallet.
 
+VEIL AI is installable as an app (web app manifest) and runs on NEAR **testnet** by setting `NEXT_PUBLIC_NEAR_NETWORK=testnet` — useful as a risk-free judging deployment (swaps are mainnet-only, because NEAR Intents doesn't run on testnet).
+
 ## Documentation
 
 - [docs/NEAR-INTEGRATION.md](docs/NEAR-INTEGRATION.md): exactly how NEAR powers the product, endpoint by endpoint
 - [docs/PRIVACY.md](docs/PRIVACY.md): privacy architecture, and what is and is not protected
 - [docs/SECURITY.md](docs/SECURITY.md): threat model and controls
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): structure, modes, pipeline, data model
+- [docs/SUBMISSION.md](docs/SUBMISSION.md): hackathon write-up and demo video script
 
 ## Quick start
 
@@ -61,11 +74,11 @@ Open http://localhost:3000. With **no configuration**, everything runs in clearl
 ### Enable accounts and persistence (Supabase)
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Run the migration: paste `supabase/migrations/20261104000000_init.sql` into the SQL editor, or use `supabase db push`.
+2. Run the migrations in order: paste `supabase/migrations/20261104000000_init.sql`, then `supabase/migrations/20261111000000_contacts.sql` (address book) into the SQL editor, or use `supabase db push`.
 3. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 4. Auth → URL configuration: add `http://localhost:3000/auth/callback` (and your production URL) as redirect URLs.
 5. Optional: enable the Google provider, then set `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`.
-6. Set `DATA_ENCRYPTION_KEY` (from `openssl rand -hex 32`) to encrypt stored messages, goals and reports, and `APP_SECRET` for signed NEP-413 challenges.
+6. Set `DATA_ENCRYPTION_KEY` (from `openssl rand -hex 32`) to encrypt stored messages, goals and reports, and `APP_SECRET` for signed NEP-413 challenges and shareable proof links (keep it stable — changing it invalidates existing proof links).
 
 To enable swaps, request a NEAR Intents 1Click API key (JWT) from the NEAR Intents team and set `ONECLICK_JWT` (server-side only). Without it, the Swap tab shows that swaps are unavailable.
 
@@ -94,6 +107,10 @@ npm run check       # all of the above
 ```
 
 The tests cover account validation and secret detection, portfolio maths, risk scoring, wallet heuristics, NearBlocks normalisation, prompt-injection sanitisation, data minimisation, rate limiting, AES-GCM and signed tokens, TDX report-data and compose binding, ECDSA/Ed25519 completion signatures, E2EE v2 round-trips, NEP-413, and the verification orchestrator. The orchestrator tests check that VERIFIED only appears when every check passes. Route-level tests cover access control, CSRF, validation, rate limiting and the demo-mode analyst stream.
+
+## Testnet deployment (for judges)
+
+Create a second Vercel project from the same repository with `NEXT_PUBLIC_NEAR_NETWORK=testnet` (plus the same NEAR AI and Supabase variables). Wallets connect on testnet, the Wallet page shows a faucet link (near-faucet.io), and send/stake work with free test NEAR.
 
 ## Deploying to Vercel
 

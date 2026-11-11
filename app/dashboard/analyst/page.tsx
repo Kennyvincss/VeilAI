@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BrainCircuit, Lock, MessageSquarePlus, Send, ShieldCheck, Square, Trash2, User } from "lucide-react";
+import { BrainCircuit, ExternalLink, Link2, Lock, MessageSquarePlus, Send, ShieldCheck, Square, Trash2, User } from "lucide-react";
 import { toast } from "sonner";
 import type { ChatMessage, ConversationSummary, DataSource, VerificationResult, VerificationState } from "@/types";
 import { api, useApi } from "@/hooks/use-api";
@@ -16,6 +16,8 @@ import { Badge, Button, Card, Toggle } from "@/components/ui/primitives";
 import { ModeBadge, VerificationBadge } from "@/components/ui/status";
 import { cn, timeAgo } from "@/lib/utils/format";
 import { looksLikeSecret } from "@/lib/near/account";
+import type { ChatAction } from "@/lib/ai/actions";
+import { ActionCard } from "@/components/wallet/action-card";
 
 const SUGGESTIONS = [
   "Analyse my portfolio",
@@ -25,6 +27,7 @@ const SUGGESTIONS = [
   "Analyse my trading behaviour",
   "Explain my recent transactions",
   "Generate a financial risk report",
+  "Stake 5 NEAR with the lowest-fee validator",
 ];
 
 interface UiMessage extends ChatMessage {
@@ -33,6 +36,7 @@ interface UiMessage extends ChatMessage {
   inference?: "near-ai" | "demo-template";
   notes?: string[];
   error?: string;
+  action?: ChatAction;
 }
 
 const STEPS: { state: VerificationState; label: string }[] = [
@@ -131,8 +135,11 @@ export default function AnalystPage() {
             case "delta":
               patchLast((m) => ({ ...m, content: m.content + e.text }));
               break;
+            case "action":
+              patchLast((m) => ({ ...m, action: e.action }));
+              break;
             case "verification":
-              patchLast((m) => ({ ...m, meta: { ...m.meta, verification: e.result, sources } }));
+              patchLast((m) => ({ ...m, meta: { ...m.meta, verification: e.result, proofToken: e.proofToken ?? null, sources } }));
               break;
             case "done":
               patchLast((m) => ({ ...m, pending: false, id: e.messageId ?? m.id }));
@@ -342,6 +349,8 @@ function AssistantMessage({ m }: { m: UiMessage }) {
         </div>
       )}
 
+      {m.action && <ActionCard action={m.action} />}
+
       {m.error && (
         <p role="alert" className="rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
           {m.error}
@@ -367,6 +376,8 @@ function AssistantMessage({ m }: { m: UiMessage }) {
           ))}
         </ul>
       )}
+      {!m.pending && m.meta?.proofToken && <ShareProof token={m.meta.proofToken} />}
+
       {v && (
         <details className="group rounded-xl border border-border bg-bg-2/30 p-3">
           <summary className="flex cursor-pointer list-none items-center gap-2 text-xs text-muted hover:text-text">
@@ -377,6 +388,29 @@ function AssistantMessage({ m }: { m: UiMessage }) {
           </div>
         </details>
       )}
+    </div>
+  );
+}
+
+/** Copy a public link that proves this answer came from a verified enclave (no question or answer text inside). */
+function ShareProof({ token }: { token: string }) {
+  const href = `/proof/${token}`;
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}${href}`);
+      toast.success("Proof link copied. It contains no question or answer text.");
+    } catch {
+      toast.error("Could not copy. Open the proof and copy the address instead.");
+    }
+  }
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button variant="secondary" size="sm" onClick={copy}>
+        <Link2 className="h-3.5 w-3.5" /> Copy proof link
+      </Button>
+      <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-muted hover:text-text">
+        Open proof <ExternalLink className="h-3 w-3" />
+      </a>
     </div>
   );
 }

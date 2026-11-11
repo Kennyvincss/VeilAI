@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description:
     "Analyse your crypto portfolio, investigate wallets and receive financial insights through confidential AI processing on NEAR AI Cloud, with verifiable TEE attestation.",
   applicationName: "VEIL AI",
+  appleWebApp: { capable: true, title: "VEIL AI", statusBarStyle: "black-translucent" },
   metadataBase: process.env.NEXT_PUBLIC_APP_URL ? new URL(process.env.NEXT_PUBLIC_APP_URL) : undefined,
   openGraph: {
     title: "VEIL AI — Your Financial Intelligence. Nobody Else’s Business.",
