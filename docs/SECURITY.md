@@ -46,7 +46,31 @@ VEIL AI never holds keys and never signs or sends anything on its own. The Walle
 2. **In-app review** (`components/wallet/review-dialog.tsx`): the user sees what will happen and can expand the exact transactions.
 3. **Wallet approval**: the plan is passed to the user's wallet through NEAR Connect. The wallet shows its own confirmation and signs. Cancelling at any point sends nothing.
 
-Swap quotes from NEAR Intents are checked before a plan is built: the quote's `recipient` and `refundTo` must equal the user's account and `amountIn` must not exceed the requested amount, otherwise the quote is discarded. The server never signs, holds funds or has function-call keys. POST routes require a same-origin request and are rate-limited.
+Swap quotes from NEAR Intents are checked before a plan is built: the quote's `recipient` and `refundTo` must equal the user's account, `originAsset`/`destinationAsset` must be the tokens the user chose, `amountIn` must equal the requested amount, slippage must not be looser than chosen, and the deposit address must be a valid NEAR account — otherwise the quote is discarded. Staking, unstaking and withdrawals only target accounts created by the official staking-pool factories (`*.poolv1.near`, `*.pool.near`, testnet `*.pool.f863973.m0`).
+
+### Receiver safety check
+
+Before a send is shown for review, `lib/defi/recipient-check.ts` analyses the receiver using public data (NearBlocks samples, the NEAR Intents token list, the configured risk list, and the user's address book). Findings cite their evidence and are heuristics, not verdicts:
+
+| Finding | Severity |
+|---|---|
+| Receiver on a sourced risk list (`RISK_LIST_JSON`) | danger |
+| Sending a token to its own contract, or to any token contract | danger |
+| Look-alike of a saved contact, a past recipient or a known protocol account (edit distance ≤ 2; for 64-hex implicit accounts, same first and last 6 characters — address poisoning) | danger |
+| Smart-contract receiver | caution |
+| Account with no history, or first activity < 7 days ago (only when the sample is complete) | caution |
+| Wallet-intelligence indicators on the receiver (drain pattern, airdrop spam, failed ratio…) | caution/info |
+| First time sending / sent before / saved contact | info |
+
+A "danger" finding requires the user to tick an acknowledgement before "Approve in wallet" is enabled; nothing is ever blocked silently. If history can't be fetched in ~6 s the check says so ("limited") instead of claiming the receiver is safe.
+
+### Actions from chat
+
+The analyst detects wallet actions only in the **user's own message** (`lib/ai/actions.ts`), never in model output, so a prompt-injected answer can't propose a transfer. A detected action shows a card that uses the same server preparation, review dialog and wallet approval as the Wallet page. Token symbols are resolved only when unambiguous (scam tokens often copy symbols). The model is told an action card exists and must not claim it was executed.
+
+### Shareable proofs
+
+`lib/near-ai/proof.ts` issues proof tokens **only from verification results the server itself just produced** — never from browser input. Tokens are `deflate(JSON)` + HMAC-SHA256 (domain-separated, `APP_SECRET`), capped at 8 KB with a 64 KB inflate limit, and contain no question or answer text. The proof page re-verifies the enclave signature on every load; `/api/proof/attest` (rate-limited, VEIL-issued tokens only) runs a fresh nonce-bound attestation of the signing key. The server never signs, holds funds or has function-call keys. POST routes require a same-origin request and are rate-limited.
 
 ## Reporting a vulnerability
 

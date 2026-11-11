@@ -229,6 +229,8 @@ export interface VerificationResult {
   /** Checks over the specific chat completion (signature/hash binding). */
   completionChecks: VerificationCheck[];
   chatId?: string | null;
+  /** The enclave's signature over "sha256(request):sha256(response)", for independent re-verification. */
+  signature?: { text: string; signature: string; signingAddress: string; algo: "ecdsa" | "ed25519" };
   e2ee: {
     enabled: boolean;
     algo?: string;
@@ -284,6 +286,8 @@ export interface ChatMessage {
     mode?: DataMode;
     model?: string;
     verification?: VerificationResult | null;
+    /** Shareable proof token (verified answers only). */
+    proofToken?: string | null;
     sources?: DataSource[];
     e2ee?: boolean;
     demoReason?: string;

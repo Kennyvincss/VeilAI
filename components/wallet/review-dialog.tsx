@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, CheckCircle2, ChevronDown, ExternalLink, Loader2, ShieldCheck, Wallet } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronDown, ExternalLink, Info, Loader2, ShieldAlert, ShieldCheck, Wallet } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/primitives";
 import { cn } from "@/lib/utils/format";
@@ -12,6 +12,10 @@ export interface ReviewPlan {
   transactions: PlannedTx[];
   review: { label: string; value: string }[];
   warnings: string[];
+  safety?: {
+    level: "ok" | "caution" | "danger" | "unknown";
+    findings: { id: string; severity: "info" | "caution" | "danger"; title: string; detail: string }[];
+  };
 }
 
 const TITLES: Record<ReviewPlan["kind"], string> = {
@@ -47,12 +51,15 @@ export function ReviewDialog({
   const [hashes, setHashes] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showRaw, setShowRaw] = useState(false);
+  const [ack, setAck] = useState(false);
+  const needsAck = plan?.safety?.level === "danger";
 
   const close = () => {
     const wasDone = phase === "done";
     setPhase("review");
     setError(null);
     setShowRaw(false);
+    setAck(false);
     if (wasDone) onDone(hashes);
     else onCancel();
     setHashes([]);
@@ -86,6 +93,8 @@ export function ReviewDialog({
             ))}
           </dl>
 
+          {plan.safety && <SafetyPanel safety={plan.safety} />}
+
           {plan.warnings.length > 0 && (
             <ul className="mt-3 space-y-1.5">
               {plan.warnings.map((w) => (
@@ -104,6 +113,13 @@ export function ReviewDialog({
             <pre className="mt-2 max-h-56 overflow-auto rounded-xl bg-bg p-3 font-mono text-[0.68rem] leading-relaxed text-muted">{JSON.stringify(plan.transactions, null, 2)}</pre>
           )}
 
+          {needsAck && (
+            <label className="mt-4 flex cursor-pointer items-start gap-2.5 rounded-xl border border-danger/30 bg-danger/[0.06] px-3 py-2.5 text-xs leading-relaxed text-text">
+              <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-danger)]" />
+              I&apos;ve read the warnings above and I&apos;m sure this is the right account.
+            </label>
+          )}
+
           {error && (
             <p role="alert" className="mt-4 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
               {error}
@@ -118,7 +134,7 @@ export function ReviewDialog({
               <Button variant="ghost" onClick={close} disabled={phase === "signing"}>
                 Cancel
               </Button>
-              <Button onClick={approve} loading={phase === "signing"}>
+              <Button onClick={approve} loading={phase === "signing"} disabled={needsAck && !ack}>
                 {phase !== "signing" && <Wallet className="h-4 w-4" />} {phase === "signing" ? "Waiting for wallet…" : "Approve in wallet"}
               </Button>
             </div>
@@ -152,5 +168,36 @@ export function ReviewDialog({
       )}
       {phase === "signing" && <Loader2 className="sr-only" aria-label="Waiting for wallet" />}
     </Modal>
+  );
+}
+
+const SAFETY_HEAD: Record<NonNullable<ReviewPlan["safety"]>["level"], { title: string; tone: string }> = {
+  ok: { title: "Receiver check: nothing unusual found", tone: "border-success/25 bg-success/[0.05] text-success" },
+  caution: { title: "Receiver check: please double-check", tone: "border-warning/30 bg-warning/[0.06] text-warning" },
+  danger: { title: "Receiver check: this looks risky", tone: "border-danger/35 bg-danger/[0.07] text-danger" },
+  unknown: { title: "Receiver check: limited", tone: "border-border bg-bg-2 text-muted" },
+};
+
+/** Pre-send safety findings about the receiving account (heuristics, with evidence). */
+function SafetyPanel({ safety }: { safety: NonNullable<ReviewPlan["safety"]> }) {
+  const head = SAFETY_HEAD[safety.level];
+  const Icon = safety.level === "ok" ? ShieldCheck : ShieldAlert;
+  return (
+    <section className={cn("mt-3 rounded-2xl border px-4 py-3", head.tone)} aria-label="Receiver safety check">
+      <h3 className="flex items-center gap-2 text-sm font-semibold">
+        <Icon className="h-4 w-4" /> {head.title}
+      </h3>
+      <ul className="mt-2 space-y-2">
+        {safety.findings.map((f) => (
+          <li key={f.id} className="flex gap-2 text-xs leading-relaxed">
+            {f.severity === "info" ? <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-subtle" /> : <AlertTriangle className={cn("mt-0.5 h-3.5 w-3.5 shrink-0", f.severity === "danger" ? "text-danger" : "text-warning")} />}
+            <span className="text-muted">
+              <span className="font-medium text-text">{f.title}.</span> {f.detail}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 text-[0.65rem] text-subtle">Based on public on-chain activity. These are signals, not proof either way.</p>
+    </section>
   );
 }

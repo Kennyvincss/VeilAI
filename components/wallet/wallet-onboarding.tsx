@@ -83,6 +83,16 @@ export function WalletOnboarding({
         ))}
       </div>
 
+      {network === "testnet" && (
+        <p className="mb-4 rounded-xl border border-[#60a5fa]/30 bg-[#60a5fa]/[0.06] px-3.5 py-2.5 text-xs leading-relaxed text-[#93c5fd]">
+          This app is on <strong>NEAR testnet</strong>. Use a testnet account (for example at testnet.mynearwallet.com, or switch your wallet&apos;s network to testnet), then get free test NEAR from{" "}
+          <a href="https://near-faucet.io" target="_blank" rel="noopener noreferrer" className="font-semibold underline underline-offset-2">
+            near-faucet.io
+          </a>
+          .
+        </p>
+      )}
+
       {mode === "create" ? (
         <ol className="mb-5 space-y-2 text-sm text-muted">
           <Step n={1}>Pick a wallet below and open it.</Step>

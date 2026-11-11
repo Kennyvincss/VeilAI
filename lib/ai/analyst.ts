@@ -5,8 +5,10 @@ import { getAppStatus, nearAiConfig } from "@/lib/env";
 import { explainNearAiError, NearAiError, nearAiOperatorHint, streamChatCompletion, type ChatMessageIn } from "@/lib/near-ai/client";
 import { createE2eeSession, type E2eeSession } from "@/lib/near-ai/e2ee";
 import { getAttestedEncryptionKey, verifyCompletion } from "@/lib/near-ai/verify";
+import { createProofToken } from "@/lib/near-ai/proof";
 import { ANALYST_SYSTEM_PROMPT, INJECTION_REMINDER } from "@/lib/ai/prompts";
 import { buildContextMessage, detectIntents, Pseudonymizer } from "@/lib/ai/context";
+import { describeAction, parseAction, type ChatAction } from "@/lib/ai/actions";
 import { cleanUserText, dataBlock, screenUserInput } from "@/lib/security/prompt-guard";
 import { fetchLivePortfolio } from "@/lib/portfolio/service";
 import { liveRiskAnalysis } from "@/lib/risk/service";
@@ -29,7 +31,8 @@ export type AnalystEvent =
       conversationId: string | null;
     }
   | { type: "delta"; text: string }
-  | { type: "verification"; result: VerificationResult }
+  | { type: "action"; action: ChatAction }
+  | { type: "verification"; result: VerificationResult; proofToken?: string | null }
   | { type: "done"; messageId: string | null; conversationId: string | null }
   | { type: "error"; message: string };
 
@@ -67,6 +70,10 @@ export async function runAnalyst(input: AnalystInput): Promise<void> {
   const status = getAppStatus();
   const question = cleanUserText(input.question);
   emit({ type: "status", state: "initialising", message: "Preparing your financial context…" });
+
+  // A wallet action in the user's own words → offer a review card (never auto-executed).
+  const action = parseAction(question);
+  if (action) emit({ type: "action", action });
 
   /* 1. Retrieve the data this question needs (minimal set). */
   const intents = detectIntents(question);
@@ -153,7 +160,10 @@ export async function runAnalyst(input: AnalystInput): Promise<void> {
     history = input.clientHistory.slice(-10).map((m) => ({ role: m.role, content: m.content.slice(0, 4000) }));
   }
 
-  const system = `${ANALYST_SYSTEM_PROMPT}\n\n${contextText}${screen.suspicious ? `\n\n${INJECTION_REMINDER}` : ""}`;
+  const actionNote = action
+    ? `\n\nAPP NOTE: The user asked to ${describeAction(action)}. VEIL AI is showing them a separate card that prepares this transaction for review and approval in their own wallet. You cannot execute transactions. Do not say it has been done. Briefly explain what it will do, the fees and the main risks, then stop.`
+    : "";
+  const system = `${ANALYST_SYSTEM_PROMPT}\n\n${contextText}${actionNote}${screen.suspicious ? `\n\n${INJECTION_REMINDER}` : ""}`;
   const messages: ChatMessageIn[] = [{ role: "system", content: system }, ...history, { role: "user", content: question }];
 
   // E2EE: only encrypt to a key proven (fresh nonce) to live in an attested TEE.
@@ -241,7 +251,8 @@ export async function runAnalyst(input: AnalystInput): Promise<void> {
     preferredAlgo: e2ee ? "ed25519" : "ecdsa",
     e2ee: e2eeInfo,
   });
-  emit({ type: "verification", result: verification });
+  const proofToken = createProofToken(verification);
+  emit({ type: "verification", result: verification, proofToken });
 
   /* 4. Persist (only if the user opted to keep history). */
   let messageId: string | null = null;
@@ -256,6 +267,7 @@ export async function runAnalyst(input: AnalystInput): Promise<void> {
           model: ai.model,
           e2ee: e2eeInfo.enabled,
           sources,
+          proofToken,
           verification: { ...verification, targets: verification.targets.map((t) => ({ ...t, checks: t.checks.map((c) => ({ ...c, expected: undefined, actual: undefined })) })) },
         });
       } catch {

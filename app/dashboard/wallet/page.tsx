@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowDownLeft, ArrowDownUp, ArrowUpRight, Download, KeyRound, Layers, Link2, PlusCircle, RefreshCw, ShieldCheck, Unplug, Wallet } from "lucide-react";
+import { ArrowDownLeft, ArrowDownUp, ArrowUpRight, BookUser, Download, History, KeyRound, Layers, Link2, PlusCircle, RefreshCw, ShieldCheck, Unplug, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { useApi, api } from "@/hooks/use-api";
 import { useNearWallet } from "@/hooks/use-near-wallet";
@@ -12,15 +12,20 @@ import { Badge, Button, Card, Skeleton } from "@/components/ui/primitives";
 import { WalletOnboarding, type OnboardingMode } from "@/components/wallet/wallet-onboarding";
 import { ReviewDialog, type ReviewPlan } from "@/components/wallet/review-dialog";
 import { ReceivePanel, SendPanel, StakePanel, SwapPanel, SwapTracker, type WalletOverview } from "@/components/wallet/defi-panels";
+import { ActivityPanel, ContactsPanel } from "@/components/wallet/wallet-extras";
+import { useContacts } from "@/hooks/use-contacts";
 import { cn, formatUsd, shortAccount } from "@/lib/utils/format";
 
-type Tab = "send" | "receive" | "swap" | "stake";
+type Tab = "send" | "receive" | "swap" | "stake" | "activity" | "contacts";
 const TABS: { id: Tab; label: string; icon: typeof ArrowUpRight }[] = [
   { id: "send", label: "Send", icon: ArrowUpRight },
   { id: "receive", label: "Receive", icon: ArrowDownLeft },
   { id: "swap", label: "Swap", icon: ArrowDownUp },
   { id: "stake", label: "Stake", icon: Layers },
+  { id: "activity", label: "Activity", icon: History },
+  { id: "contacts", label: "Contacts", icon: BookUser },
 ];
+const isTab = (t: string | null): t is Tab => TABS.some((x) => x.id === t);
 
 export default function WalletPage() {
   return (
@@ -40,6 +45,8 @@ function WalletView() {
   const [pendingDeposit, setPendingDeposit] = useState<string | null>(null);
   const [trackDeposit, setTrackDeposit] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [sendTo, setSendTo] = useState<{ to: string; n: number } | null>(null);
+  const book = useContacts(status.network);
   const overview = useApi<WalletOverview>(wallet.accountId ? `/api/defi/overview?accountId=${encodeURIComponent(wallet.accountId)}&r=${refreshKey}` : null);
 
   // Deep links: /dashboard/wallet?start=create|import and ?tab=...
@@ -48,7 +55,7 @@ function WalletView() {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- open the requested onboarding flow once from the URL
     if (start === "create" || start === "import") setOnboarding(start);
     const t = params.get("tab");
-    if (t === "send" || t === "receive" || t === "swap" || t === "stake") setTab(t);
+    if (isTab(t)) setTab(t);
   }, [params]);
 
   const connect = useCallback(async () => {
@@ -85,6 +92,15 @@ function WalletView() {
         badges={wallet.accountId ? <Badge tone="success">Live · {status.network}</Badge> : undefined}
       />
 
+      {status.network === "testnet" && (
+        <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-2xl border border-[#60a5fa]/30 bg-[#60a5fa]/[0.06] px-4 py-3 text-xs text-[#93c5fd]">
+          <strong className="font-semibold">NEAR testnet:</strong> test NEAR has no value, so you can try sending and staking freely.
+          <a href="https://near-faucet.io" target="_blank" rel="noopener noreferrer" className="font-semibold underline underline-offset-2">
+            Get free test NEAR →
+          </a>
+        </div>
+      )}
+
       {!wallet.accountId ? (
         <ConnectHero busy={wallet.busy} onConnect={connect} onCreate={() => setOnboarding("create")} onImport={() => setOnboarding("import")} />
       ) : (
@@ -113,7 +129,7 @@ function WalletView() {
             </div>
           )}
 
-          <div className="mt-4 grid grid-cols-4 gap-1 rounded-2xl border border-border bg-card p-1" role="tablist" aria-label="Wallet actions">
+          <div className="mt-4 grid grid-cols-3 gap-1 rounded-2xl sm:grid-cols-6 border border-border bg-card p-1" role="tablist" aria-label="Wallet actions">
             {TABS.map((t) => {
               const Icon = t.icon;
               return (
@@ -131,7 +147,17 @@ function WalletView() {
           </div>
 
           <div className="mx-auto mt-4 max-w-2xl">
-            {tab === "send" && <SendPanel accountId={wallet.accountId} overview={overview.data} onPlan={(p) => setPlan(p)} />}
+            {tab === "send" && (
+              <SendPanel
+                key={sendTo?.n ?? 0}
+                accountId={wallet.accountId}
+                overview={overview.data}
+                onPlan={(p) => setPlan(p)}
+                contacts={book.contacts}
+                onSaveContact={book.add}
+                initialTo={sendTo?.to}
+              />
+            )}
             {tab === "receive" && <ReceivePanel accountId={wallet.accountId} network={status.network} />}
             {tab === "swap" && (
               <SwapPanel
@@ -140,6 +166,21 @@ function WalletView() {
                 onPlan={(p, meta) => {
                   setPendingDeposit(meta?.depositAddress ?? null);
                   setPlan(p);
+                }}
+              />
+            )}
+            {tab === "activity" && <ActivityPanel accountId={wallet.accountId} network={status.network} refreshKey={refreshKey} />}
+            {tab === "contacts" && (
+              <ContactsPanel
+                contacts={book.contacts}
+                persisted={book.persisted}
+                notice={book.notice}
+                loading={book.loading}
+                onAdd={book.add}
+                onRemove={book.remove}
+                onSend={(to) => {
+                  setSendTo((s) => ({ to, n: (s?.n ?? 0) + 1 }));
+                  setTab("send");
                 }}
               />
             )}

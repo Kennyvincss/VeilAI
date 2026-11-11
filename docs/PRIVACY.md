@@ -40,6 +40,8 @@ Browser ◀──TLS── answer + verification evidence
 - **Gateway blindness (E2EE):** message contents are encrypted to a key that VEIL AI first verifies belongs to an attested enclave. The NEAR AI gateway relays only ciphertext.
 - **Integrity:** every answer's signature is checked against the hashes of exactly what VEIL AI sent and received, and the signer is re-attested with a fresh nonce.
 - **Isolation at rest:** every table uses Postgres Row Level Security (`auth.uid() = user_id`). The `anon` role has no access. Sensitive free text is additionally encrypted by the app when `DATA_ENCRYPTION_KEY` is set.
+- **Address book:** contact names and account IDs are both encrypted with AES-256-GCM before storage (when `DATA_ENCRYPTION_KEY` is set), so the database doesn't reveal who you pay. Without an account, contacts stay in your browser only.
+- **Proof links contain no content:** only the model, timestamps, SHA-256 fingerprints, the enclave signature and check results. Sharing one reveals that you asked *something* at that time, not what.
 - **Minimisation:** wallet IDs become "Wallet A/B", unknown counterparties become "Counterparty-N", and only data the question needs is fetched.
 
 ## What is NOT protected (be aware)
@@ -49,7 +51,8 @@ Browser ◀──TLS── answer + verification evidence
 3. **On-chain data is public.** Anyone can read your balances and history. VEIL AI hides the *association* and your *questions*, not the chain.
 4. **Supabase** operators can access stored rows at the infrastructure level. App-level encryption mitigates this for messages, goals and reports, but not for metadata (timestamps, which wallets you track).
 5. **TEE trust assumptions:** you must trust Intel (TDX) and NVIDIA (GPU CC) hardware and their attestation services, as stated in NEAR's verifier documentation.
-6. When `NEAR_AI_E2EE=preferred` and no attested key is available, requests fall back to TLS-only to the gateway. The UI labels this "TLS only".
+6. **Receiver safety checks** query NearBlocks for the receiver's and your own recent public history from VEIL's server, and swap quotes go to NEAR Intents (1Click), which sees your account, the tokens and amounts.
+7. When `NEAR_AI_E2EE=preferred` and no attested key is available, requests fall back to TLS-only to the gateway. The UI labels this "TLS only".
 
 ## User controls
 

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { api, useApi } from "@/hooks/use-api";
 import { Badge, Button, Card, CardHeader, EmptyState, Input, Label, Skeleton } from "@/components/ui/primitives";
 import type { ReviewPlan } from "@/components/wallet/review-dialog";
+import type { Contact } from "@/hooks/use-contacts";
 import { fromBaseUnits } from "@/lib/defi/amounts";
 import { isValidAccountId, looksLikeSecret, normalizeAccountId } from "@/lib/near/account";
 import { cn, formatUsd, shortAccount } from "@/lib/utils/format";
@@ -75,9 +76,24 @@ function AmountInput({ id, value, onChange, onMax, suffix }: { id: string; value
 /* Send                                                                */
 /* ------------------------------------------------------------------ */
 
-export function SendPanel({ accountId, overview, onPlan }: { accountId: string; overview: WalletOverview | null; onPlan: OnPlan }) {
+export function SendPanel({
+  accountId,
+  overview,
+  onPlan,
+  contacts = [],
+  onSaveContact,
+  initialTo,
+}: {
+  accountId: string;
+  overview: WalletOverview | null;
+  onPlan: OnPlan;
+  contacts?: Contact[];
+  onSaveContact?: (label: string, accountId: string) => Promise<void>;
+  initialTo?: string;
+}) {
   const [token, setToken] = useState("near");
-  const [to, setTo] = useState("");
+  const [to, setTo] = useState(initialTo ?? "");
+  const [saveName, setSaveName] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
   const [memo, setMemo] = useState("");
   const { busy, error, setError, run } = useSubmit();
@@ -94,7 +110,7 @@ export function SendPanel({ accountId, overview, onPlan }: { accountId: string; 
     }
     const receiver = normalizeAccountId(to);
     if (!isValidAccountId(receiver)) return setError("Enter a valid NEAR account, e.g. alice.near");
-    const plan = await run(() => api<ReviewPlan>("/api/defi/send", { method: "POST", json: { from: accountId, to: receiver, token, amount, memo: memo || null } }));
+    const plan = await run(() => api<ReviewPlan>("/api/defi/send", { method: "POST", json: { from: accountId, to: receiver, token, amount, memo: memo || null, contacts: contacts.map((c) => c.accountId).slice(0, 100) } }));
     if (plan) onPlan(plan);
   }
 
@@ -115,6 +131,49 @@ export function SendPanel({ accountId, overview, onPlan }: { accountId: string; 
         <div>
           <Label htmlFor="send-to">Recipient</Label>
           <Input id="send-to" placeholder="alice.near" value={to} onChange={(e) => setTo(e.target.value)} spellCheck={false} autoComplete="off" className="font-mono text-sm" />
+          {contacts.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5" aria-label="Saved contacts">
+              {contacts.slice(0, 12).map((c) => (
+                <button
+                  type="button"
+                  key={c.id}
+                  onClick={() => setTo(c.accountId)}
+                  title={c.accountId}
+                  className={cn("rounded-full border px-2.5 py-1 text-[0.7rem] transition-colors", normalizeAccountId(to) === c.accountId ? "border-accent/50 bg-accent/15 text-text" : "border-border bg-bg-2 text-muted hover:text-text")}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          )}
+          {onSaveContact && isValidAccountId(normalizeAccountId(to)) && !contacts.some((c) => c.accountId === normalizeAccountId(to)) && (
+            saveName === null ? (
+              <button type="button" onClick={() => setSaveName("")} className="mt-2 text-[0.72rem] text-accent-strong hover:underline">
+                + Save to address book
+              </button>
+            ) : (
+              <div className="mt-2 flex gap-2">
+                <Input aria-label="Contact name" placeholder="Name, e.g. Alice" value={saveName} maxLength={40} onChange={(e) => setSaveName(e.target.value)} className="h-9 text-xs" />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  disabled={!saveName.trim()}
+                  onClick={async () => {
+                    try {
+                      await onSaveContact(saveName.trim(), normalizeAccountId(to));
+                      setSaveName(null);
+                      toast.success("Saved to address book");
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : "Could not save contact");
+                    }
+                  }}
+                >
+                  Save
+                </Button>
+              </div>
+            )
+          )}
         </div>
         <div>
           <Label htmlFor="send-amount" hint={`Available: ${current.max} ${current.symbol}`}>
@@ -207,7 +266,7 @@ interface QuoteView {
 }
 
 export function SwapPanel({ accountId, overview, onPlan }: { accountId: string; overview: WalletOverview | null; onPlan: OnPlan }) {
-  const tokens = useApi<{ tokens: SwapToken[]; available: boolean }>("/api/defi/swap/tokens");
+  const tokens = useApi<{ tokens: SwapToken[]; available: boolean; reason?: "ok" | "testnet" | "not-configured" }>("/api/defi/swap/tokens");
   const [fromId, setFromId] = useState<string>("");
   const [toId, setToId] = useState<string>("");
   const [amount, setAmount] = useState("");
@@ -267,7 +326,11 @@ export function SwapPanel({ accountId, overview, onPlan }: { accountId: string; 
     return (
       <Card>
         <CardHeader icon={<ArrowDownUp className="h-4 w-4" />} title="Swap" subtitle="Powered by NEAR Intents" />
-        <EmptyState icon={<ArrowDownUp className="h-5 w-5" />} title="Swaps are temporarily unavailable" description="Send, receive and staking still work. Please check back soon." />
+        {tokens.data?.reason === "testnet" ? (
+          <EmptyState icon={<ArrowDownUp className="h-5 w-5" />} title="Swaps run on NEAR mainnet only" description="NEAR Intents doesn't operate on testnet. Send, receive and staking work here with free test NEAR." />
+        ) : (
+          <EmptyState icon={<ArrowDownUp className="h-5 w-5" />} title="Swaps are temporarily unavailable" description="Send, receive and staking still work. Please check back soon." />
+        )}
       </Card>
     );
   }

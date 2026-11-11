@@ -18,6 +18,8 @@ import { POST as walletPOST, GET as walletGET } from "@/app/api/wallet/tracked/r
 import { POST as intelPOST } from "@/app/api/wallet/intelligence/route";
 import { PUT as prefsPUT } from "@/app/api/preferences/route";
 import { POST as verifyPOST } from "@/app/api/wallet/verify/route";
+import { GET as contactsGET, POST as contactsPOST } from "@/app/api/contacts/route";
+import { POST as proofAttestPOST } from "@/app/api/proof/attest/route";
 import { __resetRateLimitsForTests } from "@/lib/security/rate-limit";
 
 const ORIGIN = "http://localhost:3000";
@@ -114,5 +116,28 @@ describe("AI analyst in demo mode (no NEAR AI key)", () => {
     expect(verification.state).toBe("not-connected");
     expect(events.some((e) => e.type === "verification" && e.result.state === "verified")).toBe(false);
     expect(events.at(-1).type).toBe("done");
+    expect(events.some((e) => e.type === "action")).toBe(false);
+  });
+  it("offers a wallet action card only for the user's own action request", async () => {
+    ctx.current = { ...ctx.current, demo: true };
+    const res = await chatPOST(req("/api/ai/chat", { method: "POST", body: { message: "Send 1.5 NEAR to bob.near" } }));
+    const events = await readNdjson(res);
+    expect(events.find((e) => e.type === "action").action).toEqual({ kind: "send", amount: "1.5", token: "NEAR", to: "bob.near" });
+    expect(events.at(-1).type).toBe("done");
+  });
+});
+
+describe("address book and proofs", () => {
+  it("keeps visitors' contacts in the browser and requires an account to sync", async () => {
+    expect(await (await contactsGET()).json()).toEqual({ persisted: false, contacts: [] });
+    ctx.current = { ...ctx.current, demo: true };
+    expect((await contactsPOST(req("/api/contacts", { method: "POST", body: { label: "A", accountId: "alice.near" } }))).status).toBe(401);
+    expect((await contactsPOST(req("/api/contacts", { method: "POST", body: { label: "A", accountId: "alice.near" }, origin: "https://evil.example" }))).status).toBe(403);
+  });
+  it("refuses fresh checks for proofs it didn't issue", async () => {
+    process.env.APP_SECRET = "s";
+    const res = await proofAttestPOST(req("/api/proof/attest", { method: "POST", body: { token: "forged.token-value" } }));
+    expect(res.status).toBe(400);
+    delete process.env.APP_SECRET;
   });
 });
