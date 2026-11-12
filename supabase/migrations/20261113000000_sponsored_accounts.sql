@@ -25,5 +25,6 @@ revoke all on public.sponsored_accounts from anon, authenticated;
 grant select on public.sponsored_accounts to authenticated;
 grant all on public.sponsored_accounts to service_role;
 
+drop policy if exists "sponsored_accounts: owner select" on public.sponsored_accounts;
 create policy "sponsored_accounts: owner select" on public.sponsored_accounts
   for select to authenticated using ((select auth.uid()) = user_id);

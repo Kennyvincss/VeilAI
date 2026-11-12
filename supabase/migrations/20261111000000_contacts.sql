@@ -17,6 +17,9 @@ alter table public.contacts enable row level security;
 revoke all on public.contacts from anon;
 grant select, insert, delete on public.contacts to authenticated;
 
+drop policy if exists "contacts: owner select" on public.contacts;
 create policy "contacts: owner select" on public.contacts for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists "contacts: owner insert" on public.contacts;
 create policy "contacts: owner insert" on public.contacts for insert to authenticated with check ((select auth.uid()) = user_id);
+drop policy if exists "contacts: owner delete" on public.contacts;
 create policy "contacts: owner delete" on public.contacts for delete to authenticated using ((select auth.uid()) = user_id);

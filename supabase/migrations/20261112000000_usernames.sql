@@ -17,9 +17,13 @@ alter table public.profiles enable row level security;
 revoke all on public.profiles from anon;
 grant select, insert, update, delete on public.profiles to authenticated;
 
+drop policy if exists "profiles: owner select" on public.profiles;
 create policy "profiles: owner select" on public.profiles for select to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists "profiles: owner insert" on public.profiles;
 create policy "profiles: owner insert" on public.profiles for insert to authenticated with check ((select auth.uid()) = user_id);
+drop policy if exists "profiles: owner update" on public.profiles;
 create policy "profiles: owner update" on public.profiles for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+drop policy if exists "profiles: owner delete" on public.profiles;
 create policy "profiles: owner delete" on public.profiles for delete to authenticated using ((select auth.uid()) = user_id);
 
 -- Names nobody may claim (impersonation of the app, NEAR or support staff).
