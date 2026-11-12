@@ -7,7 +7,7 @@ import { RATE_LIMITS } from "@/lib/security/rate-limit";
 import { accountIdSchema } from "@/lib/security/validation";
 import { normalizeUsername, usernameLoginEnabled, usernameProblem } from "@/lib/usernames";
 
-const NOT_SET_UP = "Usernames aren't set up on this server yet.";
+const NOT_SET_UP = "Usernames aren't available right now. Please check back soon.";
 const bodySchema = z.union([
   z.object({ username: z.string().max(40) }),
   z.object({ payoutAccount: accountIdSchema.nullable() }),
@@ -53,6 +53,8 @@ export async function PUT(req: NextRequest) {
     if (err instanceof HttpError) return jsonError(err.status, err.message);
     if (err instanceof NotSetUpError) return jsonError(503, NOT_SET_UP);
     if (err instanceof UsernameTakenError) return jsonError(409, "That username is taken.");
-    return jsonError(400, err instanceof Error ? err.message : "Could not save.");
+    // Known, user-safe messages from the repository layer only.
+    const safe = err instanceof Error && ["That wallet isn't ownership-verified.", "Choose a username first."].includes(err.message);
+    return jsonError(400, safe ? (err as Error).message : "Could not save. Please try again.");
   }
 }

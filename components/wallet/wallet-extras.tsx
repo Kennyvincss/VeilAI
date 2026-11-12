@@ -134,9 +134,9 @@ export function ContactsPanel({
       <CardHeader
         icon={<BookUser className="h-4 w-4" />}
         title="Address book"
-        subtitle={persisted ? "Encrypted and synced to your account" : "Saved in this browser only — create a free account to sync"}
+        subtitle={persisted ? "Encrypted and synced to your account" : notice ? "Saved in this browser" : "Saved in this browser only — create a free account to sync"}
       />
-      {notice && <p className="mb-3 text-xs text-warning">{notice} Contacts are kept in this browser for now.</p>}
+      {notice && <p className="mb-3 text-xs text-muted">{notice}</p>}
       <form onSubmit={submit} className="grid gap-3 sm:grid-cols-[1fr_1.4fr_auto] sm:items-end" noValidate>
         <div>
           <Label htmlFor="c-name">Name</Label>
