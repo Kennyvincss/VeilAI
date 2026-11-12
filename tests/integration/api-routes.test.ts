@@ -24,6 +24,9 @@ import { POST as loginPOST } from "@/app/api/auth/login/route";
 import { GET as profileGET, PUT as profilePUT } from "@/app/api/profile/route";
 import { GET as usernameCheckGET } from "@/app/api/username/check/route";
 import { POST as sendPOST } from "@/app/api/defi/send/route";
+import { GET as nearAccountGET } from "@/app/api/near-account/route";
+import { POST as nearCreatePOST } from "@/app/api/near-account/create/route";
+import { GET as nearCheckGET } from "@/app/api/near-account/check/route";
 import { __resetRateLimitsForTests } from "@/lib/security/rate-limit";
 
 const ORIGIN = "http://localhost:3000";
@@ -166,5 +169,21 @@ describe("usernames and username sign-in", () => {
     const res = await sendPOST(req("/api/defi/send", { method: "POST", body: { from: "me.near", to: "@alice", token: "near", amount: "1" } }));
     expect(res.status).toBe(503);
     expect((await res.json()).error).toMatch(/usernames/i);
+  });
+});
+
+describe("creating name.near accounts", () => {
+  it("reports when sponsored creation isn't configured", async () => {
+    expect(await (await nearAccountGET()).json()).toMatchObject({ enabled: false, suffix: "near", account: null });
+  });
+  it("requires an account, same-origin, and configuration before anything is created", async () => {
+    const body = { name: "alice", publicKey: "ed25519:" + "1".repeat(44), signature: "x".repeat(88) };
+    expect((await nearCreatePOST(req("/api/near-account/create", { method: "POST", body }))).status).toBe(401);
+    expect((await nearCreatePOST(req("/api/near-account/create", { method: "POST", body, origin: "https://evil.example" }))).status).toBe(403);
+    ctx.current = { ...ctx.current, user: { id: "00000000-0000-0000-0000-000000000001", email: "a@b.c" }, supabase: {} as never };
+    expect((await nearCreatePOST(req("/api/near-account/create", { method: "POST", body }))).status).toBe(503);
+  });
+  it("validates names before touching the network", async () => {
+    expect(await (await nearCheckGET(req("/api/near-account/check?name=Al-ice"))).json()).toMatchObject({ available: false, problem: expect.any(String) });
   });
 });

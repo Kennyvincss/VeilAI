@@ -14,6 +14,8 @@ import { ReviewDialog, type ReviewPlan } from "@/components/wallet/review-dialog
 import { ReceivePanel, SendPanel, StakePanel, SwapPanel, SwapTracker, type WalletOverview } from "@/components/wallet/defi-panels";
 import { ActivityPanel, ContactsPanel } from "@/components/wallet/wallet-extras";
 import { useContacts } from "@/hooks/use-contacts";
+import { CreateNearAccount, type NearAccountOffer } from "@/components/wallet/create-near-account";
+import { useRouter } from "next/navigation";
 import { cn, formatUsd, shortAccount } from "@/lib/utils/format";
 
 type Tab = "send" | "receive" | "swap" | "stake" | "activity" | "contacts";
@@ -47,6 +49,17 @@ function WalletView() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [sendTo, setSendTo] = useState<{ to: string; n: number } | null>(null);
   const book = useContacts(status.network);
+  const router = useRouter();
+  const offer = useApi<NearAccountOffer>("/api/near-account");
+  const [creating, setCreating] = useState(false);
+  const canCreateHere = Boolean(offer.data?.enabled && offer.data.account?.status !== "created");
+  const onCreateHere = canCreateHere
+    ? () => {
+        setOnboarding(null);
+        if (offer.data?.signedIn) setCreating(true);
+        else router.push("/signup?next=/dashboard/account%3Fwelcome%3D1");
+      }
+    : null;
   const overview = useApi<WalletOverview>(wallet.accountId ? `/api/defi/overview?accountId=${encodeURIComponent(wallet.accountId)}&r=${refreshKey}` : null);
 
   // Deep links: /dashboard/wallet?start=create|import and ?tab=...
@@ -194,7 +207,26 @@ function WalletView() {
         </>
       )}
 
-      <WalletOnboarding open={onboarding !== null} mode={onboarding ?? "create"} onModeChange={setOnboarding} onClose={() => setOnboarding(null)} onConnect={connect} network={status.network} />
+      <WalletOnboarding
+        open={onboarding !== null}
+        mode={onboarding ?? "create"}
+        onModeChange={setOnboarding}
+        onClose={() => setOnboarding(null)}
+        onConnect={connect}
+        network={status.network}
+        onCreateHere={onCreateHere}
+        createSuffix={offer.data?.suffix ?? "near"}
+      />
+      {offer.data && (
+        <CreateNearAccount
+          open={creating}
+          onClose={() => setCreating(false)}
+          suffix={offer.data.suffix}
+          depositNear={offer.data.depositNear}
+          network={status.network}
+          onCreated={() => offer.reload()}
+        />
+      )}
       <ReviewDialog
         plan={plan}
         network={status.network}

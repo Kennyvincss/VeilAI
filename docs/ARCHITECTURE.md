@@ -2,7 +2,7 @@
 
 ## Stack
 
-Next.js 16 (App Router, Turbopack, `proxy.ts`), React 19, TypeScript, Tailwind CSS v4, Framer Motion, Lucide, Recharts, Supabase (`@supabase/ssr`), NEAR AI Cloud, NEAR Connect, `@phala/dcap-qvl-node` (WASM), `@noble/*` crypto, ethers v6, jsPDF, Vitest. Deploys to Vercel.
+Next.js 16 (App Router, Turbopack, `proxy.ts`), React 19, TypeScript, Tailwind CSS v4, Framer Motion, Lucide, Recharts, Supabase (`@supabase/ssr`), NEAR AI Cloud, NEAR Connect, `@phala/dcap-qvl` (pure JS), `near-api-js`, `@noble/*` crypto, ethers v6, jsPDF, Vitest. Deploys to Vercel.
 
 ## Directory layout
 
@@ -28,6 +28,7 @@ app/
     profile, username/check    username, linked receiving wallet
     auth/login                 username + password sign-in
     defi/pulse                 balance fingerprint for notifications
+    near-account[/check|create]   free name.near creation (sponsored, non-custodial)
     proof/attest               fresh attestation for a VEIL-issued proof
     defi/swap/tokens|quote|status|submit   NEAR Intents 1Click
 components/                    ui, layout, landing, dashboard, analyst, wallet, privacy, charts

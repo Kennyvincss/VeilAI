@@ -42,6 +42,7 @@ Browser ◀──TLS── answer + verification evidence
 - **Isolation at rest:** every table uses Postgres Row Level Security (`auth.uid() = user_id`). The `anon` role has no access. Sensitive free text is additionally encrypted by the app when `DATA_ENCRYPTION_KEY` is set.
 - **Address book:** contact names and account IDs are both encrypted with AES-256-GCM before storage (when `DATA_ENCRYPTION_KEY` is set), so the database doesn't reveal who you pay. Without an account, contacts stay in your browser only.
 - **Usernames:** your username is public (anyone can check if it's taken). Only if you link a wallet does `@username → account` become resolvable by others — the same as sharing your address. Your email is never exposed by username sign-in.
+- **Created NEAR accounts:** VEIL stores only which `name.near` it created for you and its public key (both public on NEAR anyway). Your recovery phrase never leaves your browser.
 - **Notifications:** generated and stored only in your browser; VEIL AI keeps no notification history on its servers.
 - **Proof links contain no content:** only the model, timestamps, SHA-256 fingerprints, the enclave signature and check results. Sharing one reveals that you asked *something* at that time, not what.
 - **Minimisation:** wallet IDs become "Wallet A/B", unknown counterparties become "Counterparty-N", and only data the question needs is fetched.

@@ -46,12 +46,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
-  // The Intel TDX quote verifier ships as a WASM module loaded from disk;
-  // keep it out of the server bundle so the .wasm file is resolved at runtime.
-  serverExternalPackages: ["@phala/dcap-qvl-node"],
-  outputFileTracingIncludes: {
-    "/api/**": ["./node_modules/@phala/dcap-qvl-node/*.wasm"],
-  },
+  // The Intel TDX quote verifier (CommonJS, uses node-fetch) runs as a
+  // plain Node dependency rather than being bundled.
+  serverExternalPackages: ["@phala/dcap-qvl"],
   turbopack: {
     rules: {
       "*.css": {

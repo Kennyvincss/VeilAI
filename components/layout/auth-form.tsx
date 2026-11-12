@@ -16,7 +16,8 @@ const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
 export function AuthForm({ mode, googleEnabled, usernameLogin = false }: { mode: "login" | "signup"; googleEnabled: boolean; usernameLogin?: boolean }) {
   const router = useRouter();
   const params = useSearchParams();
-  const next = safeNext(params.get("next"));
+  // New accounts land on Account, which offers to create their name.near.
+  const next = safeNext(params.get("next"), mode === "signup" ? "/dashboard/account?welcome=1" : "/dashboard");
   const supabase = getSupabaseBrowserClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -196,8 +197,8 @@ export function AuthForm({ mode, googleEnabled, usernameLogin = false }: { mode:
   );
 }
 
-function safeNext(next: string | null) {
-  if (!next || !next.startsWith("/") || next.startsWith("//")) return "/dashboard";
+function safeNext(next: string | null, fallback = "/dashboard") {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return fallback;
   return next;
 }
 

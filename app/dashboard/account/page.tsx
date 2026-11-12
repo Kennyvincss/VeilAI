@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { AtSign, BadgeCheck, Bell, KeyRound, Link2, LogIn, Unlink } from "lucide-react";
+import { AtSign, BadgeCheck, Bell, KeyRound, Link2, LogIn, Sparkles, Unlink, Wallet } from "lucide-react";
+import { CreateNearAccount, type NearAccountOffer } from "@/components/wallet/create-near-account";
 import { toast } from "sonner";
 import { api, useApi } from "@/hooks/use-api";
 import { useNearWallet } from "@/hooks/use-near-wallet";
@@ -22,6 +24,14 @@ interface ProfilePayload {
 }
 
 export default function AccountPage() {
+  return (
+    <Suspense>
+      <AccountView />
+    </Suspense>
+  );
+}
+
+function AccountView() {
   const { status } = useAppStatus();
   const data = useApi<ProfilePayload>("/api/profile");
   const p = data.data;
@@ -50,6 +60,7 @@ export default function AccountPage() {
         ) : (
           p && (
             <>
+              <NearAccountCard network={status.network} onCreated={data.reload} />
               <UsernameCard current={p.profile?.username ?? null} usernameLogin={p.usernameLogin} onSaved={data.reload} />
               {p.profile && <ReceiveCard profile={p.profile} verifiedWallets={p.verifiedWallets} network={status.network} onChanged={data.reload} />}
             </>
@@ -224,6 +235,56 @@ function ReceiveCard({
           Senders see &quot;@{profile.username} → account&quot; on their review screen before approving.
         </li>
       </ul>
+    </Card>
+  );
+}
+
+/** "Your NEAR account": create name.near (VEIL-sponsored, keys stay in the browser). */
+function NearAccountCard({ network, onCreated }: { network: "mainnet" | "testnet"; onCreated: () => void }) {
+  const offer = useApi<NearAccountOffer>("/api/near-account");
+  const params = useSearchParams();
+  const [open, setOpen] = useState(false);
+  const o = offer.data;
+  const created = o?.account?.status === "created" ? o.account.accountId : null;
+  const wantsWelcome = params.get("welcome") === "1";
+
+  useEffect(() => {
+    // Opened from sign-up: offer to create the account straight away (once).
+    if (!wantsWelcome || !o?.enabled || created) return;
+    const t = setTimeout(() => setOpen(true), 300);
+    return () => clearTimeout(t);
+  }, [wantsWelcome, o?.enabled, created]);
+
+  if (!o || (!o.enabled && !created)) return null;
+  return (
+    <Card className="p-6">
+      <CardHeader icon={<Wallet className="h-4 w-4" />} title="Your NEAR account" subtitle={created ? "Created with VEIL AI — works in every NEAR wallet" : `Get your own name.${o.suffix}, free`} />
+      {created ? (
+        <div className="rounded-xl border border-success/25 bg-success/[0.05] p-4">
+          <div className="flex items-center gap-1.5 text-sm text-success">
+            <BadgeCheck className="h-4 w-4" /> {created}
+          </div>
+          <p className="mt-1 text-xs text-muted">To use it in another wallet app, choose Import there and type your 12 words. VEIL AI doesn&apos;t have them.</p>
+        </div>
+      ) : (
+        <>
+          <p className="text-sm text-muted">A real NEAR account with your name. Your browser creates the keys and recovery phrase; VEIL AI only saves the account name and pays the small creation fee.</p>
+          <Button className="mt-4" onClick={() => setOpen(true)}>
+            <Sparkles className="h-4 w-4" /> Create name.{o.suffix}
+          </Button>
+        </>
+      )}
+      <CreateNearAccount
+        open={open}
+        onClose={() => setOpen(false)}
+        suffix={o.suffix}
+        depositNear={o.depositNear}
+        network={network}
+        onCreated={() => {
+          offer.reload();
+          onCreated();
+        }}
+      />
     </Card>
   );
 }
