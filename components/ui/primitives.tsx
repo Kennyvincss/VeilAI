@@ -8,18 +8,17 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "outline";
 type Size = "sm" | "md" | "lg" | "icon";
 
 const variants: Record<Variant, string> = {
-  primary:
-    "bg-accent text-white shadow-[0_0_0_1px_rgba(167,139,250,0.4),0_8px_24px_-8px_rgba(139,92,246,0.6)] hover:bg-[#9b70f8] active:bg-[#7c4fe6]",
-  secondary: "bg-card-2 text-text border border-border-strong hover:bg-[#222739] hover:border-white/20",
-  outline: "bg-transparent text-text border border-border-strong hover:bg-white/[0.04]",
-  ghost: "bg-transparent text-muted hover:text-text hover:bg-white/[0.05]",
+  primary: "bg-accent text-white shadow-[0_10px_22px_-12px_rgba(17,18,22,0.7)] hover:bg-[#2a2c33] active:bg-black",
+  secondary: "bg-card text-text border border-border-strong shadow-[0_1px_2px_rgba(15,17,26,0.05)] hover:bg-card-2",
+  outline: "bg-transparent text-text border border-border-strong hover:bg-black/[0.03]",
+  ghost: "bg-transparent text-muted hover:text-text hover:bg-black/[0.04]",
   danger: "bg-danger/10 text-danger border border-danger/30 hover:bg-danger/20",
 };
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-xs gap-1.5 rounded-lg",
-  md: "h-10 px-4 text-sm gap-2 rounded-xl",
-  lg: "h-12 px-6 text-[0.95rem] gap-2 rounded-xl",
-  icon: "h-9 w-9 rounded-lg",
+  sm: "h-8 px-3.5 text-xs gap-1.5 rounded-full",
+  md: "h-10 px-4.5 text-sm gap-2 rounded-full",
+  lg: "h-12 px-6 text-[0.95rem] gap-2 rounded-full",
+  icon: "h-9 w-9 rounded-full",
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -74,7 +73,7 @@ export function CardHeader({ title, subtitle, icon, action }: { title: ReactNode
   return (
     <div className="mb-4 flex items-start justify-between gap-3">
       <div className="flex min-w-0 items-start gap-3">
-        {icon && <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent-strong">{icon}</div>}
+        {icon && <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-card-2 text-text">{icon}</div>}
         <div className="min-w-0">
           <h3 className="truncate text-sm font-semibold text-text">{title}</h3>
           {subtitle && <p className="mt-0.5 text-xs text-muted">{subtitle}</p>}
@@ -89,9 +88,9 @@ export function CardHeader({ title, subtitle, icon, action }: { title: ReactNode
 
 type Tone = "neutral" | "accent" | "blue" | "success" | "warning" | "danger";
 const tones: Record<Tone, string> = {
-  neutral: "bg-white/[0.06] text-muted border-white/10",
-  accent: "bg-accent/12 text-accent-strong border-accent/30",
-  blue: "bg-accent-2/12 text-[#93c5fd] border-accent-2/30",
+  neutral: "bg-card-2 text-muted border-border",
+  accent: "bg-lavender/40 text-accent-strong border-lavender",
+  blue: "bg-accent-2/10 text-accent-2 border-accent-2/25",
   success: "bg-success/10 text-success border-success/30",
   warning: "bg-warning/10 text-warning border-warning/30",
   danger: "bg-danger/10 text-danger border-danger/30",
@@ -117,7 +116,7 @@ export function Skeleton({ className }: { className?: string }) {
 export function EmptyState({ icon, title, description, action }: { icon: ReactNode; title: string; description?: ReactNode; action?: ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border-strong px-6 py-10 text-center">
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-accent/25 bg-accent/10 text-accent-strong">{icon}</div>
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-card-2 text-text">{icon}</div>
       <h4 className="text-sm font-semibold text-text">{title}</h4>
       {description && <p className="mt-1.5 max-w-sm text-xs leading-relaxed text-muted">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
@@ -136,7 +135,7 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
     <input
       ref={ref}
       className={cn(
-        "h-11 w-full rounded-xl border border-border-strong bg-bg-2 px-3.5 text-sm text-text placeholder:text-subtle transition-colors focus:border-accent/60 focus:outline-none focus:ring-2 focus:ring-accent/25",
+        "h-11 w-full rounded-xl border border-border bg-bg-2 px-3.5 text-sm text-text placeholder:text-subtle transition-colors focus:border-border-strong focus:bg-card focus:outline-none focus:ring-4 focus:ring-lavender/45",
         className,
       )}
       {...props}
@@ -169,7 +168,7 @@ export function Toggle({ checked, onChange, label, id, description }: { checked:
         onClick={() => onChange(!checked)}
         className={cn(
           "relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors",
-          checked ? "border-accent/60 bg-accent" : "border-border-strong bg-bg-2",
+          checked ? "border-accent bg-accent" : "border-border-strong bg-card-2",
         )}
       >
         <span className={cn("inline-block h-4.5 w-4.5 rounded-full bg-white shadow transition-transform", checked ? "translate-x-5.5" : "translate-x-1")} />

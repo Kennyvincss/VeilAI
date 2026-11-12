@@ -138,7 +138,7 @@ export default function ReportsPage() {
                     </div>
                   </button>
                   <div className="flex shrink-0 gap-1">
-                    <button onClick={() => void openSaved(r.id, true)} className="rounded-lg p-1.5 text-subtle hover:bg-white/5 hover:text-text" aria-label={`Download ${r.title}`}>
+                    <button onClick={() => void openSaved(r.id, true)} className="rounded-lg p-1.5 text-subtle hover:bg-black/[0.04] hover:text-text" aria-label={`Download ${r.title}`}>
                       <Download className="h-4 w-4" />
                     </button>
                     <button onClick={() => void remove(r.id)} className="rounded-lg p-1.5 text-subtle hover:bg-danger/10 hover:text-danger" aria-label={`Delete ${r.title}`}>

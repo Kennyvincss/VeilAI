@@ -89,7 +89,7 @@ export function WalletOnboarding({
       </div>
 
       {network === "testnet" && (
-        <p className="mb-4 rounded-xl border border-[#60a5fa]/30 bg-[#60a5fa]/[0.06] px-3.5 py-2.5 text-xs leading-relaxed text-[#93c5fd]">
+        <p className="mb-4 rounded-xl border border-[#60a5fa]/30 bg-[#60a5fa]/[0.06] px-3.5 py-2.5 text-xs leading-relaxed text-accent-2">
           This app is on <strong>NEAR testnet</strong>. Use a testnet account (for example at testnet.mynearwallet.com, or switch your wallet&apos;s network to testnet), then get free test NEAR from{" "}
           <a href="https://near-faucet.io" target="_blank" rel="noopener noreferrer" className="font-semibold underline underline-offset-2">
             near-faucet.io
@@ -99,7 +99,7 @@ export function WalletOnboarding({
       )}
 
       {mode === "create" && onCreateHere && (
-        <div className="mb-5 rounded-2xl border border-accent/35 bg-accent/[0.07] p-4">
+        <div className="mb-5 rounded-3xl border border-lavender bg-lavender/20 p-4">
           <div className="text-sm font-semibold">Easiest: get your own name.{createSuffix} here</div>
           <p className="mt-1 text-xs leading-relaxed text-muted">A real NEAR account that works in every NEAR wallet. Your browser makes the keys; VEIL AI never sees them and pays the small creation fee.</p>
           <Button size="sm" className="mt-3" onClick={onCreateHere}>
@@ -204,6 +204,6 @@ function WalletIcon({ src }: { src?: string }) {
   }
   return (
     // eslint-disable-next-line @next/next/no-img-element -- wallet icons come from the official NEAR Connect manifest (remote, many hosts)
-    <img src={src} alt="" className="h-9 w-9 shrink-0 rounded-xl bg-white/5 object-contain" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+    <img src={src} alt="" className="h-9 w-9 shrink-0 rounded-xl bg-black/[0.04] object-contain" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
   );
 }

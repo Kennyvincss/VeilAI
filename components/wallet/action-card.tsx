@@ -140,9 +140,9 @@ export function ActionCard({ action }: { action: ChatAction }) {
   const loading = overview.loading || staking.loading || swap.loading;
 
   return (
-    <div className="rounded-2xl border border-accent/30 bg-accent/[0.06] p-4">
+    <div className="rounded-3xl border border-lavender bg-lavender/20 p-4">
       <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent-strong">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-accent-strong shadow-[0_1px_2px_rgba(15,17,26,0.06)]">
           <Icon className="h-4 w-4" />
         </div>
         <div className="min-w-0 flex-1">

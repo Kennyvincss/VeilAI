@@ -106,7 +106,7 @@ function CategoryCard({ c }: { c: RiskCategoryResult }) {
         )}
       </div>
       {c.score !== null && (
-        <div className="mt-2 h-1.5 rounded-full bg-white/5">
+        <div className="mt-2 h-1.5 rounded-full bg-black/[0.04]">
           <div className="h-full rounded-full transition-all duration-700" style={{ width: `${c.score}%`, background: scoreColor(c.score) }} />
         </div>
       )}

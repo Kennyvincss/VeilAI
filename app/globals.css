@@ -2,26 +2,30 @@
 
 /* ------------------------------------------------------------------------
  * VEIL AI design tokens
- * A dark financial-intelligence terminal. The product is dark-only by
- * design; tokens are defined once and consumed through Tailwind utilities.
+ * Light, airy workspace: a floating white window on a soft sky, near-black
+ * primary actions and pastel highlights. Tokens are defined once and
+ * consumed through Tailwind utilities.
  * --------------------------------------------------------------------- */
 :root {
-  --bg: #08090d;
-  --bg-2: #10121a;
-  --card: #151824;
-  --card-2: #1a1e2d;
-  --border: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.13);
-  --text: #f5f6fa;
-  --muted: #8b90a5;
-  --subtle: #5d6278;
-  --accent: #8b5cf6; /* electric purple */
-  --accent-strong: #a78bfa;
-  --accent-2: #3b82f6; /* blue */
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  color-scheme: dark;
+  --bg: #eef2f7;
+  --bg-2: #f5f6f8;
+  --card: #ffffff;
+  --card-2: #f4f5f7;
+  --border: rgba(15, 17, 26, 0.07);
+  --border-strong: rgba(15, 17, 26, 0.12);
+  --text: #0e0f13;
+  --muted: #676b76;
+  --subtle: #9ea2ac;
+  --accent: #111216; /* near-black primary */
+  --accent-strong: #5b4bd6; /* violet for links and highlights */
+  --accent-2: #3b6fe0; /* blue */
+  --lavender: #cfc3ff;
+  --lime: #dff27a;
+  --success: #15a150;
+  --warning: #c27a06;
+  --danger: #e5484d;
+  --sky: linear-gradient(180deg, #c9dcf0 0%, #dfe9f4 38%, #eef1f6 70%, #f5f3ef 100%);
+  color-scheme: light;
 }
 
 @theme inline {
@@ -37,6 +41,8 @@
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
   --color-accent-2: var(--accent-2);
+  --color-lavender: var(--lavender);
+  --color-lime: var(--lime);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
@@ -66,12 +72,18 @@
 }
 
 html {
-  background: var(--bg);
+  background: #dfe9f4;
   scroll-behavior: smooth;
 }
 
 body {
-  background: var(--bg);
+  background:
+    radial-gradient(ellipse 60% 40% at 15% 85%, rgba(255, 255, 255, 0.85), transparent 70%),
+    radial-gradient(ellipse 50% 35% at 85% 90%, rgba(255, 255, 255, 0.8), transparent 70%),
+    radial-gradient(ellipse 40% 25% at 70% 10%, rgba(255, 255, 255, 0.55), transparent 70%),
+    var(--sky);
+  background-attachment: fixed;
+  min-height: 100vh;
   color: var(--text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -79,8 +91,7 @@ body {
 }
 
 ::selection {
-  background: rgba(139, 92, 246, 0.35);
-  color: #fff;
+  background: rgba(91, 75, 214, 0.18);
 }
 
 :focus-visible {
@@ -92,21 +103,22 @@ body {
 /* Thin, unobtrusive scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  scrollbar-color: rgba(15, 17, 26, 0.16) transparent;
 }
 
 @layer components {
   .glass {
-    background: linear-gradient(180deg, rgba(26, 30, 45, 0.72), rgba(21, 24, 36, 0.72));
-    border: 1px solid var(--border);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
   }
 
   .card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 22px;
+    box-shadow: 0 1px 2px rgba(15, 17, 26, 0.04), 0 8px 24px -16px rgba(15, 17, 26, 0.12);
   }
 
   .hairline {
@@ -114,7 +126,7 @@ body {
   }
 
   .text-gradient {
-    background: linear-gradient(110deg, #ffffff 20%, var(--accent-strong) 60%, #93c5fd 95%);
+    background: linear-gradient(110deg, var(--text) 25%, var(--accent-strong) 62%, var(--accent-2) 95%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -122,8 +134,8 @@ body {
 
   .grid-backdrop {
     background-image:
-      linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+      linear-gradient(rgba(15, 17, 26, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 17, 26, 0.04) 1px, transparent 1px);
     background-size: 44px 44px;
     mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
   }
@@ -131,9 +143,9 @@ body {
   .skeleton {
     background: linear-gradient(
       90deg,
-      rgba(255, 255, 255, 0.04) 0%,
-      rgba(255, 255, 255, 0.09) 50%,
-      rgba(255, 255, 255, 0.04) 100%
+      rgba(15, 17, 26, 0.04) 0%,
+      rgba(15, 17, 26, 0.08) 50%,
+      rgba(15, 17, 26, 0.04) 100%
     );
     background-size: 200% 100%;
     animation: var(--animate-shimmer);
@@ -180,12 +192,12 @@ body {
   .prose-veil code {
     font-family: var(--font-mono);
     font-size: 0.82em;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(15, 17, 26, 0.05);
     padding: 0.1rem 0.35rem;
     border-radius: 5px;
   }
   .prose-veil strong {
-    color: #fff;
+    color: var(--text);
     font-weight: 600;
   }
   .prose-veil table {
@@ -217,4 +229,29 @@ body {
 .recharts-wrapper svg:focus,
 .recharts-surface:focus {
   outline: none;
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+.animate-float-soft {
+  animation: float-soft 6s ease-in-out infinite;
+}
+
+/* The floating app window on the sky background (usable with variants, e.g. lg:app-window). */
+@utility app-window {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 40px 80px -40px rgba(30, 55, 95, 0.35),
+    0 12px 30px -18px rgba(30, 55, 95, 0.2);
 }

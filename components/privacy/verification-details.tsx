@@ -13,7 +13,7 @@ export function CheckRow({ check }: { check: VerificationCheck }) {
   return (
     <li className="rounded-lg border border-border bg-bg-2/50">
       <button
-        className={cn("flex w-full items-start gap-2.5 px-3 py-2 text-left", hasDetail && "hover:bg-white/[0.02]")}
+        className={cn("flex w-full items-start gap-2.5 px-3 py-2 text-left", hasDetail && "hover:bg-black/[0.02]")}
         onClick={() => hasDetail && setOpen((v) => !v)}
         aria-expanded={hasDetail ? open : undefined}
         disabled={!hasDetail}

@@ -57,7 +57,7 @@ export function ActivityPanel({ accountId, network, refreshKey }: { accountId: s
               const positive = it.amount?.startsWith("+");
               return (
                 <li key={`${it.hash}-${it.kind}-${it.amount}`} className="flex items-center gap-3 py-2.5">
-                  <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", positive ? "bg-success/10 text-success" : "bg-white/5 text-muted")}>
+                  <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", positive ? "bg-success/10 text-success" : "bg-black/[0.04] text-muted")}>
                     <Icon className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
