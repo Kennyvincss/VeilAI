@@ -1,18 +1,15 @@
 import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getEnv, nearNetwork, supabaseConfigured } from "@/lib/env";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 /**
  * VEIL usernames: sign in with username + password, and receive NEAR at
  * @username. Rules mirror the database (supabase/migrations/…_usernames.sql).
  */
 
-export const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
-const RESERVED = new Set([
-  "admin", "administrator", "root", "support", "help", "helpdesk", "security", "official", "team", "staff", "moderator", "mod",
-  "veil", "veilai", "veil_ai", "near", "nearai", "near_ai", "nearprotocol", "near_protocol", "wallet", "system", "api", "null", "undefined",
-  "billing", "payments", "payment", "refund", "refunds", "verify", "verification", "login", "signin", "signup", "account", "accounts",
-]);
+import { RESERVED_USERNAMES as RESERVED, USERNAME_RE } from "@/lib/username-rules";
+export { USERNAME_RE };
 
 /** "@Alice " → "alice" (no validation). */
 export function normalizeUsername(input: string): string {
@@ -68,9 +65,8 @@ export function usernameLoginEnabled(): boolean {
  */
 export async function emailForUsername(input: string): Promise<string | null> {
   if (!USERNAME_RE.test(normalizeUsername(input))) return null;
-  const env = getEnv();
   if (!usernameLoginEnabled()) return null;
-  const admin = createClient(env.NEXT_PUBLIC_SUPABASE_URL!, env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false, autoRefreshToken: false } });
+  const admin = supabaseAdmin()!;
   const { data, error } = await admin.rpc("email_for_username", { u: normalizeUsername(input) });
   if (error) throw new UsernamesUnavailable(error.message);
   return typeof data === "string" && data ? data : null;

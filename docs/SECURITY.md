@@ -78,6 +78,13 @@ The analyst detects wallet actions only in the **user's own message** (`lib/ai/a
 - **Receiving at @username** requires linking a wallet the user proved they own (NEP-413). A database trigger rejects any `payout_account` that isn't an ownership-verified tracked wallet of the same user, and unlinks it if the wallet is removed. Senders resolve `@username` server-side via a `security definer` function that returns only `username → account` for linked profiles; the review screen shows "@alice → account" and the safety check explains the link.
 - **Username sign-in** (`/api/auth/login`): the server maps the username to its email with a function granted **only to `service_role`**, then Supabase verifies the password and sets the session cookies. The email never reaches the browser. Errors are uniform ("Incorrect username or password"), same-origin is required, and attempts are rate-limited per IP and per username. `SUPABASE_SERVICE_ROLE_KEY` is used for nothing else; without it, username sign-in is disabled and email sign-in still works.
 
+## Free name.near accounts (non-custodial)
+
+- The key pair and 12-word recovery phrase are generated **in the browser** (`near-api-js/seed-phrase`, the standard NEAR derivation, so any wallet can import them) and kept only in memory. They are never sent to the server, written to storage or logged. The user confirms they wrote the phrase down before creation; it is wiped from memory afterwards.
+- The browser sends only the public key, plus an Ed25519 signature over `VEIL AI: create <account> controlled by <publicKey>`, proving it holds the private key for exactly that name.
+- The server's sponsor account (`NEAR_SPONSOR_*`, a dedicated low-balance VEIL account — never a user's) calls `create_account` on the registrar (`near` / `testnet`) with the deposit. It then confirms on-chain that the user's key is a FullAccess key on the new account before reporting success (the registrar refunds and returns false if the name was taken meanwhile).
+- Abuse limits: signed-in users only, one account per VEIL user, per-IP and per-user rate limits, and a global 24-hour cap. The ledger (`sponsored_accounts`) is readable by its owner but writable only by the service role, so users can't reset their own limit.
+
 ## Notifications
 
 Created in the browser and stored in `localStorage` only. While the dashboard is open and a wallet is connected, the page polls a cheap balance fingerprint (`/api/defi/pulse`, RPC + FastNEAR) every 45 s and only fetches activity when it changes. Browser alerts use the Notification API after the user grants permission. Nothing is tracked server-side or in the background.

@@ -28,6 +28,7 @@ app/
     profile, username/check    username, linked receiving wallet
     auth/login                 username + password sign-in
     defi/pulse                 balance fingerprint for notifications
+    near-account[/check|create]   free name.near creation (sponsored, non-custodial)
     proof/attest               fresh attestation for a VEIL-issued proof
     defi/swap/tokens|quote|status|submit   NEAR Intents 1Click
 components/                    ui, layout, landing, dashboard, analyst, wallet, privacy, charts

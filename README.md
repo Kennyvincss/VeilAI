@@ -38,7 +38,7 @@ Wallets connect through **NEAR Connect**. Ownership is proven with a **NEP-413**
 
 The **Wallet** page (`/dashboard/wallet`) lets users connect a wallet, or create/import one in a trusted wallet app (guided — keys never touch VEIL AI), then **send, receive, swap (NEAR Intents) and stake**. Every transaction is prepared and checked server-side, shown in a plain-language review, and signed only by the user's own wallet.
 
-Accounts can sign in with **username or email** plus password. A **notification bell** shows money received, swap results, unstaked NEAR ready to withdraw and transactions sent — with optional browser alerts while VEIL AI is open (stored only in that browser).
+New users can create a real **`name.near`** account in VEIL AI that works in every NEAR wallet: the browser generates the key and 12-word recovery phrase, and VEIL only stores the account name. Accounts can sign in with **username or email** plus password. A **notification bell** shows money received, swap results, unstaked NEAR ready to withdraw and transactions sent — with optional browser alerts while VEIL AI is open (stored only in that browser).
 
 VEIL AI is installable as an app (web app manifest) and runs on NEAR **testnet** by setting `NEXT_PUBLIC_NEAR_NETWORK=testnet` — useful as a risk-free judging deployment (swaps are mainnet-only, because NEAR Intents doesn't run on testnet).
 
@@ -77,13 +77,15 @@ Open http://localhost:3000. With **no configuration**, everything runs in clearl
 ### Enable accounts and persistence (Supabase)
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Run the migrations in order: paste `supabase/migrations/20261104000000_init.sql`, then `supabase/migrations/20261111000000_contacts.sql` (address book), then `supabase/migrations/20261112000000_usernames.sql` (usernames) into the SQL editor, or use `supabase db push`.
+2. Run the migrations in order: paste `supabase/migrations/20261104000000_init.sql`, then `supabase/migrations/20261111000000_contacts.sql` (address book), then `supabase/migrations/20261112000000_usernames.sql` (usernames), then `supabase/migrations/20261113000000_sponsored_accounts.sql` (free name.near accounts) into the SQL editor, or use `supabase db push`.
 3. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 4. Auth → URL configuration: add `http://localhost:3000/auth/callback` (and your production URL) as redirect URLs.
 5. Optional: enable the Google provider, then set `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`.
 6. Set `DATA_ENCRYPTION_KEY` (from `openssl rand -hex 32`) to encrypt stored messages, goals and reports, and `APP_SECRET` for signed NEP-413 challenges and shareable proof links (keep it stable — changing it invalidates existing proof links).
 
 To enable **username sign-in**, set `SUPABASE_SERVICE_ROLE_KEY` (server-only; Supabase → Project Settings → API). It is used solely to look up the email behind a username during sign-in. Without it, people sign in with their email; usernames and @username payments still work.
+
+To let new users **create their own `name.near` account for free**, create a dedicated NEAR account for VEIL (e.g. `veil-sponsor.near`), put a little NEAR in it (each new account costs `NEAR_SPONSOR_DEPOSIT_NEAR`, default 0.01 NEAR), and set `NEAR_SPONSOR_ACCOUNT_ID` and `NEAR_SPONSOR_PRIVATE_KEY` (plus `SUPABASE_SERVICE_ROLE_KEY`). Users' keys and recovery phrases are generated in their browser and never reach the server; the database stores only the account name. One account per VEIL user, with a daily cap (`NEAR_SPONSOR_DAILY_LIMIT`). On testnet, fund the sponsor from the faucet.
 
 To enable swaps, request a NEAR Intents 1Click API key (JWT) from the NEAR Intents team and set `ONECLICK_JWT` (server-side only). Without it, the Swap tab shows that swaps are unavailable.
 

@@ -43,6 +43,8 @@ export function WalletOnboarding({
   onClose,
   onConnect,
   network,
+  onCreateHere,
+  createSuffix = "near",
 }: {
   open: boolean;
   mode: OnboardingMode;
@@ -50,6 +52,9 @@ export function WalletOnboarding({
   onClose: () => void;
   onConnect: () => void;
   network: "mainnet" | "testnet";
+  /** When set, offer to create name.near right here (VEIL-sponsored, keys stay in the browser). */
+  onCreateHere?: (() => void) | null;
+  createSuffix?: string;
 }) {
   const [wallets, setWallets] = useState<ManifestWallet[]>(FALLBACK);
 
@@ -91,6 +96,17 @@ export function WalletOnboarding({
           </a>
           .
         </p>
+      )}
+
+      {mode === "create" && onCreateHere && (
+        <div className="mb-5 rounded-2xl border border-accent/35 bg-accent/[0.07] p-4">
+          <div className="text-sm font-semibold">Easiest: get your own name.{createSuffix} here</div>
+          <p className="mt-1 text-xs leading-relaxed text-muted">A real NEAR account that works in every NEAR wallet. Your browser makes the keys; VEIL AI never sees them and pays the small creation fee.</p>
+          <Button size="sm" className="mt-3" onClick={onCreateHere}>
+            <Sparkles className="h-3.5 w-3.5" /> Create name.{createSuffix}
+          </Button>
+          <p className="mt-3 text-[0.7rem] text-subtle">Or create one in a wallet app:</p>
+        </div>
       )}
 
       {mode === "create" ? (
