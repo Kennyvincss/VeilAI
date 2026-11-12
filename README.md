@@ -124,7 +124,7 @@ Create a second Vercel project from the same repository with `NEXT_PUBLIC_NEAR_N
 1. Push the repository to GitHub and import it in Vercel. The framework preset is Next.js and needs no build settings.
 2. Add the environment variables from `.env.example` under Project → Settings → Environment Variables. At minimum, set `NEAR_AI_API_KEY`, the Supabase URL and anon key, `DATA_ENCRYPTION_KEY`, `APP_SECRET` and `NEXT_PUBLIC_APP_URL`.
 3. Add `https://<your-domain>/auth/callback` to Supabase's redirect URLs.
-4. Deploy. API routes run on the Node.js runtime. `@phala/dcap-qvl-node` is excluded from bundling and its `.wasm` file is traced into the API functions (`next.config.ts`).
+4. Deploy. API routes run on the Node.js runtime. The Intel TDX verifier `@phala/dcap-qvl` (pure JS) is kept as an external Node dependency (`next.config.ts`).
 5. The chat route uses streaming responses with `maxDuration = 120`. If your Vercel plan caps duration lower, reduce `NEAR_AI_MAX_TOKENS`.
 
 ## Costs and fees

@@ -6,14 +6,15 @@ import { decodeJwtPayload, isNvidiaPass } from "@/lib/near-ai/checks";
 /**
  * Hardware attestation verifiers (network-bound).
  *
- *  - Intel TDX quotes: verified with Phala's dcap-qvl (the same library used
- *    by NEAR's official verifier) against Intel's PCS collateral.
+ *  - Intel TDX quotes: verified with Phala's dcap-qvl (the library behind
+ *    NEAR's official verifier; pure-JS build, patched for CVE-2026-22696)
+ *    against Intel's PCS collateral.
  *  - NVIDIA GPU evidence: submitted to NVIDIA's Remote Attestation Service
  *    (NRAS); the returned EAT token's signature is additionally checked
  *    against NVIDIA's published JWKS.
  */
 
-export const INTEL_PCCS_URL = "https://api.trustedservices.intel.com/tdx/certification/v4";
+export const INTEL_PCS_URL = "https://api.trustedservices.intel.com";
 export const NVIDIA_NRAS_URL = "https://nras.attestation.nvidia.com/v3/attest/gpu";
 export const NVIDIA_JWKS_URL = "https://nras.attestation.nvidia.com/.well-known/jwks.json";
 
@@ -25,43 +26,42 @@ export interface TdxResult {
   mrConfigHex: string | null;
 }
 
-type DcapModule = {
-  js_verify: (rawQuote: Uint8Array, collateral: unknown, now: bigint) => unknown;
-  js_get_collateral: (pccsUrl: string, rawQuote: Uint8Array) => Promise<unknown>;
-};
-
-let dcap: Promise<DcapModule> | null = null;
-function loadDcap(): Promise<DcapModule> {
-  dcap ??= import("@phala/dcap-qvl-node") as unknown as Promise<DcapModule>;
+/**
+ * Pure-JS dcap-qvl (patched for GHSA-796p-j2gh-9m2q / CVE-2026-22696: it
+ * verifies the QE Identity signature and enforces the QE Report policy).
+ * The older WASM package @phala/dcap-qvl-node has no patched release.
+ */
+type Dcap = typeof import("@phala/dcap-qvl");
+let dcap: Promise<Dcap> | null = null;
+function loadDcap(): Promise<Dcap> {
+  dcap ??= import("@phala/dcap-qvl");
   return dcap;
 }
 
-/** Find the TD report body (TD10 for TDX 1.0 quotes, TD15 for 1.5). */
-function tdReport(result: Record<string, unknown>): Record<string, string> {
-  const report = (result.report ?? {}) as Record<string, unknown>;
-  const td = (report.TD10 ?? report.TD15 ?? report.td10 ?? report.td15 ?? {}) as Record<string, unknown>;
-  const base = (td.base ?? td) as Record<string, string>;
-  return base;
-}
+const hex = (b: Uint8Array | undefined | null) => (b ? Buffer.from(b).toString("hex") : null);
+
+/** Statuses accepted as verified, matching NEAR's official verifier. */
+export const ACCEPTED_TCB = new Set(["UpToDate", "OutOfDate"]);
 
 export async function verifyTdxQuote(intelQuoteHex: string): Promise<TdxResult> {
   const label = "Intel TDX quote verified against Intel PCS collateral";
   try {
-    const { js_get_collateral, js_verify } = await loadDcap();
-    const raw = Uint8Array.from(Buffer.from(intelQuoteHex.replace(/^0x/i, ""), "hex"));
-    const collateral = await js_get_collateral(INTEL_PCCS_URL, raw);
-    const result = js_verify(raw, collateral, BigInt(Math.floor(Date.now() / 1000))) as Record<string, unknown>;
+    const { getCollateralFromPcs, verify } = await loadDcap();
+    const raw = Buffer.from(intelQuoteHex.replace(/^0x/i, ""), "hex");
+    const collateral = await getCollateralFromPcs(raw);
+    // verify() throws on any cryptographic failure (quote, PCK chain, CRLs,
+    // TCB info and QE identity signatures, QE report policy).
+    const result = verify(raw, collateral, Math.floor(Date.now() / 1000));
     const status = typeof result.status === "string" ? result.status : null;
-    // Matches the official verifier: UpToDate is ideal; OutOfDate means the
-    // platform TCB is below Intel's latest advisory baseline but the quote's
-    // cryptography is valid.
-    const verified = status ? status === "UpToDate" || status === "OutOfDate" : Boolean((result.quote as { verified?: boolean })?.verified);
-    const td = tdReport(result);
+    const td = result.report.asTd10() ?? result.report.asTd15()?.base ?? result.report.asTd15Ex()?.base.base ?? null;
+    // UpToDate is ideal; OutOfDate means the platform TCB is below Intel's
+    // latest advisory baseline but the quote's cryptography is valid.
+    const verified = Boolean(status && ACCEPTED_TCB.has(status) && td);
     return {
       verified,
       status,
-      reportDataHex: td.report_data ?? null,
-      mrConfigHex: td.mr_config_id ?? null,
+      reportDataHex: hex(td?.reportData),
+      mrConfigHex: hex(td?.mrConfigId),
       check: {
         id: "tdx_quote",
         label,
@@ -69,8 +69,10 @@ export async function verifyTdxQuote(intelQuoteHex: string): Promise<TdxResult> 
         // "warn" (OutOfDate) is accepted, mirroring NEAR's verifier; see allRequiredPass handling.
         required: true,
         detail: verified
-          ? `TCB status: ${status ?? "verified"}.${status === "OutOfDate" ? " Platform TCB is below Intel's latest baseline; quote signature chain is valid." : ""}`
-          : `TCB status: ${status ?? "unknown"}.`,
+          ? `TCB status: ${status}.${status === "OutOfDate" ? " Platform TCB is below Intel's latest baseline; quote signature chain is valid." : ""}`
+          : td
+            ? `TCB status: ${status ?? "unknown"}.`
+            : "The quote is not a TDX quote.",
       },
     };
   } catch (err) {

@@ -2,7 +2,7 @@
 
 ## Stack
 
-Next.js 16 (App Router, Turbopack, `proxy.ts`), React 19, TypeScript, Tailwind CSS v4, Framer Motion, Lucide, Recharts, Supabase (`@supabase/ssr`), NEAR AI Cloud, NEAR Connect, `@phala/dcap-qvl-node` (WASM), `@noble/*` crypto, ethers v6, jsPDF, Vitest. Deploys to Vercel.
+Next.js 16 (App Router, Turbopack, `proxy.ts`), React 19, TypeScript, Tailwind CSS v4, Framer Motion, Lucide, Recharts, Supabase (`@supabase/ssr`), NEAR AI Cloud, NEAR Connect, `@phala/dcap-qvl` (pure JS), `near-api-js`, `@noble/*` crypto, ethers v6, jsPDF, Vitest. Deploys to Vercel.
 
 ## Directory layout
 
