@@ -21,7 +21,7 @@ export interface NearAccountOffer {
   account: { accountId: string; status: string } | null;
 }
 
-type Step = "name" | "phrase" | "confirm" | "creating" | "done";
+type Step = "preparing" | "name" | "phrase" | "confirm" | "creating" | "done";
 
 interface Generated {
   seedPhrase: string;
@@ -97,6 +97,7 @@ export function NearAccountSetup({
   onBusyChange,
   initialName = "",
   doneLabel = "Done",
+  skipNameStep = false,
 }: {
   suffix: string;
   depositNear: string | null;
@@ -106,8 +107,11 @@ export function NearAccountSetup({
   onBusyChange?: (busy: boolean) => void;
   initialName?: string;
   doneLabel?: string;
+  /** The name was already chosen (e.g. at sign-up): go straight to the recovery words. */
+  skipNameStep?: boolean;
 }) {
-  const [step, setStep] = useState<Step>("name");
+  const autoStart = skipNameStep && !newAccountNameProblem(initialName);
+  const [step, setStep] = useState<Step>(autoStart ? "preparing" : "name");
   const [name, setName] = useState(initialName);
   const [check, setCheck] = useState<{ for: string; available: boolean; problem: string | null } | null>(null);
   const [gen, setGen] = useState<Generated | null>(null);
@@ -136,6 +140,21 @@ export function NearAccountSetup({
     onBusyChange?.(step === "creating");
   }, [step, onBusyChange]);
 
+  // Name already chosen: create the key and phrase right away.
+  useEffect(() => {
+    if (!autoStart) return;
+    let cancelled = false;
+    import("near-api-js/seed-phrase").then(({ generateSeedPhrase }) => {
+      if (cancelled) return;
+      const { seedPhrase, keyPair } = generateSeedPhrase();
+      setGen({ seedPhrase, publicKey: keyPair.getPublicKey().toString(), sign: (b) => keyPair.sign(b).signature });
+      setStep("phrase");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [autoStart]);
+
   async function generate() {
     setError(null);
     const { generateSeedPhrase } = await import("near-api-js/seed-phrase");
@@ -158,8 +177,13 @@ export function NearAccountSetup({
       notify({ id: `created:${r.accountId}`, kind: "info", title: `${r.accountId} is yours`, body: "Import your 12 words into any NEAR wallet to use it.", href: "/dashboard/wallet" });
       onCreated(r.accountId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "The account couldn't be created.");
-      setStep("confirm");
+      const message = err instanceof Error ? err.message : "The account couldn't be created.";
+      setError(message);
+      // Name taken in the meantime: let them pick another (a new key is made for it).
+      if (/taken/i.test(message)) {
+        setGen(null);
+        setStep("name");
+      } else setStep("confirm");
     }
   }
 
@@ -167,8 +191,19 @@ export function NearAccountSetup({
 
   return (
     <div>
+      {step === "preparing" && (
+        <p className="flex items-center justify-center gap-2 py-10 text-sm text-muted">
+          <Loader2 className="h-4 w-4 animate-spin" /> Creating your recovery words…
+        </p>
+      )}
+
       {step === "name" && (
         <div>
+          {error && (
+            <p role="alert" className="mb-3 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-warning">
+              {error} Choose another name.
+            </p>
+          )}
           <Label htmlFor="new-name">Choose your name</Label>
           <div className="flex items-stretch overflow-hidden rounded-xl border border-border-strong bg-bg-2 focus-within:border-accent/50">
             <input
