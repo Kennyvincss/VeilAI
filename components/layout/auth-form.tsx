@@ -70,7 +70,9 @@ export function AuthForm({ mode, googleEnabled, nearSignup = null }: { mode: "lo
     return () => clearTimeout(t);
   }, [resendIn]);
 
-  const redirectTo = () => `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+  // If the email contains a link instead of a code, the link signs them in and
+  // new accounts land on Account, where they can create their name.near.
+  const redirectTo = () => `${window.location.origin}/auth/callback?next=${encodeURIComponent(mode === "signup" && !params.get("next") ? "/dashboard/account" : next)}`;
 
   function afterVerified() {
     setSignedIn(true);
@@ -175,7 +177,7 @@ export function AuthForm({ mode, googleEnabled, nearSignup = null }: { mode: "lo
     step === "code" ? "Check your email" : step === "wallet" ? "Create your NEAR account" : step === "done" ? "You're all set" : mode === "login" ? "Welcome back" : "Create your free account";
   const sub =
     step === "code"
-      ? `We sent a code to ${email}. Enter it below to verify your email.`
+      ? `We sent an email to ${email}. Enter the code from it below — or, if the email has a confirm button instead, just tap it.`
       : step === "wallet"
         ? "Last step: your own NEAR account that works in every NEAR wallet."
         : step === "done"
