@@ -297,7 +297,7 @@ function finish(r: Omit<VerificationResult, "completedAt" | "durationMs">, start
 export async function reattestSigner(model: string, signingAddress: string, algo: "ecdsa" | "ed25519") {
   const nonce = newNonce();
   const checkedAt = new Date().toISOString();
-  if (!nearAiConfig().configured) return { state: "unverified" as const, nonce, checkedAt, checks: [], message: "A fresh check isn't available on this deployment right now." };
+  if (!nearAiConfig().configured) return { state: "unverified" as const, nonce, checkedAt, checks: [], message: "A fresh check isn't available right now. Please try again later." };
   let report: AttestationReportResponse;
   try {
     report = await fetchAttestationReport({ model, nonce, signingAlgo: algo, signingAddress });

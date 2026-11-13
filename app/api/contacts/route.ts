@@ -17,7 +17,7 @@ const contactSchema = z.object({
     .refine((v) => !looksLikeSecret(v), "That looks like a secret key — never store it."),
   accountId: accountIdSchema,
 });
-const NOT_SET_UP = "The address book isn't set up on this server yet.";
+const NOT_SET_UP = "Your contacts are saved in this browser for now.";
 
 /** Signed-in users' encrypted address book. Visitors without an account use browser storage instead. */
 export async function GET() {

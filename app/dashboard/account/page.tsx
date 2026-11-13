@@ -55,7 +55,7 @@ function AccountView() {
         ) : p && !p.setUp ? (
           <Card className="p-6">
             <CardHeader icon={<AtSign className="h-4 w-4" />} title="Username" />
-            <p className="text-sm text-warning">{p.notice ?? "Usernames aren't available yet."}</p>
+            <p className="text-sm text-muted">{p.notice ?? "Usernames aren't available right now. Please check back soon."}</p>
           </Card>
         ) : (
           p && (
@@ -138,7 +138,7 @@ function UsernameCard({ current, usernameLogin, onSaved }: { current: string | n
           ? current
             ? `You can sign in with @${current} or your email, using your password.`
             : "Once claimed, you can sign in with your username or your email."
-          : "Username sign-in isn't switched on for this site yet — sign in with your email for now."}
+          : "Sign in with your email and password."}
       </p>
     </Card>
   );

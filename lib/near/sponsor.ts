@@ -63,7 +63,7 @@ export async function sponsoredAccountFor(userId: string): Promise<SponsoredRow 
   const db = supabaseAdmin();
   if (!db) return null;
   const { data, error } = await db.from("sponsored_accounts").select("account_id, network, public_key, status, tx_hash, created_at").eq("user_id", userId).maybeSingle();
-  if (error) throw new SponsorError("Account creation isn't set up on this server yet.", 503);
+  if (error) throw new SponsorError("Creating NEAR accounts isn't available right now.", 503);
   return (data as SponsoredRow | null) ?? null;
 }
 
@@ -78,7 +78,7 @@ export async function reserveSlot(userId: string, accountId: string, publicKey: 
 
   const since = new Date(Date.now() - 86_400_000).toISOString();
   const { count, error: countErr } = await db.from("sponsored_accounts").select("user_id", { count: "exact", head: true }).gte("created_at", since).neq("status", "failed");
-  if (countErr) throw new SponsorError("Account creation isn't set up on this server yet.", 503);
+  if (countErr) throw new SponsorError("Creating NEAR accounts isn't available right now.", 503);
   if ((count ?? 0) >= cfg.dailyLimit) throw new SponsorError("Today's free account limit has been reached. Please try again tomorrow, or create a wallet in a wallet app.", 429);
 
   const existing = await sponsoredAccountFor(userId);

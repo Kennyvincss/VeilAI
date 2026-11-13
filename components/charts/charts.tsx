@@ -3,16 +3,16 @@
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatPct, formatUsd } from "@/lib/utils/format";
 
-/** Categorical palette: distinguishable on #151824, ordered by brand priority. */
-export const PALETTE = ["#8B5CF6", "#3B82F6", "#14B8A6", "#F59E0B", "#EC4899", "#64748B", "#22C55E"];
+/** Categorical palette: distinguishable on white, ordered by brand priority. */
+export const PALETTE = ["#7C6CF0", "#111216", "#A3C93A", "#3B6FE0", "#F2A93B", "#EC6FA9", "#9EA2AC"];
 
 const tooltipStyle = {
-  background: "#1a1e2d",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "#ffffff",
+  border: "1px solid rgba(15,17,26,0.08)",
   borderRadius: 12,
   fontSize: 12,
-  color: "#f5f6fa",
-  boxShadow: "0 12px 32px -12px rgba(0,0,0,0.6)",
+  color: "#0e0f13",
+  boxShadow: "0 12px 32px -14px rgba(15,17,26,0.25)",
 };
 
 export function AllocationDonut({ data }: { data: { symbol: string; valueUsd: number; pct: number }[] }) {
@@ -53,11 +53,11 @@ export function ActivityBars({ data, height = 180 }: { data: { date: string; cou
     <div style={{ height }} role="img" aria-label={`Daily activity over ${data.length} days`}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -24 }}>
-          <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" />
-          <XAxis dataKey="date" tick={{ fill: "#5d6278", fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(d: string) => d.slice(5)} minTickGap={16} />
-          <YAxis allowDecimals={false} tick={{ fill: "#5d6278", fontSize: 10 }} tickLine={false} axisLine={false} />
-          <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(139,92,246,0.08)" }} formatter={(v, name) => [v, name === "count" ? "Transactions" : "NEAR volume"]} />
-          <Bar dataKey="count" fill="#8B5CF6" radius={[4, 4, 0, 0]} maxBarSize={22} />
+          <CartesianGrid vertical={false} stroke="rgba(15,17,26,0.06)" />
+          <XAxis dataKey="date" tick={{ fill: "#9ea2ac", fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(d: string) => d.slice(5)} minTickGap={16} />
+          <YAxis allowDecimals={false} tick={{ fill: "#9ea2ac", fontSize: 10 }} tickLine={false} axisLine={false} />
+          <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(124,108,240,0.08)" }} formatter={(v, name) => [v, name === "count" ? "Transactions" : "NEAR volume"]} />
+          <Bar dataKey="count" fill="#7C6CF0" radius={[4, 4, 0, 0]} maxBarSize={22} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -70,13 +70,13 @@ export function CategoryBars({ data }: { data: { label: string; score: number | 
     <div style={{ height: Math.max(180, rows.length * 34) }} role="img" aria-label={`Risk categories: ${data.map((d) => `${d.label} ${d.score ?? "n/a"}`).join(", ")}`}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={rows} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 8 }}>
-          <CartesianGrid horizontal={false} stroke="rgba(255,255,255,0.05)" />
-          <XAxis type="number" domain={[0, 100]} tick={{ fill: "#5d6278", fontSize: 10 }} tickLine={false} axisLine={false} />
-          <YAxis type="category" dataKey="label" width={150} tick={{ fill: "#8b90a5", fontSize: 11 }} tickLine={false} axisLine={false} />
-          <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(255,255,255,0.03)" }} formatter={(v, _n, item) => [(item?.payload as { score: number | null })?.score ?? "insufficient data", "Score"]} />
+          <CartesianGrid horizontal={false} stroke="rgba(15,17,26,0.06)" />
+          <XAxis type="number" domain={[0, 100]} tick={{ fill: "#9ea2ac", fontSize: 10 }} tickLine={false} axisLine={false} />
+          <YAxis type="category" dataKey="label" width={150} tick={{ fill: "#676b76", fontSize: 11 }} tickLine={false} axisLine={false} />
+          <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(15,17,26,0.03)" }} formatter={(v, _n, item) => [(item?.payload as { score: number | null })?.score ?? "insufficient data", "Score"]} />
           <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={16}>
             {rows.map((r) => (
-              <Cell key={r.label} fill={r.score === null ? "#2a2f42" : scoreColor(r.score)} />
+              <Cell key={r.label} fill={r.score === null ? "#e6e7eb" : scoreColor(r.score)} />
             ))}
           </Bar>
         </BarChart>
@@ -86,10 +86,10 @@ export function CategoryBars({ data }: { data: { label: string; score: number | 
 }
 
 export function scoreColor(score: number) {
-  if (score < 25) return "#22C55E";
-  if (score < 45) return "#84CC16";
-  if (score < 65) return "#F59E0B";
-  return "#EF4444";
+  if (score < 25) return "#15A150";
+  if (score < 45) return "#7FB52A";
+  if (score < 65) return "#E0960F";
+  return "#E5484D";
 }
 
 /** Semi-circular score gauge (SVG, no chart lib). */
@@ -100,7 +100,7 @@ export function ScoreGauge({ score, label }: { score: number | null; label: stri
   return (
     <div className="relative mx-auto w-full max-w-[220px]" role="img" aria-label={`Overall risk score ${score ?? "unavailable"} out of 100, ${label}`}>
       <svg viewBox="0 0 180 104" className="w-full">
-        <path d="M20 94 A70 70 0 0 1 160 94" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="14" strokeLinecap="round" />
+        <path d="M20 94 A70 70 0 0 1 160 94" fill="none" stroke="rgba(15,17,26,0.07)" strokeWidth="14" strokeLinecap="round" />
         {score !== null && (
           <path
             d="M20 94 A70 70 0 0 1 160 94"
@@ -114,7 +114,7 @@ export function ScoreGauge({ score, label }: { score: number | null; label: stri
         )}
       </svg>
       <div className="absolute inset-x-0 bottom-1 text-center">
-        <div className="font-mono text-4xl font-semibold" style={{ color: score === null ? "#5d6278" : scoreColor(score) }}>
+        <div className="font-mono text-4xl font-semibold" style={{ color: score === null ? "#9ea2ac" : scoreColor(score) }}>
           {score === null ? "—" : Math.round(score)}
         </div>
         <div className="text-xs uppercase tracking-wider text-muted">{label}</div>

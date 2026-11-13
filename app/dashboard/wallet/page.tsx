@@ -106,7 +106,7 @@ function WalletView() {
       />
 
       {status.network === "testnet" && (
-        <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-2xl border border-[#60a5fa]/30 bg-[#60a5fa]/[0.06] px-4 py-3 text-xs text-[#93c5fd]">
+        <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-2xl border border-[#60a5fa]/30 bg-[#60a5fa]/[0.06] px-4 py-3 text-xs text-accent-2">
           <strong className="font-semibold">NEAR testnet:</strong> test NEAR has no value, so you can try sending and staking freely.
           <a href="https://near-faucet.io" target="_blank" rel="noopener noreferrer" className="font-semibold underline underline-offset-2">
             Get free test NEAR →

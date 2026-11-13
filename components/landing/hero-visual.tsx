@@ -17,8 +17,8 @@ export function HeroVisual() {
       transition={{ duration: 0.9, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
       className="relative mx-auto w-full max-w-5xl"
     >
-      <div className="absolute -inset-x-10 -top-10 bottom-0 -z-10 rounded-[40px] bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.25),transparent_60%)] blur-2xl" aria-hidden />
-      <div className="glass rounded-3xl p-2 shadow-[0_40px_120px_-40px_rgba(0,0,0,0.9)]">
+      <div className="absolute -inset-x-10 -top-10 bottom-0 -z-10 rounded-[40px] bg-[radial-gradient(ellipse_at_top,rgba(207,195,255,0.55),transparent_60%)] blur-2xl" aria-hidden />
+      <div className="glass rounded-3xl p-2 shadow-[0_40px_100px_-40px_rgba(30,55,95,0.45)]">
         <div className="rounded-[20px] border border-border bg-bg-2/90 p-4 sm:p-6">
           <div className="mb-5 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -27,7 +27,7 @@ export function HeroVisual() {
               <span className="h-2.5 w-2.5 rounded-full bg-success/70" />
               <span className="ml-3 hidden text-xs text-subtle sm:inline">veil.ai/dashboard</span>
             </div>
-            <span className="rounded-full border border-white/10 px-2 py-0.5 text-[0.65rem] uppercase tracking-wider text-subtle">Product preview</span>
+            <span className="rounded-full border border-black/10 px-2 py-0.5 text-[0.65rem] uppercase tracking-wider text-subtle">Product preview</span>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
@@ -54,7 +54,7 @@ export function HeroVisual() {
                   <span className="font-mono text-2xl font-semibold text-warning">41</span>
                   <span className="text-xs text-subtle">/ 100</span>
                 </div>
-                <div className="mt-2 h-1.5 rounded-full bg-white/5">
+                <div className="mt-2 h-1.5 rounded-full bg-black/[0.04]">
                   <div className="h-full w-[41%] rounded-full bg-gradient-to-r from-success via-warning to-warning" />
                 </div>
               </div>

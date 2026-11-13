@@ -289,9 +289,9 @@ export default function LandingPage() {
                 </div>
                 {[
                   ["NOT CONNECTED", "text-subtle", "No NEAR AI credentials — nothing to verify"],
-                  ["INITIALISING", "text-[#93c5fd]", "Preparing context and fresh nonce"],
+                  ["INITIALISING", "text-accent-2", "Preparing context and fresh nonce"],
                   ["PROCESSING", "text-accent-strong", "Inference running inside the TEE"],
-                  ["VERIFYING", "text-[#93c5fd]", "Checking quote, GPU evidence and signature"],
+                  ["VERIFYING", "text-accent-2", "Checking quote, GPU evidence and signature"],
                   ["VERIFIED", "text-success", "All required checks passed"],
                   ["FAILED", "text-danger", "Evidence obtained but a check failed"],
                   ["UNVERIFIED", "text-warning", "Evidence could not be obtained"],
@@ -321,7 +321,7 @@ export default function LandingPage() {
         {/* CTA */}
         <section className="px-4 pb-24 sm:px-6">
           <FadeIn>
-            <div className="mx-auto max-w-5xl rounded-3xl border border-accent/25 bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.18),transparent_70%)] px-6 py-14 text-center">
+            <div className="mx-auto max-w-5xl rounded-3xl border border-white/70 bg-[radial-gradient(ellipse_at_top,rgba(207,195,255,0.55),transparent_70%)] bg-white/60 backdrop-blur px-6 py-14 text-center">
               <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Your private data. Verified by NEAR.</h2>
               <p className="mx-auto mt-4 max-w-xl text-muted">Free. No subscriptions. No seed phrases. Start with the demo or create an account in seconds.</p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">

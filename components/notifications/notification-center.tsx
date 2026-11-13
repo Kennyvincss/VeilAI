@@ -173,7 +173,7 @@ export function NotificationBell({ className }: { className?: string }) {
 
   return (
     <div className={cn("relative", className)} ref={ref}>
-      <button onClick={toggle} className="relative rounded-lg p-2 text-muted transition-colors hover:bg-white/5 hover:text-text" aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`} aria-expanded={open}>
+      <button onClick={toggle} className="relative rounded-lg p-2 text-muted transition-colors hover:bg-black/[0.04] hover:text-text" aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`} aria-expanded={open}>
         <Bell className="h-4 w-4" />
         {unread > 0 && (
           <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[0.6rem] font-semibold text-white">{unread > 9 ? "9+" : unread}</span>
@@ -185,11 +185,11 @@ export function NotificationBell({ className }: { className?: string }) {
             <span className="text-sm font-semibold">Notifications</span>
             <div className="flex items-center gap-1">
               {s.items.length > 0 && (
-                <button onClick={() => update((st) => ({ ...st, items: [] }))} className="rounded-md p-1.5 text-subtle hover:bg-white/5 hover:text-text" aria-label="Clear all notifications">
+                <button onClick={() => update((st) => ({ ...st, items: [] }))} className="rounded-md p-1.5 text-subtle hover:bg-black/[0.04] hover:text-text" aria-label="Clear all notifications">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               )}
-              <Link href="/dashboard/account" onClick={() => setOpen(false)} className="rounded-md px-2 py-1 text-[0.7rem] text-muted hover:bg-white/5 hover:text-text">
+              <Link href="/dashboard/account" onClick={() => setOpen(false)} className="rounded-md px-2 py-1 text-[0.7rem] text-muted hover:bg-black/[0.04] hover:text-text">
                 Settings
               </Link>
             </div>
@@ -218,7 +218,7 @@ export function NotificationBell({ className }: { className?: string }) {
                 return (
                   <li key={n.id}>
                     {n.href ? (
-                      <Link href={n.href} onClick={() => setOpen(false)} className="block hover:bg-white/[0.03]">
+                      <Link href={n.href} onClick={() => setOpen(false)} className="block hover:bg-black/[0.03]">
                         {body}
                       </Link>
                     ) : (

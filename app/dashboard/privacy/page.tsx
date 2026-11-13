@@ -304,13 +304,13 @@ function SummaryCard(props: {
   }
 
   const ring = {
-    success: "border-success/30 bg-[radial-gradient(ellipse_at_top_left,rgba(34,197,94,0.12),transparent_60%)]",
+    success: "border-success/30 bg-[radial-gradient(ellipse_at_top_left,rgba(21,161,80,0.10),transparent_60%)]",
     danger: "border-danger/30 bg-[radial-gradient(ellipse_at_top_left,rgba(239,68,68,0.12),transparent_60%)]",
     warning: "border-warning/30 bg-[radial-gradient(ellipse_at_top_left,rgba(245,158,11,0.10),transparent_60%)]",
-    accent: "border-accent/30 bg-[radial-gradient(ellipse_at_top_left,rgba(139,92,246,0.14),transparent_60%)]",
+    accent: "border-accent/30 bg-[radial-gradient(ellipse_at_top_left,rgba(207,195,255,0.45),transparent_60%)]",
     neutral: "border-border",
   }[tone];
-  const iconTone = { success: "bg-success/15 text-success", danger: "bg-danger/15 text-danger", warning: "bg-warning/15 text-warning", accent: "bg-accent/15 text-accent-strong", neutral: "bg-white/5 text-muted" }[tone];
+  const iconTone = { success: "bg-success/15 text-success", danger: "bg-danger/15 text-danger", warning: "bg-warning/15 text-warning", accent: "bg-accent/15 text-accent-strong", neutral: "bg-black/[0.04] text-muted" }[tone];
 
   const verified = !running && result?.state === "verified";
 

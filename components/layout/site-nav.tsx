@@ -61,7 +61,7 @@ export function SiteNav() {
           >
             <div className="flex flex-col gap-1">
               {LINKS.map((l) => (
-                <a key={l.href} href={l.href} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-sm text-muted hover:bg-white/5 hover:text-text">
+                <a key={l.href} href={l.href} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-sm text-muted hover:bg-black/[0.04] hover:text-text">
                   {l.label}
                 </a>
               ))}

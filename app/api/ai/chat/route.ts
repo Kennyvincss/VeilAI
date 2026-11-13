@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) return jsonError(400, firstIssue(parsed.error));
     body = parsed.data;
   } catch (err) {
-    return jsonError(err instanceof HttpError ? err.status : 400, err instanceof Error ? err.message : "Bad request");
+    return jsonError(err instanceof HttpError ? err.status : 400, err instanceof HttpError ? err.message : "Bad request");
   }
 
   const encoder = new TextEncoder();
