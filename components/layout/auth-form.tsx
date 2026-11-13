@@ -179,7 +179,7 @@ export function AuthForm({ mode, googleEnabled, nearSignup = null }: { mode: "lo
     step === "code"
       ? `We sent an email to ${email}. Enter the code from it below — or, if the email has a confirm button instead, just tap it.`
       : step === "wallet"
-        ? "Last step: your own NEAR account that works in every NEAR wallet."
+        ? `Last step: save the recovery words for ${nearName}.${nearSignup?.suffix ?? "near"}.`
         : step === "done"
           ? signedIn
             ? "Your email is verified and you're signed in."
@@ -265,6 +265,7 @@ export function AuthForm({ mode, googleEnabled, nearSignup = null }: { mode: "lo
             depositNear={nearSignup.depositNear}
             network={nearSignup.network}
             initialName={nearName}
+            skipNameStep
             onCreated={(id) => setCreatedAccount(id)}
             onDone={() => setStep("done")}
             doneLabel="Continue"
