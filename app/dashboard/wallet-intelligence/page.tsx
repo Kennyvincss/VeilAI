@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
-import { Activity, AlertTriangle, ArrowRightLeft, BrainCircuit, FileCode2, FlaskConical, Info, ScanSearch, Users } from "lucide-react";
+import { Activity, AlertTriangle, ArrowRightLeft, BrainCircuit, FileCode2, Info, ScanSearch, ShieldCheck, Users } from "lucide-react";
 import { toast } from "sonner";
 import type { RiskIndicator, WalletIntelReport } from "@/types";
 import { api } from "@/hooks/use-api";
@@ -14,7 +14,6 @@ import { TransactionsList } from "@/components/dashboard/transactions-list";
 import { ProvenanceBar } from "@/components/dashboard/sources";
 import { Markdown } from "@/components/analyst/markdown";
 import { Badge, Button, Card, CardHeader, EmptyState, Input, Skeleton } from "@/components/ui/primitives";
-import { ModeBadge, VerificationBadge } from "@/components/ui/status";
 import { isValidAccountId, looksLikeSecret, normalizeAccountId } from "@/lib/near/account";
 import { cn, formatAmount, formatDate, shortAccount } from "@/lib/utils/format";
 import type { VerificationState } from "@/types";
@@ -30,14 +29,13 @@ export default function WalletIntelligencePage() {
 function WalletIntelligence() {
   const params = useSearchParams();
   const { status } = useAppStatus();
-  const demo = !status.session.signedIn;
   const [account, setAccount] = useState(params.get("account") ?? "");
   const [report, setReport] = useState<WalletIntelReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const auto = useRef(false);
 
-  async function investigate(id: string, sample = false) {
+  async function investigate(id: string) {
     const acct = normalizeAccountId(id);
     if (looksLikeSecret(id)) {
       setAccount("");
@@ -47,7 +45,7 @@ function WalletIntelligence() {
     setError(null);
     setLoading(true);
     try {
-      setReport(await api<WalletIntelReport>("/api/wallet/intelligence", { method: "POST", json: { accountId: acct, sample } }));
+      setReport(await api<WalletIntelReport>("/api/wallet/intelligence", { method: "POST", json: { accountId: acct } }));
     } catch (err) {
       setReport(null);
       setError(err instanceof Error ? err.message : "Investigation failed");
@@ -62,7 +60,7 @@ function WalletIntelligence() {
     if (a) {
       auto.current = true;
       // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time deep-link fetch (?account=…)
-      void investigate(a, params.get("sample") === "1");
+      void investigate(a);
     }
   }, [params]);
 
@@ -75,8 +73,7 @@ function WalletIntelligence() {
     <>
       <PageHeader
         title="Wallet Intelligence"
-        description="Investigate any public NEAR account. On-chain facts are separated from heuristic indicators and AI interpretation — no wallet is labelled malicious without sourced evidence."
-        badges={report && <ModeBadge mode={report.provenance.mode} />}
+        description="Check any public NEAR account: what it holds, who it deals with, and anything worth a closer look."
       />
 
       <Card>
@@ -94,13 +91,10 @@ function WalletIntelligence() {
             <Button type="submit" loading={loading} className="flex-1 sm:flex-none">
               <ScanSearch className="h-4 w-4" /> Investigate
             </Button>
-            <Button type="button" variant="secondary" onClick={() => void investigate(account || "veil-demo-main.near", true)} disabled={loading} title="Run the analysis on sample data">
-              <FlaskConical className="h-4 w-4" /> Sample
-            </Button>
           </div>
         </form>
         <p className="mt-2 text-[0.7rem] text-subtle">
-          Reads public on-chain data only. Lookups are not stored.{demo ? " “Sample” runs the same analysis on fictional data." : ""}
+          Reads public on-chain data only. Lookups are not stored.
         </p>
         {error && (
           <p role="alert" className="mt-3 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
@@ -138,21 +132,15 @@ function Report({ report, network }: { report: WalletIntelReport; network: "main
   const s = report.stats;
   return (
     <div className="mt-4 space-y-4">
-      {report.provenance.mode === "demo" && (
-        <div className="rounded-xl border border-warning/30 bg-warning/[0.07] px-4 py-3 text-xs text-warning">
-          <FlaskConical className="mr-1.5 inline h-3.5 w-3.5" /> Sample investigation — these are not {report.accountId}&apos;s real transactions.
-        </div>
-      )}
-
       {/* Overview */}
       <Card>
-        <CardHeader icon={<Info className="h-4 w-4" />} title={<span className="font-mono">{shortAccount(report.accountId, 28, 8)}</span>} subtitle="Wallet overview · verified on-chain facts" action={<Badge tone="success">Facts</Badge>} />
+        <CardHeader icon={<Info className="h-4 w-4" />} title={<span className="font-mono">{shortAccount(report.accountId, 28, 8)}</span>} subtitle="Wallet overview" />
         <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <Fact k="NEAR balance" v={o.nativeNear === null ? "—" : `${formatAmount(o.nativeNear)} NEAR`} />
           <Fact k="Account type" v={o.accountType} />
           <Fact k="Contract deployed" v={o.isContract ? "Yes" : "No"} />
           <Fact k="Tokens held" v={o.tokenCount ?? "—"} />
-          <Fact k="Earliest in sample" v={formatDate(o.firstSeen)} />
+          <Fact k="Earliest seen" v={formatDate(o.firstSeen)} />
           <Fact k="Latest activity" v={formatDate(o.lastSeen)} />
           <Fact k="Storage used" v={o.storageUsage === null ? "—" : `${o.storageUsage.toLocaleString()} B`} />
           <Fact k="Indexed transactions" v={s.totalTransactionsIndexed ?? "—"} />
@@ -161,11 +149,11 @@ function Report({ report, network }: { report: WalletIntelReport; network: "main
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardHeader icon={<Activity className="h-4 w-4" />} title="Activity timeline" subtitle={`Transactions per day · ${s.sampledTransactions} sampled`} />
-          {report.timeline.length ? <ActivityBars data={report.timeline} /> : <EmptyState icon={<Activity className="h-5 w-5" />} title="No activity in sample" />}
+          <CardHeader icon={<Activity className="h-4 w-4" />} title="Activity timeline" subtitle={`Transactions per day · last ${s.sampledTransactions}`} />
+          {report.timeline.length ? <ActivityBars data={report.timeline} /> : <EmptyState icon={<Activity className="h-5 w-5" />} title="No recent activity" />}
         </Card>
         <Card>
-          <CardHeader icon={<ArrowRightLeft className="h-4 w-4" />} title="Transaction statistics" subtitle="Computed from the sample" />
+          <CardHeader icon={<ArrowRightLeft className="h-4 w-4" />} title="Transaction statistics" subtitle="From recent activity" />
           <dl className="space-y-2.5 text-sm">
             <Stat k="Transactions / day" v={s.txPerDay ?? "—"} />
             <Stat k="Active days" v={s.activeDays} />
@@ -174,14 +162,14 @@ function Report({ report, network }: { report: WalletIntelReport; network: "main
             <Stat k="NEAR sent" v={formatAmount(s.nearOut)} />
             <Stat k="Unique counterparties" v={s.uniqueCounterparties} />
             <Stat k="Token transfers" v={s.sampledFtTransfers} />
-            <Stat k="Sample window" v={s.sampleWindowDays === null ? "—" : `${s.sampleWindowDays} days`} />
+            <Stat k="Period covered" v={s.sampleWindowDays === null ? "—" : `${s.sampleWindowDays} days`} />
           </dl>
         </Card>
       </div>
 
       {/* Risk indicators */}
       <Card>
-        <CardHeader icon={<AlertTriangle className="h-4 w-4" />} title="Risk indicators" subtitle="Heuristics with cited evidence — indicators, not verdicts" action={<Badge tone="warning">Heuristic</Badge>} />
+        <CardHeader icon={<AlertTriangle className="h-4 w-4" />} title="Things to check" subtitle="Signals worth a look, not verdicts" />
         <ul className="space-y-2.5">
           {report.riskIndicators.map((i) => (
             <li key={i.id} className="rounded-xl border border-border p-3">
@@ -216,7 +204,7 @@ function Report({ report, network }: { report: WalletIntelReport; network: "main
               ))}
             </ul>
           ) : (
-            <p className="text-xs text-muted">None in sample.</p>
+            <p className="text-xs text-muted">None recently.</p>
           )}
         </Card>
         <Card>
@@ -236,7 +224,7 @@ function Report({ report, network }: { report: WalletIntelReport; network: "main
               ))}
             </ul>
           ) : (
-            <p className="text-xs text-muted">No function calls in sample.</p>
+            <p className="text-xs text-muted">No recent app interactions.</p>
           )}
         </Card>
       </div>
@@ -259,13 +247,13 @@ function Report({ report, network }: { report: WalletIntelReport; network: "main
               ))}
             </ul>
           ) : (
-            <p className="text-xs text-muted">No large transfers in sample.</p>
+            <p className="text-xs text-muted">No large transfers recently.</p>
           )}
         </Card>
         <Card>
           <CardHeader icon={<Activity className="h-4 w-4" />} title="Recent transactions" />
           {report.recentTransactions.length ? (
-            <TransactionsList txs={report.recentTransactions} network={network} demo={report.provenance.mode === "demo"} limit={8} />
+            <TransactionsList txs={report.recentTransactions} network={network} limit={8} />
           ) : (
             <p className="text-xs text-muted">No transactions available.</p>
           )}
@@ -323,7 +311,7 @@ function AiExplanation({ report }: { report: WalletIntelReport }) {
         icon={<BrainCircuit className="h-4 w-4" />}
         title="AI-generated explanation"
         subtitle="Interpretation — may be wrong; verify against the facts above"
-        action={<div className="flex gap-1.5">{demoTemplate && <Badge tone="warning">Template · not NEAR AI</Badge>}{state && <VerificationBadge state={state} />}<Badge tone="accent">AI interpretation</Badge></div>}
+        action={<div className="flex gap-1.5">{demoTemplate && <Badge tone="warning">Basic answer · AI offline</Badge>}{state === "verified" && <span className="inline-flex items-center gap-1 text-[0.7rem] text-success"><ShieldCheck className="h-3.5 w-3.5" /> Private · verified</span>}</div>}
       />
       {text ? (
         <Markdown>{text}</Markdown>

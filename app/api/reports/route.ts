@@ -4,13 +4,12 @@ import { getRequestContext } from "@/lib/session";
 import { resolvePortfolio } from "@/lib/portfolio/resolve";
 import { liveRiskAnalysis } from "@/lib/risk/service";
 import { investigateWallet } from "@/lib/wallet-intel/service";
-import { demoRiskAnalysis, demoWalletReport } from "@/lib/demo/data";
 import { aiSummaryReport, portfolioReport, riskReport, walletReport } from "@/lib/reports/build";
 import { listReports, logProcessing, saveReport } from "@/lib/supabase/repo";
-import { assertSameOrigin, clientIp, HttpError, jsonError, jsonOk, limitOrNull, readJson } from "@/lib/security/http";
+import { assertSameOrigin, HttpError, jsonError, jsonOk, limitOrNull, readJson } from "@/lib/security/http";
 import { firstIssue, reportRequestSchema } from "@/lib/security/validation";
 import { RATE_LIMITS } from "@/lib/security/rate-limit";
-import { getAppStatus, nearAiConfig } from "@/lib/env";
+import { nearAiConfig } from "@/lib/env";
 import { chatCompletion, explainNearAiError, nearAiOperatorHint } from "@/lib/near-ai/client";
 import { verifyCompletion } from "@/lib/near-ai/verify";
 import { REPORT_SUMMARY_PROMPT, ANALYST_SYSTEM_PROMPT } from "@/lib/ai/prompts";
@@ -32,8 +31,8 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   if (!assertSameOrigin(req)) return jsonError(403, "Cross-origin request rejected.");
   const ctx = await getRequestContext();
-  if (!ctx.user && !ctx.demo) return jsonError(401, "Sign in or start a demo session.");
-  const limited = limitOrNull(`reports:${ctx.user?.id ?? clientIp(req)}`, RATE_LIMITS.reports);
+  if (!ctx.user) return jsonError(401, "Sign in to continue.");
+  const limited = limitOrNull(`reports:${ctx.user.id}`, RATE_LIMITS.reports);
   if (limited) return limited;
 
   try {
@@ -44,12 +43,12 @@ export async function POST(req: NextRequest) {
 
     if (type === "wallet") {
       if (!accountId) return jsonError(400, "Enter an account to investigate.");
-      report = walletReport(ctx.user ? await investigateWallet(accountId) : demoWalletReport(accountId));
+      report = walletReport(await investigateWallet(accountId));
     } else {
       const portfolio = await resolvePortfolio(ctx);
       if (type === "portfolio") report = portfolioReport(portfolio);
       else {
-        const risk = ctx.user ? await liveRiskAnalysis(portfolio) : demoRiskAnalysis();
+        const risk = await liveRiskAnalysis(portfolio);
         if (type === "risk") report = riskReport(risk);
         else {
           const base = [portfolioReport(portfolio), riskReport(risk)];
@@ -73,7 +72,7 @@ export async function POST(req: NextRequest) {
 
 async function aiSummary(base: FinancialReport[], signedIn: boolean): Promise<{ summary: string; verification: VerificationResult | null; inference: string }> {
   const ai = nearAiConfig();
-  if (!ai.configured || (!signedIn && !getAppStatus().demoAllowsLiveAi)) {
+  if (!ai.configured || !signedIn) {
     return {
       summary: "An AI summary is not available right now, so no AI-generated text is included. The tables below contain the full factual report.",
       verification: null,

@@ -2,30 +2,30 @@
 
 /* ------------------------------------------------------------------------
  * VEIL AI design tokens
- * Light, airy workspace: a floating white window on a soft sky, near-black
- * primary actions and pastel highlights. Tokens are defined once and
- * consumed through Tailwind utilities.
+ * Dark, warm workspace: near-black at the top fading into burnt orange,
+ * orange primary actions and a white call-to-action. Tokens are defined
+ * once and consumed through Tailwind utilities.
  * --------------------------------------------------------------------- */
 :root {
-  --bg: #e3ebf6;
-  --bg-2: #f5f6f8;
-  --card: #ffffff;
-  --card-2: #f4f5f7;
-  --border: rgba(15, 17, 26, 0.07);
-  --border-strong: rgba(15, 17, 26, 0.12);
-  --text: #0e0f13;
-  --muted: #676b76;
-  --subtle: #9ea2ac;
-  --accent: #111216; /* near-black primary */
-  --accent-strong: #5b4bd6; /* violet for links and highlights */
-  --accent-2: #1f55d6; /* blue */
-  --lavender: #cfc3ff;
+  --bg: #0d0b0a;
+  --bg-2: #171310;
+  --card: #171310;
+  --card-2: #221c17;
+  --border: rgba(255, 236, 220, 0.08);
+  --border-strong: rgba(255, 236, 220, 0.15);
+  --text: #f6efe8;
+  --muted: #b5aaa0;
+  --subtle: #7f756c;
+  --accent: #e2733f; /* orange primary */
+  --accent-strong: #ff9b63; /* light orange for links and highlights */
+  --accent-2: #7fb0ff; /* blue */
+  --lavender: #f2a679; /* warm peach highlight */
   --lime: #dff27a;
-  --success: #15a150;
-  --warning: #c27a06;
-  --danger: #e5484d;
-  --sky: linear-gradient(180deg, #8fb6e6 0%, #b3cdee 35%, #d6e3f3 68%, #eef0f3 100%);
-  color-scheme: light;
+  --success: #3fcf82;
+  --warning: #f2b04a;
+  --danger: #ff6b6b;
+  --sky: linear-gradient(180deg, #0b0908 0%, #110d0b 32%, #2a150c 62%, #6b2e12 86%, #a3461c 100%);
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -72,7 +72,7 @@
 }
 
 html {
-  background: #dfe9f4;
+  background: #0b0908;
   scroll-behavior: smooth;
 }
 
@@ -94,14 +94,13 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 60% 40% at 15% 85%, rgba(255, 255, 255, 0.85), transparent 70%),
-    radial-gradient(ellipse 50% 35% at 85% 90%, rgba(255, 255, 255, 0.8), transparent 70%),
-    radial-gradient(ellipse 40% 25% at 70% 10%, rgba(255, 255, 255, 0.55), transparent 70%),
+    radial-gradient(ellipse 70% 45% at 50% 105%, rgba(240, 120, 60, 0.45), transparent 70%),
+    radial-gradient(ellipse 50% 30% at 50% -5%, rgba(255, 255, 255, 0.05), transparent 70%),
     var(--sky);
 }
 
 ::selection {
-  background: rgba(91, 75, 214, 0.18);
+  background: rgba(226, 115, 63, 0.35);
 }
 
 :focus-visible {
@@ -113,13 +112,13 @@ body::before {
 /* Thin, unobtrusive scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(15, 17, 26, 0.16) transparent;
+  scrollbar-color: rgba(255, 236, 220, 0.16) transparent;
 }
 
 @layer components {
   .glass {
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: rgba(20, 16, 13, 0.72);
+    border: 1px solid rgba(255, 236, 220, 0.1);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
   }
@@ -128,7 +127,7 @@ body::before {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 22px;
-    box-shadow: 0 1px 2px rgba(15, 17, 26, 0.04), 0 8px 24px -16px rgba(15, 17, 26, 0.12);
+    box-shadow: 0 1px 0 rgba(255, 236, 220, 0.04) inset, 0 12px 30px -18px rgba(0, 0, 0, 0.6);
   }
 
   .hairline {
@@ -136,7 +135,7 @@ body::before {
   }
 
   .text-gradient {
-    background: linear-gradient(110deg, var(--text) 25%, var(--accent-strong) 62%, var(--accent-2) 95%);
+    background: linear-gradient(110deg, var(--text) 30%, #ffc49e 65%, var(--accent) 95%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -144,8 +143,8 @@ body::before {
 
   .grid-backdrop {
     background-image:
-      linear-gradient(rgba(15, 17, 26, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(15, 17, 26, 0.04) 1px, transparent 1px);
+      linear-gradient(rgba(255, 236, 220, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 236, 220, 0.04) 1px, transparent 1px);
     background-size: 44px 44px;
     mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
   }
@@ -153,9 +152,9 @@ body::before {
   .skeleton {
     background: linear-gradient(
       90deg,
-      rgba(15, 17, 26, 0.04) 0%,
-      rgba(15, 17, 26, 0.08) 50%,
-      rgba(15, 17, 26, 0.04) 100%
+      rgba(255, 236, 220, 0.04) 0%,
+      rgba(255, 236, 220, 0.09) 50%,
+      rgba(255, 236, 220, 0.04) 100%
     );
     background-size: 200% 100%;
     animation: var(--animate-shimmer);
@@ -202,7 +201,7 @@ body::before {
   .prose-veil code {
     font-family: var(--font-mono);
     font-size: 0.82em;
-    background: rgba(15, 17, 26, 0.05);
+    background: rgba(255, 236, 220, 0.08);
     padding: 0.1rem 0.35rem;
     border-radius: 5px;
   }
@@ -254,14 +253,14 @@ body::before {
   animation: float-soft 6s ease-in-out infinite;
 }
 
-/* The floating app window on the sky background (usable with variants, e.g. lg:app-window). */
+/* The floating app window on the warm gradient background (usable with variants, e.g. lg:app-window). */
 @utility app-window {
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(14, 11, 9, 0.78);
+  border: 1px solid rgba(255, 236, 220, 0.09);
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 40px 80px -40px rgba(30, 55, 95, 0.35),
-    0 12px 30px -18px rgba(30, 55, 95, 0.2);
+    0 1px 0 rgba(255, 236, 220, 0.06) inset,
+    0 40px 80px -40px rgba(0, 0, 0, 0.8),
+    0 12px 30px -18px rgba(0, 0, 0, 0.6);
 }

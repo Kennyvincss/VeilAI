@@ -3,7 +3,6 @@ import {
   ArrowRight,
   BrainCircuit,
   Cpu,
-  Eye,
   FileText,
   Fingerprint,
   Gauge,
@@ -30,43 +29,58 @@ export default function LandingPage() {
       <main id="main" className="overflow-x-clip">
         {/* HERO */}
         <section className="relative px-4 pb-20 pt-32 sm:px-6 sm:pt-40">
-          <div className="grid-backdrop absolute inset-0 -z-10" aria-hidden />
-          <div className="absolute left-1/2 top-0 -z-10 h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-accent/10 blur-[120px]" aria-hidden />
+          <div className="absolute inset-x-0 bottom-0 -z-10 h-[70%] bg-[radial-gradient(ellipse_70%_60%_at_50%_100%,rgba(226,115,63,0.35),transparent_70%)]" aria-hidden />
           <div className="mx-auto max-w-4xl text-center">
             <FadeIn>
-              <a href="#near" className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-card/70 px-3.5 py-1.5 text-xs text-muted transition-colors hover:text-text">
-                <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse-soft" />
-                Confidential inference on NEAR AI Cloud · free forever
+              <a href="#near" className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-white/[0.04] px-3.5 py-1.5 text-xs text-muted transition-colors hover:text-text">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                Private AI on NEAR · free forever
                 <ArrowRight className="h-3 w-3" />
               </a>
             </FadeIn>
             <FadeIn delay={0.05}>
-              <h1 className="mt-7 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
-                <span className="text-gradient">Your Financial Intelligence.</span>
+              <h1 className="mt-7 text-[2.3rem] font-medium leading-[1.06] tracking-[-0.02em] text-white sm:text-6xl lg:text-7xl">
+                Your Financial Intelligence.
                 <br />
                 Nobody Else’s Business.
               </h1>
             </FadeIn>
             <FadeIn delay={0.1}>
-              <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
+              <p className="mx-auto mt-6 max-w-xl text-[0.95rem] leading-relaxed text-muted sm:text-base">
                 Analyse your crypto portfolio, investigate wallets and receive intelligent financial insights through confidential AI processing powered by NEAR.
               </p>
             </FadeIn>
             <FadeIn delay={0.15}>
               <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Link href="/dashboard" className={buttonClass("primary", "lg", "w-full sm:w-auto")}>
-                  Launch VEIL AI <ArrowRight className="h-4 w-4" />
+                <Link href="/signup" className={buttonClass("primary", "lg", "w-full sm:w-auto")}>
+                  Get started for free
                 </Link>
-                <a href="#privacy" className={buttonClass("secondary", "lg", "w-full sm:w-auto")}>
-                  <Eye className="h-4 w-4" /> Explore Privacy
-                </a>
+                <Link href="/login" className={buttonClass("outline", "lg", "w-full sm:w-auto")}>
+                  Sign in
+                </Link>
               </div>
-              <p className="mt-4 text-xs text-subtle">
-                Free · no seed phrases ·{" "}
-                <Link href="/demo" className="underline decoration-dotted underline-offset-4 hover:text-muted">
-                  explore a sample workspace
-                </Link>
-              </p>
+              <p className="mt-4 text-xs text-muted">No seed phrases · your own name.near · works in every NEAR wallet</p>
+            </FadeIn>
+            <FadeIn delay={0.2}>
+              <div className="mt-14">
+                <p className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-subtle">Built on</p>
+                <ul className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-muted sm:gap-x-12">
+                  {[
+                    [Network, "NEAR Protocol"],
+                    [BrainCircuit, "NEAR AI Cloud"],
+                    [Workflow, "NEAR Intents"],
+                    [Cpu, "Intel TDX"],
+                    [ShieldCheck, "NVIDIA Confidential Computing"],
+                  ].map(([Icon, name]) => {
+                    const I = Icon as typeof Network;
+                    return (
+                      <li key={name as string} className="inline-flex items-center gap-2 opacity-80">
+                        <I className="h-4 w-4" aria-hidden /> {name as string}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             </FadeIn>
           </div>
           <div className="mt-16 sm:mt-20">
@@ -324,15 +338,15 @@ export default function LandingPage() {
         {/* CTA */}
         <section className="px-4 pb-24 sm:px-6">
           <FadeIn>
-            <div className="mx-auto max-w-5xl rounded-3xl border border-white/70 bg-[radial-gradient(ellipse_at_top,rgba(207,195,255,0.55),transparent_70%)] bg-white/60 backdrop-blur px-6 py-14 text-center">
+            <div className="mx-auto max-w-5xl rounded-3xl border border-border-strong bg-[radial-gradient(ellipse_at_bottom,rgba(226,115,63,0.4),transparent_70%)] bg-card/70 px-6 py-14 text-center backdrop-blur">
               <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Your private data. Verified by NEAR.</h2>
-              <p className="mx-auto mt-4 max-w-xl text-muted">Free. No subscriptions. No seed phrases. Start with the demo or create an account in seconds.</p>
+              <p className="mx-auto mt-4 max-w-xl text-muted">Free. No subscriptions. No seed phrases. Create an account in seconds.</p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                 <Link href="/signup" className={buttonClass("primary", "lg")}>
-                  Create free account
+                  Get started for free
                 </Link>
-                <Link href="/demo" className={buttonClass("secondary", "lg")}>
-                  Explore the demo
+                <Link href="/login" className={buttonClass("outline", "lg")}>
+                  Sign in
                 </Link>
               </div>
             </div>

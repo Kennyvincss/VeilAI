@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { AlertTriangle, ArrowRight, CheckCircle2, FlaskConical, MailCheck } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, MailCheck } from "lucide-react";
 import { toast } from "sonner";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { api } from "@/hooks/use-api";
@@ -201,10 +201,7 @@ export function AuthForm({ mode, googleEnabled, nearSignup = null }: { mode: "lo
           <div className="flex items-center gap-2 font-medium text-warning">
             <AlertTriangle className="h-4 w-4" /> Accounts are temporarily unavailable
           </div>
-          <p className="mt-2 leading-relaxed text-muted">Sign-in is not available right now. You can still explore every feature of VEIL AI with sample data.</p>
-          <Link href="/demo" className={buttonClass("primary", "md", "mt-4 w-full")}>
-            <FlaskConical className="h-4 w-4" /> Explore demo
-          </Link>
+          <p className="mt-2 leading-relaxed text-muted">Sign-in is not available right now. Please try again in a little while.</p>
         </div>
       ) : step === "code" ? (
         <form onSubmit={verifyCode} className="mt-8 space-y-4" noValidate>
@@ -325,7 +322,7 @@ export function AuthForm({ mode, googleEnabled, nearSignup = null }: { mode: "lo
                 <Label htmlFor="near-name" hint="Your NEAR wallet name">
                   NEAR name
                 </Label>
-                <div className="flex items-stretch overflow-hidden rounded-xl border border-border bg-bg-2 focus-within:border-border-strong focus-within:bg-card focus-within:ring-4 focus-within:ring-lavender/45">
+                <div className="flex items-stretch overflow-hidden rounded-xl border border-border bg-bg-2 focus-within:border-border-strong focus-within:bg-card focus-within:ring-4 focus-within:ring-accent/20">
                   <input
                     id="near-name"
                     value={nearName}
@@ -369,12 +366,6 @@ export function AuthForm({ mode, googleEnabled, nearSignup = null }: { mode: "lo
               {mode === "login" ? "Create an account" : "Sign in"}
             </Link>
           </p>
-          <div className="mt-8 rounded-2xl border border-border bg-card/60 p-4 text-center">
-            <p className="text-xs text-muted">Just looking? Explore a limited demo with sample data — no account needed.</p>
-            <Link href="/demo" className={buttonClass("ghost", "sm", "mt-2")}>
-              <FlaskConical className="h-3.5 w-3.5" /> Explore demo
-            </Link>
-          </div>
         </>
       )}
       <p className="mt-8 text-center text-[0.7rem] leading-relaxed text-subtle">VEIL AI will never ask for your seed phrase or private keys.</p>

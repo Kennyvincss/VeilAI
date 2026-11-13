@@ -35,9 +35,9 @@ export function VeilMask({ className, float = true }: { className?: string; floa
             <stop offset="1" stopColor="#3a3f47" />
           </linearGradient>
           <linearGradient id={g("tint")} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#cfc3ff" stopOpacity="0.55" />
-            <stop offset="0.5" stopColor="#cfc3ff" stopOpacity="0" />
-            <stop offset="1" stopColor="#bfe0ff" stopOpacity="0.5" />
+            <stop offset="0" stopColor="#ffb07f" stopOpacity="0.55" />
+            <stop offset="0.5" stopColor="#ffb07f" stopOpacity="0" />
+            <stop offset="1" stopColor="#e2733f" stopOpacity="0.5" />
           </linearGradient>
           <filter id={g("blur")} x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="6" />
@@ -51,7 +51,7 @@ export function VeilMask({ className, float = true }: { className?: string; floa
         </defs>
 
         {/* ground shadow */}
-        <ellipse cx="110" cy="262" rx="62" ry="6" fill="#1e375f" opacity="0.18" filter={`url(#${g("blur")})`} />
+        <ellipse cx="110" cy="262" rx="62" ry="6" fill="#000000" opacity="0.5" filter={`url(#${g("blur")})`} />
 
         <g clipPath={`url(#${g("face")})`}>
           <rect x="0" y="0" width="220" height="270" fill={`url(#${g("chrome")})`} />

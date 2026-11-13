@@ -11,7 +11,7 @@ app/
   page.tsx                     landing page
   login/, signup/              Supabase email (+ optional Google) auth
   auth/callback, auth/signout  PKCE code exchange, sign-out
-  demo/, demo/exit             start/stop a no-account demo session (cookie)
+  demo/, demo/exit             old links: clear the retired demo cookie and redirect
   proof/[token]                public, content-free proof of a verified AI answer
   manifest.ts                  installable web app manifest
   dashboard/                   overview, wallet (DeFi), analyst, wallet-intelligence,
@@ -19,7 +19,7 @@ app/
   api/
     ai/chat                    NDJSON streaming analyst
     ai/conversations[/id]      list / load / delete conversations
-    portfolio, risk, activity  live (or demo) portfolio, risk and transactions
+    portfolio, risk, activity  live portfolio, risk and transactions
     wallet/tracked|challenge|verify|intelligence
     privacy/attestation|models|history
     preferences, reports[/id]
@@ -33,7 +33,7 @@ components/                    ui, layout, landing, dashboard, analyst, wallet, 
 hooks/                         use-api, use-analyst-stream, use-near-wallet
 lib/
   env.ts                       zod-validated env + feature flags + startup report
-  session.ts                   request context (user | demo)
+  session.ts                   request context (signed-in user or nobody)
   near-ai/                     client, e2ee, checks (pure), hardware (TDX/GPU), verify (orchestrator)
   near/                        account validation, RPC, NEP-413, challenge constants
   defi/                        exact amounts, transaction builders, 1Click client, prepare service,
@@ -48,7 +48,7 @@ lib/
   security/                    validation, rate-limit, prompt-guard, crypto, logger, http
   supabase/                    server/browser/proxy clients, repo (data access)
   reports/                     build (pure), pdf (browser)
-  demo/                        sample dataset + template answers
+  demo/responses.ts            rule-based answers when live AI is offline
 supabase/migrations/           schema + RLS policies
 tests/                         unit + integration (Vitest)
 ```
@@ -56,7 +56,7 @@ tests/                         unit + integration (Vitest)
 ## Design principles
 
 1. **Pure core, thin I/O.** Every calculation (portfolio maths, risk scores, wallet heuristics, attestation checks, NEP-413, E2EE) is a pure function with unit tests. Network code sits in thin `service`/`client` modules.
-2. **Provenance everywhere.** Every payload carries `provenance: { mode: "live" | "demo", sources[], notes[] }`. The UI renders a LIVE/DEMO badge and source chips next to data.
+2. **Provenance everywhere.** Every payload carries `provenance: { mode, sources[], notes[] }`. The UI keeps the source list in a collapsed "Data sources" section next to the data.
 3. **Honest failure.** A failed provider yields missing values plus a note. It is never replaced with made-up numbers. Verification failures surface as FAILED or UNVERIFIED with reasons.
 4. **Least privilege.** User queries run under RLS with the anon key. Secrets are server-only. The wallet integration requests no function-call keys; transactions are only requested from the Wallet page after an in-app review, and the user's wallet signs each one.
 
@@ -64,15 +64,10 @@ tests/                         unit + integration (Vitest)
 
 | Situation | Behaviour |
 |---|---|
-| Supabase not configured | Whole dashboard is a demo; auth pages explain how to configure. |
-| Visitor not signed in, clicked "Explore demo" | `veil_demo` cookie, sample data, nothing persisted. |
+| Supabase not configured | Sign-in is unavailable; the dashboard is not reachable. |
+| Visitor not signed in | Redirected to sign-in. There is no sample workspace: only real data is ever shown. |
 | Signed in, no wallets | Live mode with empty states prompting to add a wallet. |
-| NEAR AI not configured | Analyst returns template answers labelled "Demo response — not NEAR AI"; Privacy Centre shows NOT CONNECTED / UNVERIFIED. |
-| NEAR AI configured, demo visitor | Live NEAR AI inference on **sample** data (if `DEMO_ALLOW_LIVE_AI` is not `false`), rate-limited per IP. |
-
-### Demo mode
-
-`lib/demo/data.ts` holds fictional balances and round-number prices, labelled "SAMPLE DATA". Risk scores and wallet indicators for the demo are computed by the **real** engine over this sample data, so the demo shows real behaviour without presenting fiction as fact.
+| NEAR AI not configured | Analyst returns rule-based answers over the user's real data, labelled "Basic answer · AI offline" and "not produced by NEAR AI"; Privacy Centre shows NOT CONNECTED / UNVERIFIED. |
 
 ## Analyst pipeline (`lib/ai/analyst.ts`)
 

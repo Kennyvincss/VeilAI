@@ -9,11 +9,11 @@ export const metadata: Metadata = { title: "Dashboard", robots: { index: false }
 
 export default async function DashboardLayout({ children }: LayoutProps<"/dashboard">) {
   const ctx = await getRequestContext();
-  // Defence in depth (the proxy already redirects): require a session or demo.
-  if (!ctx.user && !ctx.demo) redirect("/login?next=/dashboard");
+  // Defence in depth (the proxy already redirects): require a session.
+  if (!ctx.user) redirect("/login?next=/dashboard");
   const initial = {
     ...getPublicStatus(),
-    session: { signedIn: Boolean(ctx.user), email: ctx.user?.email ?? null, demo: ctx.demo },
+    session: { signedIn: Boolean(ctx.user), email: ctx.user?.email ?? null },
   };
   return (
     <AppStatusProvider initial={initial}>

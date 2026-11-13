@@ -13,7 +13,6 @@ import { TransactionsList } from "@/components/dashboard/transactions-list";
 import { ProvenanceBar } from "@/components/dashboard/sources";
 import { AllocationDonut, scoreColor } from "@/components/charts/charts";
 import { Badge, Button, buttonClass, Card, CardHeader, EmptyState, Skeleton } from "@/components/ui/primitives";
-import { ModeBadge } from "@/components/ui/status";
 import { Ago } from "@/components/ui/ago";
 import { cn, formatAmount, formatPct, formatUsd } from "@/lib/utils/format";
 
@@ -21,7 +20,7 @@ export default function DashboardPage() {
   const { status } = useAppStatus();
   const portfolio = useApi<PortfolioSnapshot>("/api/portfolio");
   const risk = useApi<RiskAnalysis>("/api/risk");
-  const activity = useApi<{ mode: "live" | "demo"; transactions: (NormalizedTx & { wallet?: string })[]; notes: string[] }>("/api/activity");
+  const activity = useApi<{ mode: "live"; transactions: (NormalizedTx & { wallet?: string })[]; notes: string[] }>("/api/activity");
 
   const reloadAll = useCallback(() => {
     void portfolio.reload();
@@ -46,7 +45,6 @@ export default function DashboardPage() {
       <PageHeader
         title="Overview"
         description="Your portfolio, risk and confidential processing status at a glance."
-        badges={<ModeBadge mode={p?.provenance.mode} />}
         actions={
           <div className="flex items-center gap-3">
             {p && (
@@ -130,7 +128,7 @@ export default function DashboardPage() {
                   </thead>
                   <tbody>
                     {p.holdings.map((h) => (
-                      <tr key={h.contractId} className="border-b border-border/60 transition-colors last:border-0 hover:bg-black/[0.02]">
+                      <tr key={h.contractId} className="border-b border-border/60 transition-colors last:border-0 hover:bg-white/[0.04]">
                         <td className="px-5 py-2.5">
                           <div className="flex items-center gap-2">
                             <span className="font-medium">{h.symbol}</span>
@@ -168,7 +166,6 @@ export default function DashboardPage() {
               icon={<Activity className="h-4 w-4" />}
               title="Recent transactions"
               subtitle="Latest activity across tracked wallets"
-              action={<ModeBadge mode={activity.data?.mode} />}
             />
             {activity.loading ? (
               <div className="space-y-2">
@@ -177,7 +174,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : activity.data && activity.data.transactions.length > 0 ? (
-              <TransactionsList txs={activity.data.transactions} network={status.network} demo={activity.data.mode === "demo"} />
+              <TransactionsList txs={activity.data.transactions} network={status.network} />
             ) : (
               <EmptyState icon={<Activity className="h-5 w-5" />} title="No recent activity" description={activity.error ?? activity.data?.notes[0] ?? "Transactions for tracked wallets will appear here."} />
             )}
@@ -191,7 +188,7 @@ export default function DashboardPage() {
           <PrivacyStatusCard />
           {risk.data && (
             <Card>
-              <CardHeader icon={<Gauge className="h-4 w-4" />} title="Top risk drivers" action={<ModeBadge mode={risk.data.provenance.mode} />} />
+              <CardHeader icon={<Gauge className="h-4 w-4" />} title="Top risk drivers" />
               <ul className="space-y-2.5">
                 {[...risk.data.categories]
                   .filter((c) => c.score !== null)
@@ -205,7 +202,7 @@ export default function DashboardPage() {
                           {Math.round(c.score ?? 0)}
                         </span>
                       </div>
-                      <div className="mt-1 h-1.5 rounded-full bg-black/[0.04]">
+                      <div className="mt-1 h-1.5 rounded-full bg-white/[0.06]">
                         <div className="h-full rounded-full" style={{ width: `${c.score}%`, background: scoreColor(c.score ?? 0) }} />
                       </div>
                     </li>
@@ -260,7 +257,7 @@ function PrivacyStatusCard() {
             last ? (
               <Badge tone={last.state === "verified" ? "success" : last.state === "failed" ? "danger" : "warning"}>{last.state}</Badge>
             ) : (
-              <span className="text-subtle">{history.data?.persisted ? "None yet" : "Not stored for samples"}</span>
+              <span className="text-subtle">None yet</span>
             )
           }
         />

@@ -11,12 +11,12 @@ Built for the **NEAR Hackathon 2026 — Privacy & Private AI track**. Free for e
 
 | | |
 |---|---|
-| ![Landing page](docs/screenshots/landing.jpg) | ![Portfolio overview (sample workspace)](docs/screenshots/dashboard.jpg) |
+| ![Landing page](docs/screenshots/landing.jpg) | ![Portfolio overview](docs/screenshots/dashboard.jpg) |
 | ![Wallet: connect, create or import](docs/screenshots/wallet.jpg) | ![AI analyst preparing a stake from chat](docs/screenshots/analyst-action.jpg) |
 
 ![Shareable proof page (example data)](docs/screenshots/proof.jpg)
 
-*Screenshots from the sample workspace; the proof page is shown with example data.*
+*Screenshots taken with example data; the live app only ever shows real data from your own account.*
 
 ## Features
 
@@ -66,7 +66,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open http://localhost:3000. With **no configuration**, everything runs in clearly-labelled demo mode: sample portfolio, template AI answers, and attestation shown as NOT CONNECTED / UNVERIFIED.
+Open http://localhost:3000. Sign-in needs Supabase configured (see below). Without a NEAR AI key the analyst gives rule-based answers labelled "AI offline", and attestation shows NOT CONNECTED / UNVERIFIED.
 
 ### Enable live NEAR AI confidential inference
 
@@ -113,7 +113,7 @@ npm run build       # production build
 npm run check       # all of the above
 ```
 
-The tests cover account validation and secret detection, portfolio maths, risk scoring, wallet heuristics, NearBlocks normalisation, prompt-injection sanitisation, data minimisation, rate limiting, AES-GCM and signed tokens, TDX report-data and compose binding, ECDSA/Ed25519 completion signatures, E2EE v2 round-trips, NEP-413, and the verification orchestrator. The orchestrator tests check that VERIFIED only appears when every check passes. Route-level tests cover access control, CSRF, validation, rate limiting and the demo-mode analyst stream.
+The tests cover account validation and secret detection, portfolio maths, risk scoring, wallet heuristics, NearBlocks normalisation, prompt-injection sanitisation, data minimisation, rate limiting, AES-GCM and signed tokens, TDX report-data and compose binding, ECDSA/Ed25519 completion signatures, E2EE v2 round-trips, NEP-413, and the verification orchestrator. The orchestrator tests check that VERIFIED only appears when every check passes. Route-level tests cover access control, CSRF, validation, rate limiting and the analyst stream without a NEAR AI key.
 
 ## Testnet deployment (for judges)
 

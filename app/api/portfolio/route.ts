@@ -9,7 +9,7 @@ export const maxDuration = 30;
 
 export async function GET(req: NextRequest) {
   const ctx = await getRequestContext();
-  if (!ctx.user && !ctx.demo) return jsonError(401, "Sign in or start a demo session.");
+  if (!ctx.user) return jsonError(401, "Sign in to continue.");
   const limited = limitOrNull(`portfolio:${ctx.user?.id ?? clientIp(req)}`, RATE_LIMITS.portfolio);
   if (limited) return limited;
   try {

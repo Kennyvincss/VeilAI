@@ -13,7 +13,6 @@ import { Markdown } from "@/components/analyst/markdown";
 import { SourcesList } from "@/components/dashboard/sources";
 import { VerificationDetails } from "@/components/privacy/verification-details";
 import { Badge, Button, Card, Toggle } from "@/components/ui/primitives";
-import { ModeBadge } from "@/components/ui/status";
 import { cn, timeAgo } from "@/lib/utils/format";
 import { looksLikeSecret } from "@/lib/near/account";
 import type { ChatAction } from "@/lib/ai/actions";
@@ -170,7 +169,7 @@ export default function AnalystPage() {
           </Button>
           <div className="mb-2 px-2 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-subtle">History</div>
           {!signedIn ? (
-            <p className="px-2 pb-2 text-xs leading-relaxed text-muted">Demo conversations are kept only in this tab and never stored. Create a free account to save history.</p>
+            <p className="px-2 pb-2 text-xs leading-relaxed text-muted">Sign in to save your conversation history.</p>
           ) : convs.data && convs.data.conversations.length > 0 ? (
             <ul className="max-h-[50vh] space-y-0.5 overflow-y-auto">
               {convs.data.conversations.map((c) => (
@@ -179,7 +178,7 @@ export default function AnalystPage() {
                     onClick={() => void openConversation(c.id)}
                     className={cn(
                       "min-w-0 flex-1 rounded-lg px-2 py-2 text-left text-xs transition-colors",
-                      c.id === conversationId ? "bg-card-2 font-medium text-text" : "text-muted hover:bg-black/[0.04] hover:text-text",
+                      c.id === conversationId ? "bg-card-2 font-medium text-text" : "text-muted hover:bg-white/[0.06] hover:text-text",
                     )}
                   >
                     <div className="truncate">{c.title}</div>
@@ -222,7 +221,7 @@ export default function AnalystPage() {
                     {m.role === "user" ? (
                       <div className="flex max-w-[85%] items-start gap-2">
                         <div className="rounded-3xl rounded-tr-lg bg-card-2 px-4 py-2.5 text-sm text-text">{m.content}</div>
-                        <div className="mt-1 hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-black/[0.04] text-muted sm:flex">
+                        <div className="mt-1 hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.06] text-muted sm:flex">
                           <User className="h-4 w-4" />
                         </div>
                       </div>
@@ -237,7 +236,7 @@ export default function AnalystPage() {
           </div>
 
           <form onSubmit={onSubmit} className="p-3 sm:p-4">
-            <div className="flex items-end gap-2 rounded-[22px] border border-border bg-white p-2 pl-3 shadow-[0_10px_30px_-18px_rgba(15,17,26,0.35)] focus-within:border-border-strong focus-within:ring-4 focus-within:ring-lavender/40">
+            <div className="flex items-end gap-2 rounded-[22px] border border-border-strong bg-card-2 p-2 pl-3 shadow-[0_10px_30px_-18px_rgba(0,0,0,0.6)] focus-within:border-accent/60 focus-within:ring-4 focus-within:ring-accent/15">
               <textarea
                 ref={inputRef}
                 value={input}
@@ -273,10 +272,9 @@ function AssistantMessage({ m }: { m: UiMessage }) {
   const hasDetails = !m.pending && (v || hasSources || (m.notes && m.notes.length > 0) || m.meta?.proofToken || m.inference === "near-ai");
   return (
     <div className="min-w-0 max-w-[92%] flex-1 space-y-3">
-      {(m.meta?.mode === "demo" || m.inference === "demo-template") && (
+      {m.inference === "demo-template" && (
         <div className="flex flex-wrap items-center gap-1.5">
-          {m.meta?.mode && <ModeBadge mode={m.meta.mode} />}
-          {m.inference === "demo-template" && <Badge tone="warning">Sample answer</Badge>}
+          <Badge tone="warning">Basic answer · AI offline</Badge>
         </div>
       )}
 
@@ -378,7 +376,7 @@ function WelcomeHero({ protectedChat, e2ee, signedIn, onPick }: { protectedChat:
     <div className="flex h-full flex-col items-center justify-center py-8 text-center">
       <span className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium", protectedChat ? "border-success/25 bg-success/[0.07] text-success" : "border-border bg-card-2 text-muted")}>
         <span className={cn("h-1.5 w-1.5 rounded-full", protectedChat ? "bg-success" : "bg-subtle")} />
-        {protectedChat ? "Chat is protected" : "Sample answers · live AI offline"}
+        {protectedChat ? "Chat is protected" : "Basic answers · live AI offline"}
       </span>
       <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">{name ? `Welcome, ${name}!` : "Welcome to VEIL AI"}</h2>
       <p className="mt-2 max-w-md text-sm text-muted">
@@ -389,7 +387,7 @@ function WelcomeHero({ protectedChat, e2ee, signedIn, onPick }: { protectedChat:
       <VeilMask className="my-6 h-44 w-36 sm:h-52 sm:w-44" />
       <div className="flex max-w-xl flex-wrap justify-center gap-2">
         {CHIPS.map((s) => (
-          <button key={s} onClick={() => onPick(s)} className="rounded-full border border-border bg-card-2 px-3.5 py-1.5 text-xs text-muted transition-colors hover:border-border-strong hover:bg-white hover:text-text">
+          <button key={s} onClick={() => onPick(s)} className="rounded-full border border-border bg-card-2 px-3.5 py-1.5 text-xs text-muted transition-colors hover:border-border-strong hover:bg-white/[0.08] hover:text-text">
             {s}
           </button>
         ))}

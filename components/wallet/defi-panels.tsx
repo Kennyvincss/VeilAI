@@ -141,7 +141,7 @@ export function SendPanel({
                   key={c.id}
                   onClick={() => setTo(c.accountId)}
                   title={c.accountId}
-                  className={cn("rounded-full border px-2.5 py-1 text-[0.7rem] transition-colors", normalizeAccountId(to) === c.accountId ? "border-text bg-white text-text" : "border-border bg-bg-2 text-muted hover:text-text")}
+                  className={cn("rounded-full border px-2.5 py-1 text-[0.7rem] transition-colors", normalizeAccountId(to) === c.accountId ? "border-accent bg-accent/15 text-text" : "border-border bg-bg-2 text-muted hover:text-text")}
                 >
                   {c.label}
                 </button>
@@ -385,7 +385,7 @@ export function SwapPanel({ accountId, overview, onPlan }: { accountId: string; 
                 role="radio"
                 aria-checked={slippage === bp}
                 onClick={() => setSlippage(bp)}
-                className={cn("rounded-lg border px-2.5 py-1", slippage === bp ? "border-text bg-white text-text" : "border-border text-muted hover:text-text")}
+                className={cn("rounded-lg border px-2.5 py-1", slippage === bp ? "border-accent bg-accent/15 text-text" : "border-border text-muted hover:text-text")}
               >
                 {bp / 100}%
               </button>
@@ -464,7 +464,7 @@ export function SwapTracker({ depositAddress, onClose }: { depositAddress: strin
     FAILED: "The swap failed. If funds were taken, they will be refunded to your account.",
   };
   return (
-    <div className={cn("flex items-start gap-3 rounded-2xl border p-4 text-sm", status === "SUCCESS" ? "border-success/30 bg-success/[0.06]" : status === "FAILED" ? "border-danger/30 bg-danger/[0.06]" : "border-lavender bg-lavender/20")}>
+    <div className={cn("flex items-start gap-3 rounded-2xl border p-4 text-sm", status === "SUCCESS" ? "border-success/30 bg-success/[0.06]" : status === "FAILED" ? "border-danger/30 bg-danger/[0.06]" : "border-lavender/35 bg-lavender/10")}>
       {status === "SUCCESS" ? <CheckCircle2 className="h-5 w-5 shrink-0 text-success" /> : status === "FAILED" || status === "REFUNDED" ? <XCircle className="h-5 w-5 shrink-0 text-warning" /> : <Loader2 className="h-5 w-5 shrink-0 animate-spin text-accent-strong" />}
       <div className="min-w-0 flex-1">
         <div className="font-medium">{label[status] ?? status}</div>
@@ -545,7 +545,7 @@ export function StakePanel({
           title="Your stakes"
           subtitle={`NEAR that ${accountId} has delegated to validators`}
           action={
-            <button onClick={() => void data.reload()} className="rounded-lg p-1.5 text-subtle hover:bg-black/[0.04] hover:text-text" aria-label="Refresh staking">
+            <button onClick={() => void data.reload()} className="rounded-lg p-1.5 text-subtle hover:bg-white/[0.06] hover:text-text" aria-label="Refresh staking">
               <RefreshCw className="h-4 w-4" />
             </button>
           }

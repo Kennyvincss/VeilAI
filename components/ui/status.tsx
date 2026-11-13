@@ -1,19 +1,9 @@
 "use client";
 
-import { CheckCircle2, CircleDashed, FlaskConical, Loader2, ShieldAlert, ShieldCheck, ShieldOff, ShieldQuestion, XCircle } from "lucide-react";
-import type { CheckStatus, DataMode, VerificationState } from "@/types";
+import { CheckCircle2, CircleDashed, Loader2, ShieldAlert, ShieldCheck, ShieldOff, ShieldQuestion, XCircle } from "lucide-react";
+import type { CheckStatus, VerificationState } from "@/types";
 import { Badge } from "@/components/ui/primitives";
 import { cn } from "@/lib/utils/format";
-
-/** Labels SAMPLE data (required so demo numbers are never mistaken for real ones). Real data needs no label. */
-export function ModeBadge({ mode, className }: { mode: DataMode | undefined; className?: string }) {
-  if (mode !== "demo") return null;
-  return (
-    <Badge tone="warning" className={className} title="Illustrative sample data — not real">
-      <FlaskConical className="h-3 w-3" aria-hidden /> Sample data
-    </Badge>
-  );
-}
 
 const STATE: Record<VerificationState, { label: string; tone: "neutral" | "accent" | "blue" | "success" | "warning" | "danger"; icon: typeof ShieldCheck; spin?: boolean }> = {
   "not-connected": { label: "Not connected", tone: "neutral", icon: ShieldOff },

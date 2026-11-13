@@ -9,7 +9,7 @@ import { useAppStatus } from "@/components/layout/app-status";
 import { PageHeader } from "@/components/layout/dashboard-shell";
 import { SourcesList } from "@/components/dashboard/sources";
 import { Badge, Button, Card, CardHeader, EmptyState, Input, Toggle } from "@/components/ui/primitives";
-import { ModeBadge, VerificationBadge } from "@/components/ui/status";
+import { VerificationBadge } from "@/components/ui/status";
 import { downloadReportPdf } from "@/lib/reports/pdf";
 import { isValidAccountId, normalizeAccountId } from "@/lib/near/account";
 import { cn, formatDateTime } from "@/lib/utils/format";
@@ -95,7 +95,7 @@ export default function ReportsPage() {
                   role="radio"
                   aria-checked={active}
                   onClick={() => setType(t.type)}
-                  className={cn("rounded-xl border p-4 text-left transition-all", active ? "border-text bg-white shadow-[0_6px_16px_-10px_rgba(15,17,26,0.35)]" : "border-border hover:border-border-strong")}
+                  className={cn("rounded-xl border p-4 text-left transition-all", active ? "border-accent bg-accent/10" : "border-border hover:border-border-strong")}
                 >
                   <Icon className={cn("h-5 w-5", active ? "text-accent-strong" : "text-subtle")} />
                   <div className="mt-3 text-sm font-semibold">{t.label}</div>
@@ -107,7 +107,6 @@ export default function ReportsPage() {
           {type === "wallet" && (
             <div className="mt-4">
               <Input aria-label="Account to investigate" placeholder="alice.near" value={account} onChange={(e) => setAccount(e.target.value)} className="font-mono text-sm" />
-              {!signedIn && <p className="mt-1 text-[0.7rem] text-subtle">Demo: wallet reports use sample transactions.</p>}
             </div>
           )}
           {type === "ai-summary" && !status.nearAi.configured && (
@@ -126,7 +125,7 @@ export default function ReportsPage() {
         <Card>
           <CardHeader icon={<FileText className="h-4 w-4" />} title="Saved reports" />
           {!signedIn ? (
-            <p className="text-xs text-muted">Create a free account to save reports. Demo reports can still be downloaded as PDF.</p>
+            <p className="text-xs text-muted">Sign in to save reports.</p>
           ) : saved.data && saved.data.reports.length > 0 ? (
             <ul className="space-y-2">
               {saved.data.reports.map((r) => (
@@ -138,7 +137,7 @@ export default function ReportsPage() {
                     </div>
                   </button>
                   <div className="flex shrink-0 gap-1">
-                    <button onClick={() => void openSaved(r.id, true)} className="rounded-lg p-1.5 text-subtle hover:bg-black/[0.04] hover:text-text" aria-label={`Download ${r.title}`}>
+                    <button onClick={() => void openSaved(r.id, true)} className="rounded-lg p-1.5 text-subtle hover:bg-white/[0.06] hover:text-text" aria-label={`Download ${r.title}`}>
                       <Download className="h-4 w-4" />
                     </button>
                     <button onClick={() => void remove(r.id)} className="rounded-lg p-1.5 text-subtle hover:bg-danger/10 hover:text-danger" aria-label={`Delete ${r.title}`}>
@@ -172,7 +171,6 @@ function ReportPreview({ report, onDownload }: { report: FinancialReport; onDown
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-lg font-semibold">{report.title}</h2>
-            <ModeBadge mode={report.mode} />
             {report.verification && <VerificationBadge state={report.verification.state} />}
           </div>
           <p className="mt-1 text-xs text-muted">
@@ -219,7 +217,6 @@ function ReportPreview({ report, onDownload }: { report: FinancialReport; onDown
         <details className="group">
           <summary className="cursor-pointer list-none text-sm font-semibold text-muted hover:text-text">Data sources</summary>
           <SourcesList className="mt-2" sources={report.sources} />
-          {report.sources.length === 0 && <p className="mt-2 text-xs text-muted">Sample data only.</p>}
         </details>
         <section>
           <h3 className="text-sm font-semibold">Methodology</h3>

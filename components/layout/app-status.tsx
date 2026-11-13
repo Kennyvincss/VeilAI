@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useState, type ReactNode } from
 import type { PublicStatus } from "@/types";
 import { api } from "@/hooks/use-api";
 
-export type StatusPayload = PublicStatus & { session: { signedIn: boolean; email: string | null; demo: boolean } };
+export type StatusPayload = PublicStatus & { session: { signedIn: boolean; email: string | null } };
 
 const Ctx = createContext<{ status: StatusPayload; reload: () => void } | null>(null);
 

@@ -3,16 +3,16 @@
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatPct, formatUsd } from "@/lib/utils/format";
 
-/** Categorical palette: distinguishable on white, ordered by brand priority. */
-export const PALETTE = ["#7C6CF0", "#111216", "#A3C93A", "#3B6FE0", "#F2A93B", "#EC6FA9", "#9EA2AC"];
+/** Categorical palette: distinguishable on the dark background, ordered by brand priority. */
+export const PALETTE = ["#E2733F", "#F6EFE8", "#7FB0FF", "#A3C93A", "#F2B04A", "#EC6FA9", "#7F756C"];
 
 const tooltipStyle = {
-  background: "#ffffff",
-  border: "1px solid rgba(15,17,26,0.08)",
+  background: "#1d1814",
+  border: "1px solid rgba(255,236,220,0.12)",
   borderRadius: 12,
   fontSize: 12,
-  color: "#0e0f13",
-  boxShadow: "0 12px 32px -14px rgba(15,17,26,0.25)",
+  color: "#f6efe8",
+  boxShadow: "0 12px 32px -14px rgba(0,0,0,0.7)",
 };
 
 export function AllocationDonut({ data }: { data: { symbol: string; valueUsd: number; pct: number }[] }) {
@@ -53,11 +53,11 @@ export function ActivityBars({ data, height = 180 }: { data: { date: string; cou
     <div style={{ height }} role="img" aria-label={`Daily activity over ${data.length} days`}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -24 }}>
-          <CartesianGrid vertical={false} stroke="rgba(15,17,26,0.06)" />
-          <XAxis dataKey="date" tick={{ fill: "#9ea2ac", fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(d: string) => d.slice(5)} minTickGap={16} />
-          <YAxis allowDecimals={false} tick={{ fill: "#9ea2ac", fontSize: 10 }} tickLine={false} axisLine={false} />
+          <CartesianGrid vertical={false} stroke="rgba(255,236,220,0.06)" />
+          <XAxis dataKey="date" tick={{ fill: "#7f756c", fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={(d: string) => d.slice(5)} minTickGap={16} />
+          <YAxis allowDecimals={false} tick={{ fill: "#7f756c", fontSize: 10 }} tickLine={false} axisLine={false} />
           <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(124,108,240,0.08)" }} formatter={(v, name) => [v, name === "count" ? "Transactions" : "NEAR volume"]} />
-          <Bar dataKey="count" fill="#7C6CF0" radius={[4, 4, 0, 0]} maxBarSize={22} />
+          <Bar dataKey="count" fill="#E2733F" radius={[4, 4, 0, 0]} maxBarSize={22} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -71,10 +71,10 @@ export function CategoryBars({ data }: { data: { label: string; score: number | 
       {data.map((d) => (
         <li key={d.label} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 sm:grid-cols-[180px_minmax(0,1fr)_auto]">
           <span className="text-xs text-muted">{d.label}</span>
-          <span className="order-3 col-span-2 h-2.5 overflow-hidden rounded-full bg-black/[0.06] sm:order-none sm:col-span-1">
-            <span className="block h-full rounded-full" style={{ width: `${d.score ?? 0}%`, background: d.score === null ? "#e6e7eb" : scoreColor(d.score) }} />
+          <span className="order-3 col-span-2 h-2.5 overflow-hidden rounded-full bg-white/[0.08] sm:order-none sm:col-span-1">
+            <span className="block h-full rounded-full" style={{ width: `${d.score ?? 0}%`, background: d.score === null ? "rgba(255,236,220,0.12)" : scoreColor(d.score) }} />
           </span>
-          <span className="text-right font-mono text-xs font-semibold" style={{ color: d.score === null ? "#9ea2ac" : scoreColor(d.score) }}>
+          <span className="text-right font-mono text-xs font-semibold" style={{ color: d.score === null ? "#7f756c" : scoreColor(d.score) }}>
             {d.score === null ? "n/a" : Math.round(d.score)}
           </span>
         </li>
@@ -98,7 +98,7 @@ export function ScoreGauge({ score, label }: { score: number | null; label: stri
   return (
     <div className="relative mx-auto w-full max-w-[220px]" role="img" aria-label={`Overall risk score ${score ?? "unavailable"} out of 100, ${label}`}>
       <svg viewBox="0 0 180 104" className="w-full">
-        <path d="M20 94 A70 70 0 0 1 160 94" fill="none" stroke="rgba(15,17,26,0.07)" strokeWidth="14" strokeLinecap="round" />
+        <path d="M20 94 A70 70 0 0 1 160 94" fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="14" strokeLinecap="round" />
         {score !== null && (
           <path
             d="M20 94 A70 70 0 0 1 160 94"
@@ -112,7 +112,7 @@ export function ScoreGauge({ score, label }: { score: number | null; label: stri
         )}
       </svg>
       <div className="absolute inset-x-0 bottom-1 text-center">
-        <div className="font-mono text-4xl font-semibold" style={{ color: score === null ? "#9ea2ac" : scoreColor(score) }}>
+        <div className="font-mono text-4xl font-semibold" style={{ color: score === null ? "#7f756c" : scoreColor(score) }}>
           {score === null ? "—" : Math.round(score)}
         </div>
         <div className="text-xs uppercase tracking-wider text-muted">{label}</div>

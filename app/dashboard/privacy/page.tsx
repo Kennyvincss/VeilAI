@@ -310,7 +310,7 @@ function SummaryCard(props: {
     accent: "border-accent/30 bg-[radial-gradient(ellipse_at_top_left,rgba(207,195,255,0.45),transparent_60%)]",
     neutral: "border-border",
   }[tone];
-  const iconTone = { success: "bg-success/15 text-success", danger: "bg-danger/15 text-danger", warning: "bg-warning/15 text-warning", accent: "bg-accent/15 text-accent-strong", neutral: "bg-black/[0.04] text-muted" }[tone];
+  const iconTone = { success: "bg-success/15 text-success", danger: "bg-danger/15 text-danger", warning: "bg-warning/15 text-warning", accent: "bg-accent/15 text-accent-strong", neutral: "bg-white/[0.06] text-muted" }[tone];
 
   const verified = !running && result?.state === "verified";
 
@@ -466,7 +466,7 @@ function TechnicalDetails({
                       ? "border-success/50 bg-success/[0.08]"
                       : f.state === "failed"
                         ? "border-danger/50 bg-danger/[0.08]"
-                        : "border-text bg-white shadow-[0_6px_16px_-10px_rgba(15,17,26,0.35)]"
+                        : "border-accent bg-accent/10"
                     : "border-border opacity-60",
                 )}
                 aria-current={active ? "step" : undefined}

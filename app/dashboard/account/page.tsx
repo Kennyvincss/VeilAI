@@ -21,7 +21,7 @@ export default function AccountPage() {
         {!status.session.signedIn ? (
           <Card className="p-6">
             <CardHeader icon={<Wallet className="h-4 w-4" />} title="Get your own name.near" subtitle="Free with a VEIL AI account" />
-            <p className="text-sm text-muted">Create a free account to get a real NEAR account with your name. You&apos;re currently in the sample workspace.</p>
+            <p className="text-sm text-muted">Create a free account to get a real NEAR account with your name.</p>
             {status.accounts.enabled && (
               <Link href="/signup" className={buttonClass("primary", "md", "mt-4")}>
                 Create free account

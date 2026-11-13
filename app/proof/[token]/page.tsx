@@ -114,8 +114,8 @@ export default async function ProofPage({ params }: PageProps<"/proof/[token]">)
           <Link href="/" className={buttonClass("primary", "md")}>
             What is VEIL AI?
           </Link>
-          <Link href="/demo" className={buttonClass("secondary", "md")}>
-            Try the demo
+          <Link href="/signup" className={buttonClass("secondary", "md")}>
+            Create free account
           </Link>
         </div>
         <p className="mt-6 text-[0.7rem] text-subtle">Proof issued by VEIL AI on {new Date(proof.issuedAt).toUTCString()}. The link is tamper-evident: changing any part of it invalidates it.</p>

@@ -370,7 +370,7 @@ function WalletHeader({
             error && <p className="mt-2 text-sm text-warning">{error}</p>
           )}
           {hasStake && st && (
-            <button onClick={onShowStake} className="mt-3 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-full border border-lavender bg-lavender/25 px-3 py-1 text-xs text-text hover:bg-lavender/40">
+            <button onClick={onShowStake} className="mt-3 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-full border border-lavender/35 bg-lavender/10 px-3 py-1 text-xs text-text hover:bg-lavender/20">
               <Layers className="h-3.5 w-3.5 text-accent-strong" />
               Staked <span className="font-mono font-semibold">{st.staked} NEAR</span>
               {st.unstaked !== "0" && <span className="text-muted">· {st.withdrawable ? `${st.unstaked} ready to withdraw` : `${st.unstaked} unlocking`}</span>}
@@ -409,7 +409,7 @@ function WalletHeader({
 /** First-time help: the account exists, but to approve transactions it must be opened in a wallet once. */
 function OpenYourAccount({ accountId, network, busy, onConnect }: { accountId: string; network: "mainnet" | "testnet"; busy: boolean; onConnect: (walletId?: string) => void }) {
   return (
-    <Card className="mt-4 border-lavender bg-lavender/15 p-5">
+    <Card className="mt-4 border-lavender/35 bg-lavender/[0.07] p-5">
       <h2 className="text-sm font-semibold">Use {accountId} to send, swap and stake</h2>
       <ol className="mt-2 space-y-1.5 text-sm text-muted">
         <li>
