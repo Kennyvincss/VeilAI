@@ -162,3 +162,10 @@ describe("creating name.near accounts", () => {
     expect(await (await nearCheckGET(req("/api/near-account/check?name=Al-ice"))).json()).toMatchObject({ available: false, problem: expect.any(String) });
   });
 });
+
+describe("sends", () => {
+  it("only accepts NEAR account IDs as receivers (no VEIL usernames)", async () => {
+    const res = await sendPOST(req("/api/defi/send", { method: "POST", body: { from: "me.near", to: "@alice", token: "near", amount: "1" } }));
+    expect(res.status).toBe(400);
+  });
+});
