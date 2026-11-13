@@ -1,18 +1,14 @@
 "use client";
 
-import { CheckCircle2, CircleDashed, FlaskConical, Loader2, Radio, ShieldAlert, ShieldCheck, ShieldOff, ShieldQuestion, XCircle } from "lucide-react";
+import { CheckCircle2, CircleDashed, FlaskConical, Loader2, ShieldAlert, ShieldCheck, ShieldOff, ShieldQuestion, XCircle } from "lucide-react";
 import type { CheckStatus, DataMode, VerificationState } from "@/types";
 import { Badge } from "@/components/ui/primitives";
 import { cn } from "@/lib/utils/format";
 
-/** LIVE / DEMO label that must accompany every data view. */
+/** Labels SAMPLE data (required so demo numbers are never mistaken for real ones). Real data needs no label. */
 export function ModeBadge({ mode, className }: { mode: DataMode | undefined; className?: string }) {
-  if (!mode) return null;
-  return mode === "live" ? (
-    <Badge tone="success" className={className} title="Fetched from live public providers">
-      <Radio className="h-3 w-3" aria-hidden /> Live data
-    </Badge>
-  ) : (
+  if (mode !== "demo") return null;
+  return (
     <Badge tone="warning" className={className} title="Illustrative sample data — not real">
       <FlaskConical className="h-3 w-3" aria-hidden /> Sample data
     </Badge>

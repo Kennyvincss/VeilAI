@@ -8,7 +8,7 @@ import { useApi, api } from "@/hooks/use-api";
 import { useNearWallet } from "@/hooks/use-near-wallet";
 import { useAppStatus } from "@/components/layout/app-status";
 import { PageHeader } from "@/components/layout/dashboard-shell";
-import { Badge, Button, Card, Skeleton } from "@/components/ui/primitives";
+import { Button, Card, Skeleton } from "@/components/ui/primitives";
 import { WalletOnboarding, type OnboardingMode } from "@/components/wallet/wallet-onboarding";
 import { ReviewDialog, type ReviewPlan } from "@/components/wallet/review-dialog";
 import { ReceivePanel, SendPanel, StakePanel, SwapPanel, SwapTracker, type WalletOverview } from "@/components/wallet/defi-panels";
@@ -102,7 +102,6 @@ function WalletView() {
       <PageHeader
         title="Wallet"
         description="Send, receive, swap and stake from your own NEAR wallet. VEIL AI never holds your keys — every transaction is approved in your wallet."
-        badges={wallet.accountId ? <Badge tone="success">Live · {status.network}</Badge> : undefined}
       />
 
       {status.network === "testnet" && (
