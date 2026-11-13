@@ -70,6 +70,7 @@ export function timeAgo(iso: string | null | undefined) {
   const diff = Date.now() - new Date(iso).getTime();
   if (!Number.isFinite(diff)) return "—";
   const s = Math.round(diff / 1000);
+  if (s < 5) return "just now"; // also covers small clock differences (future timestamps)
   if (s < 60) return `${s}s ago`;
   const m = Math.round(s / 60);
   if (m < 60) return `${m}m ago`;

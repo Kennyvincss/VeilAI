@@ -170,7 +170,7 @@ export default function AnalystPage() {
       <h1 className="sr-only">AI Financial Analyst</h1>
       <div className="grid gap-4 lg:grid-cols-[250px_1fr]">
         {/* Conversation history */}
-        <Card className="h-fit p-3 lg:sticky lg:top-0">
+        <Card className="order-2 h-fit p-3 lg:order-1 lg:sticky lg:top-0">
           <Button className="mb-3 w-full" size="sm" onClick={newConversation}>
             <MessageSquarePlus className="h-3.5 w-3.5" /> New conversation
           </Button>
@@ -212,7 +212,7 @@ export default function AnalystPage() {
         </Card>
 
         {/* Chat */}
-        <Card className="flex min-h-[74vh] flex-col p-0">
+        <Card className="order-1 flex min-h-[74vh] flex-col p-0 lg:order-2">
           <div className="flex-1 space-y-5 overflow-y-auto p-4 sm:p-6" aria-live="polite">
             {messages.length === 0 ? (
               <WelcomeHero protectedChat={status.nearAi.configured} e2ee={status.nearAi.e2ee} signedIn={signedIn} onPick={(q) => void send(q)} />

@@ -77,17 +77,27 @@ html {
 }
 
 body {
-  background:
-    radial-gradient(ellipse 60% 40% at 15% 85%, rgba(255, 255, 255, 0.85), transparent 70%),
-    radial-gradient(ellipse 50% 35% at 85% 90%, rgba(255, 255, 255, 0.8), transparent 70%),
-    radial-gradient(ellipse 40% 25% at 70% 10%, rgba(255, 255, 255, 0.55), transparent 70%),
-    var(--sky);
-  background-attachment: fixed;
+  background: transparent;
   min-height: 100vh;
   color: var(--text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* The sky sits on its own fixed layer so it never repeats or breaks into
+   bands on long pages (mobile browsers ignore background-attachment: fixed). */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 40% at 15% 85%, rgba(255, 255, 255, 0.85), transparent 70%),
+    radial-gradient(ellipse 50% 35% at 85% 90%, rgba(255, 255, 255, 0.8), transparent 70%),
+    radial-gradient(ellipse 40% 25% at 70% 10%, rgba(255, 255, 255, 0.55), transparent 70%),
+    var(--sky);
 }
 
 ::selection {

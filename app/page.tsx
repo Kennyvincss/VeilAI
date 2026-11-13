@@ -150,7 +150,22 @@ export default function LandingPage() {
               />
             </FadeIn>
             <FadeIn delay={0.1}>
-              <div className="mt-12 overflow-x-auto rounded-2xl border border-border">
+              <div className="mt-12 grid gap-3 sm:hidden">
+                {PROTECTION_ROWS.map((r) => (
+                  <div key={r[0]} className="rounded-2xl border border-border bg-card p-4">
+                    <div className="text-sm font-semibold">{r[0]}</div>
+                    <dl className="mt-2 space-y-1.5 text-xs">
+                      {(["In transit", "During AI computation", "At rest"] as const).map((label, i) => (
+                        <div key={label} className="flex justify-between gap-3">
+                          <dt className="shrink-0 text-subtle">{label}</dt>
+                          <dd className="text-right text-muted">{r[i + 1]}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-12 hidden overflow-x-auto rounded-2xl border border-border sm:block">
                 <table className="w-full min-w-[640px] text-left text-sm">
                   <thead className="bg-card text-xs uppercase tracking-wider text-subtle">
                     <tr>
@@ -161,13 +176,7 @@ export default function LandingPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border bg-bg-2/60">
-                    {[
-                      ["Your questions & AI answers", "TLS + E2EE to enclave*", "Inside TEE (Intel TDX + NVIDIA CC)", "Optional history · encrypted, owner-only access"],
-                      ["Portfolio context sent to AI", "TLS + E2EE to enclave*", "Inside TEE; wallet IDs pseudonymised", "Not stored by VEIL AI"],
-                      ["Preferences (AI memory)", "TLS", "Only if you enable “use in AI”", "Encrypted, owner-only access"],
-                      ["On-chain balances & transactions", "TLS", "—", "Public by nature on NEAR"],
-                      ["Email / account", "TLS", "Never sent to AI", "Secure authentication provider"],
-                    ].map((r) => (
+                    {PROTECTION_ROWS.map((r) => (
                       <tr key={r[0]}>
                         {r.map((c, i) => (
                           <td key={i} className={i === 0 ? "px-5 py-3.5 font-medium text-text" : "px-5 py-3.5 text-muted"}>
@@ -340,3 +349,11 @@ export default function LandingPage() {
     </>
   );
 }
+
+const PROTECTION_ROWS: [string, string, string, string][] = [
+  ["Your questions & AI answers", "TLS + E2EE to enclave*", "Inside TEE (Intel TDX + NVIDIA CC)", "Optional history · encrypted, owner-only access"],
+  ["Portfolio context sent to AI", "TLS + E2EE to enclave*", "Inside TEE; wallet IDs pseudonymised", "Not stored by VEIL AI"],
+  ["Preferences (AI memory)", "TLS", "Only if you enable “use in AI”", "Encrypted, owner-only access"],
+  ["On-chain balances & transactions", "TLS", "—", "Public by nature on NEAR"],
+  ["Email / account", "TLS", "Never sent to AI", "Secure authentication provider"],
+];

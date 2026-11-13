@@ -141,7 +141,7 @@ export function SendPanel({
                   key={c.id}
                   onClick={() => setTo(c.accountId)}
                   title={c.accountId}
-                  className={cn("rounded-full border px-2.5 py-1 text-[0.7rem] transition-colors", normalizeAccountId(to) === c.accountId ? "border-accent/50 bg-accent/15 text-text" : "border-border bg-bg-2 text-muted hover:text-text")}
+                  className={cn("rounded-full border px-2.5 py-1 text-[0.7rem] transition-colors", normalizeAccountId(to) === c.accountId ? "border-text bg-white text-text" : "border-border bg-bg-2 text-muted hover:text-text")}
                 >
                   {c.label}
                 </button>
@@ -385,7 +385,7 @@ export function SwapPanel({ accountId, overview, onPlan }: { accountId: string; 
                 role="radio"
                 aria-checked={slippage === bp}
                 onClick={() => setSlippage(bp)}
-                className={cn("rounded-lg border px-2.5 py-1", slippage === bp ? "border-accent/50 bg-accent/10 text-text" : "border-border text-muted hover:text-text")}
+                className={cn("rounded-lg border px-2.5 py-1", slippage === bp ? "border-text bg-white text-text" : "border-border text-muted hover:text-text")}
               >
                 {bp / 100}%
               </button>

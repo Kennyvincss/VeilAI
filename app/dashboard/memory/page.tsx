@@ -85,7 +85,7 @@ export default function MemoryPage() {
             <fieldset disabled={!signedIn} className="space-y-6 disabled:opacity-60">
               <div>
                 <div className="mb-2 text-xs font-medium text-muted">Investment timeframe</div>
-                <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Investment timeframe">
+                <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-3" role="radiogroup" aria-label="Investment timeframe">
                   {TIMEFRAMES.map(([v, l, d]) => (
                     <Choice key={v} active={p.timeframe === v} onClick={() => setP({ ...p, timeframe: p.timeframe === v ? null : v })} label={l} sub={d} />
                   ))}
@@ -93,7 +93,7 @@ export default function MemoryPage() {
               </div>
               <div>
                 <div className="mb-2 text-xs font-medium text-muted">Risk tolerance</div>
-                <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Risk tolerance">
+                <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-3" role="radiogroup" aria-label="Risk tolerance">
                   {TOLERANCE.map(([v, l]) => (
                     <Choice key={v} active={p.riskTolerance === v} onClick={() => setP({ ...p, riskTolerance: p.riskTolerance === v ? null : v })} label={l} />
                   ))}
@@ -160,7 +160,7 @@ export default function MemoryPage() {
 
 function Choice({ active, onClick, label, sub }: { active: boolean; onClick: () => void; label: string; sub?: string }) {
   return (
-    <button type="button" role="radio" aria-checked={active} onClick={onClick} className={cn("rounded-xl border px-3 py-2.5 text-left text-sm transition-all", active ? "border-accent/50 bg-accent/[0.08] text-text" : "border-border text-muted hover:border-border-strong")}>
+    <button type="button" role="radio" aria-checked={active} onClick={onClick} className={cn("rounded-xl border px-3 py-2.5 text-left text-sm transition-all", active ? "border-text bg-white text-text shadow-[0_6px_16px_-10px_rgba(15,17,26,0.35)]" : "border-border text-muted hover:border-border-strong")}>
       {label}
       {sub && <div className="text-[0.68rem] text-subtle">{sub}</div>}
     </button>

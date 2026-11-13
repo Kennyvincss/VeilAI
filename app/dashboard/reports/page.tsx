@@ -95,7 +95,7 @@ export default function ReportsPage() {
                   role="radio"
                   aria-checked={active}
                   onClick={() => setType(t.type)}
-                  className={cn("rounded-xl border p-4 text-left transition-all", active ? "border-accent/50 bg-accent/[0.08]" : "border-border hover:border-border-strong")}
+                  className={cn("rounded-xl border p-4 text-left transition-all", active ? "border-text bg-white shadow-[0_6px_16px_-10px_rgba(15,17,26,0.35)]" : "border-border hover:border-border-strong")}
                 >
                   <Icon className={cn("h-5 w-5", active ? "text-accent-strong" : "text-subtle")} />
                   <div className="mt-3 text-sm font-semibold">{t.label}</div>

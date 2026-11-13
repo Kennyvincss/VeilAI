@@ -121,18 +121,18 @@ export function WalletManager({ onChange }: { onChange?: () => void }) {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="flex flex-col gap-2">
             {signedIn ? (
               <>
-                <Button size="sm" className="flex-1" onClick={connectAndVerify} loading={wallet.busy}>
-                  <BadgeCheck className="h-3.5 w-3.5" /> Connect & verify ownership
+                <Button className="w-full whitespace-nowrap" onClick={connectAndVerify} loading={wallet.busy}>
+                  {!wallet.busy && <BadgeCheck className="h-4 w-4" />} Connect &amp; verify
                 </Button>
-                <Button size="sm" variant="secondary" onClick={connectOnly} disabled={wallet.busy}>
-                  <Link2 className="h-3.5 w-3.5" /> Connect only
+                <Button variant="secondary" className="w-full whitespace-nowrap" onClick={connectOnly} disabled={wallet.busy}>
+                  <Link2 className="h-4 w-4" /> Connect only
                 </Button>
               </>
             ) : (
-              <Button size="sm" variant="secondary" className="flex-1" onClick={connectOnly} loading={wallet.busy}>
+              <Button variant="secondary" className="w-full whitespace-nowrap" onClick={connectOnly} loading={wallet.busy}>
                 <Link2 className="h-3.5 w-3.5" /> Connect NEAR wallet
               </Button>
             )}

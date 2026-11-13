@@ -118,14 +118,14 @@ export default function DashboardPage() {
               </div>
             ) : p && p.holdings.length > 0 ? (
               <div className="-mx-5 overflow-x-auto">
-                <table className="w-full min-w-[560px] text-sm">
+                <table className="w-full text-sm sm:min-w-[560px]">
                   <thead className="text-left text-[0.7rem] uppercase tracking-wider text-subtle">
                     <tr className="border-b border-border">
                       <th className="px-5 py-2 font-medium">Asset</th>
-                      <th className="px-3 py-2 text-right font-medium">Amount</th>
-                      <th className="px-3 py-2 text-right font-medium">Price</th>
-                      <th className="px-3 py-2 text-right font-medium">Value</th>
-                      <th className="px-5 py-2 text-right font-medium">24h</th>
+                      <th className="hidden px-3 py-2 text-right font-medium sm:table-cell">Amount</th>
+                      <th className="hidden px-3 py-2 text-right font-medium sm:table-cell">Price</th>
+                      <th className="px-5 py-2 text-right font-medium sm:px-3">Value</th>
+                      <th className="hidden px-5 py-2 text-right font-medium sm:table-cell">24h</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -138,14 +138,20 @@ export default function DashboardPage() {
                             {h.isStablecoin && <Badge tone="neutral">Stable</Badge>}
                             {h.priceUsd === null && <Badge tone="warning">Unpriced</Badge>}
                           </div>
-                          <div className="max-w-[220px] truncate text-[0.7rem] text-subtle" title={h.contractId}>
+                          <div className="max-w-[180px] truncate text-[0.7rem] text-subtle sm:max-w-[220px]" title={h.contractId}>
                             {h.contractId === "near" || h.contractId === "near:staked" ? "Native NEAR" : h.contractId}
                           </div>
+                          <div className="mt-0.5 font-mono text-[0.7rem] text-muted sm:hidden">
+                            {formatAmount(h.amount)} × {h.priceUsd === null ? "—" : formatUsd(h.priceUsd)}
+                          </div>
                         </td>
-                        <td className="px-3 py-2.5 text-right font-mono text-xs">{formatAmount(h.amount)}</td>
-                        <td className="px-3 py-2.5 text-right font-mono text-xs text-muted">{h.priceUsd === null ? "—" : formatUsd(h.priceUsd)}</td>
-                        <td className="px-3 py-2.5 text-right font-mono text-xs">{formatUsd(h.valueUsd)}</td>
-                        <td className={cn("px-5 py-2.5 text-right font-mono text-xs", (h.change24hPct ?? 0) >= 0 ? "text-success" : "text-danger")}>{formatPct(h.change24hPct, { sign: true })}</td>
+                        <td className="hidden px-3 py-2.5 text-right font-mono text-xs sm:table-cell">{formatAmount(h.amount)}</td>
+                        <td className="hidden px-3 py-2.5 text-right font-mono text-xs text-muted sm:table-cell">{h.priceUsd === null ? "—" : formatUsd(h.priceUsd)}</td>
+                        <td className="px-5 py-2.5 text-right font-mono text-xs sm:px-3">
+                          {formatUsd(h.valueUsd)}
+                          <div className={cn("mt-0.5 text-[0.7rem] sm:hidden", (h.change24hPct ?? 0) >= 0 ? "text-success" : "text-danger")}>{formatPct(h.change24hPct, { sign: true })}</div>
+                        </td>
+                        <td className={cn("hidden px-5 py-2.5 text-right font-mono text-xs sm:table-cell", (h.change24hPct ?? 0) >= 0 ? "text-success" : "text-danger")}>{formatPct(h.change24hPct, { sign: true })}</td>
                       </tr>
                     ))}
                   </tbody>
