@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { ArrowDownLeft, ArrowDownUp, ArrowUpRight, BookUser, Download, History, KeyRound, Layers, Link2, PlusCircle, RefreshCw, ShieldCheck, Unplug, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { useApi, api } from "@/hooks/use-api";
-import { useNearWallet } from "@/hooks/use-near-wallet";
+import { useNearWallet, WEB_WALLET_ID } from "@/hooks/use-near-wallet";
 import { useAppStatus } from "@/components/layout/app-status";
 import { PageHeader } from "@/components/layout/dashboard-shell";
 import { Button, Card, Skeleton } from "@/components/ui/primitives";
@@ -71,9 +71,9 @@ function WalletView() {
     if (isTab(t)) setTab(t);
   }, [params]);
 
-  const connect = useCallback(async () => {
+  const connect = useCallback(async (walletId?: unknown) => {
     try {
-      const id = await wallet.connect();
+      const id = await wallet.connect(typeof walletId === "string" ? walletId : undefined);
       if (id) toast.success(`Connected ${shortAccount(id, 14, 6)}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Wallet connection failed");
@@ -240,7 +240,7 @@ function WalletView() {
   );
 }
 
-function ConnectHero({ busy, onConnect, onCreate, onImport }: { busy: boolean; onConnect: () => void; onCreate: () => void; onImport: () => void }) {
+function ConnectHero({ busy, onConnect, onCreate, onImport }: { busy: boolean; onConnect: (walletId?: string) => void; onCreate: () => void; onImport: () => void }) {
   return (
     <div className="grid gap-4 md:grid-cols-3">
       <Card className="flex flex-col p-6 md:col-span-3">
@@ -252,9 +252,21 @@ function ConnectHero({ busy, onConnect, onCreate, onImport }: { busy: boolean; o
           <p className="mt-2 max-w-md text-sm text-muted">Your wallet stays in control: VEIL AI can only prepare transactions, and you approve each one in your wallet.</p>
         </div>
       </Card>
-      <ChoiceCard icon={<Link2 className="h-5 w-5" />} title="Connect wallet" body="Already have a NEAR wallet like Meteor, HOT or MyNearWallet? Connect it in one click." cta="Connect wallet" primary busy={busy} onClick={onConnect} />
-      <ChoiceCard icon={<PlusCircle className="h-5 w-5" />} title="Create a new wallet" body="New to NEAR? Create a free wallet in a trusted app in about a minute, then connect it." cta="Create wallet" onClick={onCreate} />
-      <ChoiceCard icon={<Download className="h-5 w-5" />} title="Import existing wallet" body="Have a recovery phrase? Import it inside a wallet app — never into a website — then connect." cta="Import wallet" onClick={onImport} />
+      <Card className="flex flex-col p-5">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent-strong">
+          <Link2 className="h-5 w-5" />
+        </div>
+        <h3 className="mt-4 text-sm font-semibold">Connect wallet</h3>
+        <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted">Have a NEAR wallet? Connect it in one click. MyNearWallet works right in your browser — nothing to install.</p>
+        <Button className="mt-5 w-full" onClick={() => onConnect(WEB_WALLET_ID)} loading={busy}>
+          Connect MyNearWallet
+        </Button>
+        <Button variant="ghost" size="sm" className="mt-2 w-full" onClick={() => onConnect()} disabled={busy}>
+          Other wallets (Meteor, HOT…)
+        </Button>
+      </Card>
+      <ChoiceCard icon={<PlusCircle className="h-5 w-5" />} title="Create a new wallet" body="New to NEAR? Get your own name.near right here for free, or create one in a web wallet — no install." cta="Create wallet" onClick={onCreate} />
+      <ChoiceCard icon={<Download className="h-5 w-5" />} title="Import existing wallet" body="Have a recovery phrase? Import it in MyNearWallet on the web (never into VEIL AI), then connect." cta="Import wallet" onClick={onImport} />
       <p className="flex items-center justify-center gap-1.5 text-[0.72rem] text-subtle md:col-span-3">
         <KeyRound className="h-3.5 w-3.5" /> VEIL AI will never ask for your recovery phrase or private key.
       </p>

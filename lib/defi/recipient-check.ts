@@ -44,8 +44,6 @@ export interface RecipientFacts {
   knownTokenContracts: string[];
   /** Account IDs from the user's address book (lookalike candidates). */
   contacts?: string[];
-  /** Set when the user typed a VEIL @username that resolved to `to`. */
-  viaUsername?: string;
   now?: number;
 }
 
@@ -117,11 +115,8 @@ export function analyzeRecipient(f: RecipientFacts): SafetyCheck {
   const contacts = new Set(f.contacts ?? []);
   const saved = contacts.has(f.to);
   const sentBefore = pastRecipients.has(f.to);
-  if (f.viaUsername) {
-    findings.push({ id: "username", severity: "info", title: `${f.viaUsername} is linked to this account`, detail: `Its owner proved control of ${f.to} with a wallet signature (NEP-413). Make sure ${f.viaUsername} is the person you mean — usernames can look alike too.` });
-  }
   if (saved) findings.push({ id: "saved-contact", severity: "info", title: "In your address book", detail: "This exact account is one of your saved contacts." });
-  if (!sentBefore && !saved && !f.viaUsername) {
+  if (!sentBefore && !saved) {
     const imitated = lookalikeOf(f.to, [...contacts, ...pastRecipients, ...Object.keys(KNOWN_CONTRACTS)]);
     if (imitated) {
       findings.push({

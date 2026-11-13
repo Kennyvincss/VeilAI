@@ -8,7 +8,7 @@ import { viewAccount } from "@/lib/near/rpc";
 import { decodeEd25519PublicKey, decodeSignature } from "@/lib/near/nep413";
 import { creationMessage, newAccountNameProblem, topLevelFor } from "@/lib/username-rules";
 import { createNamedAccount, finishSlot, reserveSlot, sponsoredAccountsEnabled, SponsorError } from "@/lib/near/sponsor";
-import { addWallet, getProfile, setPayoutAccount, setUsername } from "@/lib/supabase/repo";
+import { addWallet } from "@/lib/supabase/repo";
 import { log } from "@/lib/security/logger";
 
 export const maxDuration = 60;
@@ -24,6 +24,7 @@ const bodySchema = z.object({
  * key generated in their browser. The browser proves it holds the private
  * key by signing a message that binds the name and key. VEIL never sees the
  * private key or recovery phrase. One account per VEIL user; daily cap.
+ * The account becomes the user's NEAR identity in VEIL (no separate usernames).
  */
 export async function POST(req: NextRequest) {
   if (!assertSameOrigin(req)) return jsonError(403, "Cross-origin request rejected.");
@@ -77,17 +78,7 @@ export async function POST(req: NextRequest) {
   await finishSlot(ctx.user.id, "created", txHash);
   log("info", "sponsor.account_created", { network: nearNetwork() });
 
-  // Best effort: track it as an ownership-verified wallet, and use it for the username.
-  let username: string | null = null;
-  try {
-    await addWallet(ctx.supabase, ctx.user.id, accountId, "VEIL account", { publicKey: body.publicKey });
-    const profile = await getProfile(ctx.supabase, ctx.user.id).catch(() => null);
-    if (!profile) await setUsername(ctx.supabase, ctx.user.id, body.name).catch(() => undefined);
-    const after = await getProfile(ctx.supabase, ctx.user.id).catch(() => null);
-    username = after?.username ?? null;
-    if (after && !after.payoutAccount) await setPayoutAccount(ctx.supabase, ctx.user.id, accountId).catch(() => undefined);
-  } catch {
-    /* the NEAR account exists regardless; these are conveniences */
-  }
-  return jsonOk({ accountId, txHash, username }, { status: 201 });
+  // Best effort: track it as an ownership-verified wallet (the server created it with this key).
+  await addWallet(ctx.supabase, ctx.user.id, accountId, "My NEAR account", { publicKey: body.publicKey }).catch(() => undefined);
+  return jsonOk({ accountId, txHash }, { status: 201 });
 }

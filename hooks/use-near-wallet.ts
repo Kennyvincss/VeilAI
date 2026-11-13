@@ -32,6 +32,10 @@ function getConnector(network: "mainnet" | "testnet"): Promise<NearConnector> {
   return connectorPromise;
 }
 
+/** MyNearWallet: a web wallet that opens in a browser tab, nothing to install. */
+export const WEB_WALLET_ID = "mynearwallet";
+export const WEB_WALLET_URL = { mainnet: "https://app.mynearwallet.com", testnet: "https://testnet.mynearwallet.com" } as const;
+
 export interface PlannedTx {
   receiverId: string;
   actions: (
@@ -99,12 +103,16 @@ export function useNearWallet(network: "mainnet" | "testnet") {
     };
   }, [network]);
 
-  /** Plain sign-in: returns the public account ID. */
-  const connect = useCallback(async (): Promise<string | null> => {
+  /**
+   * Plain sign-in: returns the public account ID. Pass a wallet id (e.g.
+   * WEB_WALLET_ID) to open that wallet directly instead of the chooser.
+   */
+  const connect = useCallback(async (walletId?: unknown): Promise<string | null> => {
     setBusy(true);
     try {
       const c = await getConnector(network);
-      const wallet = await c.connect();
+      // Guard: when used directly as an onClick handler the argument is an event.
+      const wallet = await c.connect(typeof walletId === "string" ? { walletId } : undefined);
       const accounts = await wallet.getAccounts();
       const id = accounts[0]?.accountId ?? null;
       setAccountId(id);

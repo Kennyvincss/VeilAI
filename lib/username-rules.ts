@@ -1,4 +1,4 @@
-/** Username and new-account name rules (client-safe; mirrored in the database). */
+/** Rules for NEAR account names VEIL creates (client-safe). */
 
 export const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
 

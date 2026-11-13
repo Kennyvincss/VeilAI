@@ -109,9 +109,8 @@ export function SendPanel({
       setMemo("");
       return setError("That looks like a private key or recovery phrase. It was cleared and never sent. Never share it.");
     }
-    const isUsername = to.trim().startsWith("@");
-    const receiver = isUsername ? to.trim().toLowerCase() : normalizeAccountId(to);
-    if (isUsername ? !/^@[a-z0-9_]{3,20}$/.test(receiver) : !isValidAccountId(receiver)) return setError("Enter a NEAR account (alice.near) or a VEIL @username");
+    const receiver = normalizeAccountId(to);
+    if (!isValidAccountId(receiver)) return setError("Enter a valid NEAR account, e.g. alice.near");
     const plan = await run(() => api<ReviewPlan>("/api/defi/send", { method: "POST", json: { from: accountId, to: receiver, token, amount, memo: memo || null, contacts: contacts.map((c) => c.accountId).slice(0, 100) } }));
     if (plan) onPlan(plan);
   }
@@ -132,7 +131,7 @@ export function SendPanel({
         </div>
         <div>
           <Label htmlFor="send-to">Recipient</Label>
-          <Input id="send-to" placeholder="alice.near or @username" value={to} onChange={(e) => setTo(e.target.value)} spellCheck={false} autoComplete="off" className="font-mono text-sm" />
+          <Input id="send-to" placeholder="alice.near" value={to} onChange={(e) => setTo(e.target.value)} spellCheck={false} autoComplete="off" className="font-mono text-sm" />
           {contacts.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1.5" aria-label="Saved contacts">
               {contacts.slice(0, 12).map((c) => (

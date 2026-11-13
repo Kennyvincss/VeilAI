@@ -8,7 +8,7 @@ import { getEnv, supabaseConfigured } from "@/lib/env";
  * Server-side Supabase client bound to the current request's cookies.
  * Uses the anon key: every query runs as the signed-in user and is
  * constrained by Row Level Security. The service-role key is used only by
- * lib/usernames.ts to map a username to its email during sign-in.
+ * the sponsored-account ledger (lib/near/sponsor.ts).
  */
 export async function createSupabaseServerClient(): Promise<SupabaseClient | null> {
   if (!supabaseConfigured()) return null;

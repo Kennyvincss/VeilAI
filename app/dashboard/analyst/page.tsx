@@ -387,15 +387,15 @@ const CHIPS = ["Analyse my portfolio", "What are my biggest risks?", "Explain my
 
 /** Empty-state welcome: protection status, greeting, the VEIL mask and quick prompts. */
 function WelcomeHero({ protectedChat, e2ee, signedIn, onPick }: { protectedChat: boolean; e2ee: boolean; signedIn: boolean; onPick: (q: string) => void }) {
-  const profile = useApi<{ profile: { username: string } | null }>(signedIn ? "/api/profile" : null);
-  const name = profile.data?.profile?.username;
+  const near = useApi<{ account: { accountId: string; status: string } | null }>(signedIn ? "/api/near-account" : null);
+  const name = near.data?.account?.status === "created" ? near.data.account.accountId : null;
   return (
     <div className="flex h-full flex-col items-center justify-center py-8 text-center">
       <span className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium", protectedChat ? "border-success/25 bg-success/[0.07] text-success" : "border-border bg-card-2 text-muted")}>
         <span className={cn("h-1.5 w-1.5 rounded-full", protectedChat ? "bg-success" : "bg-subtle")} />
         {protectedChat ? "Chat is protected" : "Sample answers · live AI offline"}
       </span>
-      <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">{name ? `Welcome, @${name}!` : "Welcome to VEIL AI"}</h2>
+      <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">{name ? `Welcome, ${name}!` : "Welcome to VEIL AI"}</h2>
       <p className="mt-2 max-w-md text-sm text-muted">
         {protectedChat
           ? `Answered inside verified secure hardware${e2ee ? ", encrypted end to end" : ""}. Your wallets stay anonymous.`

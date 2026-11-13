@@ -6,6 +6,7 @@ import { creationMessage, newAccountNameProblem, topLevelFor } from "@/lib/usern
 import { decodeEd25519PublicKey, decodeSignature } from "@/lib/near/nep413";
 import { __resetEnvForTests } from "@/lib/env";
 import { sponsorConfig, sponsoredAccountsEnabled } from "@/lib/near/sponsor";
+import { normalizeNameInput } from "@/components/wallet/create-near-account";
 
 describe("new NEAR account names", () => {
   it("accepts simple names that are also valid usernames", () => {
@@ -16,6 +17,12 @@ describe("new NEAR account names", () => {
     expect(newAccountNameProblem("a".repeat(21))).toMatch(/3–20/);
     for (const bad of ["Alice", "al-ice", "_alice", "alice_", "al__ice", "al.ice"]) expect(newAccountNameProblem(bad)).not.toBeNull();
     expect(newAccountNameProblem("support")).toMatch(/reserved/);
+  });
+  it("cleans what people type into the name field", () => {
+    expect(normalizeNameInput("Kenny", "near")).toBe("kenny");
+    expect(normalizeNameInput("kenny vin", "near")).toBe("kennyvin");
+    expect(normalizeNameInput("kenny.near", "near")).toBe("kenny");
+    expect(normalizeNameInput("kenny.testnet", "testnet")).toBe("kenny");
   });
   it("uses the right top-level account per network", () => {
     expect(topLevelFor("mainnet")).toBe("near");

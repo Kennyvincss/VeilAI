@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { Apple, ExternalLink, Globe, KeyRound, MonitorSmartphone, ShieldAlert, Smartphone, Sparkles } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
-import { Button } from "@/components/ui/primitives";
-import { loadManifestWallets, type ManifestWallet } from "@/hooks/use-near-wallet";
+import { Button, buttonClass } from "@/components/ui/primitives";
+import { loadManifestWallets, WEB_WALLET_URL, type ManifestWallet } from "@/hooks/use-near-wallet";
 import { cn } from "@/lib/utils/format";
 
 /**
@@ -16,7 +16,8 @@ import { cn } from "@/lib/utils/format";
  */
 
 /** Consumer wallets we suggest, in order. Data (links, icons) comes from the official manifest at runtime. */
-const SUGGESTED = ["meteor-wallet", "hot-wallet", "mynearwallet", "intear-wallet", "near-mobile", "okx-wallet", "hana-wallet"];
+// Web wallets first: they open in a browser tab, nothing to install.
+const SUGGESTED = ["mynearwallet", "meteor-wallet", "hot-wallet", "intear-wallet", "near-mobile", "okx-wallet", "hana-wallet"];
 
 /** Snapshot of the official manifest, used only if it can't be loaded. */
 const FALLBACK: ManifestWallet[] = [
@@ -120,12 +121,19 @@ export function WalletOnboarding({
           <div className="mb-4 flex gap-3 rounded-xl border border-warning/30 bg-warning/[0.07] p-3.5 text-sm">
             <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
             <p className="text-warning/90">
-              <strong className="font-semibold text-warning">Never type your recovery phrase into a website</strong> — including VEIL AI. Import it only inside an official wallet app. Anyone asking for it is trying to steal your funds.
+              <strong className="font-semibold text-warning">Only type your recovery phrase into the official wallet itself</strong> — never into VEIL AI or any other site. Anyone else asking for it is trying to steal your funds.
             </p>
           </div>
+          <div className="mb-4 rounded-2xl border border-lavender bg-lavender/20 p-4">
+            <div className="text-sm font-semibold">Easiest: import on the web, nothing to install</div>
+            <p className="mt-1 text-xs leading-relaxed text-muted">MyNearWallet runs in your browser. Open it, choose “Import existing account”, type your 12 words there, then come back and connect.</p>
+            <a href={WEB_WALLET_URL[network]} target="_blank" rel="noopener noreferrer" className={buttonClass("primary", "sm", "mt-3")}>
+              Open MyNearWallet <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          </div>
           <ol className="mb-5 space-y-2 text-sm text-muted">
-            <Step n={1}>Open a wallet below (or the one you already use).</Step>
-            <Step n={2}>Choose “Import wallet” and enter your recovery phrase <em>inside the wallet app</em>.</Step>
+            <Step n={1}>Or open another wallet below (or the one you already use).</Step>
+            <Step n={2}>Choose “Import wallet” and enter your recovery phrase <em>inside the wallet</em>.</Step>
             <Step n={3}>Come back here and press <strong className="text-text">Connect wallet</strong>.</Step>
           </ol>
         </>

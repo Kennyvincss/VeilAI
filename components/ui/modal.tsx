@@ -26,13 +26,22 @@ export function Modal({
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const restore = useRef<HTMLElement | null>(null);
+  // Latest callbacks without re-running the open/close effect on every render.
+  // (Re-running it moved focus out of inputs on each keystroke.)
+  const latest = useRef({ onClose, dismissible });
+  useEffect(() => {
+    latest.current = { onClose, dismissible };
+  });
 
   useEffect(() => {
     if (!open) return;
     restore.current = document.activeElement as HTMLElement | null;
-    const t = setTimeout(() => ref.current?.querySelector<HTMLElement>("button, a, input, select, textarea")?.focus(), 30);
+    const t = setTimeout(() => {
+      const root = ref.current;
+      (root?.querySelector<HTMLElement>("input:not([type=checkbox]), textarea, select") ?? root?.querySelector<HTMLElement>("button, a"))?.focus();
+    }, 30);
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && dismissible) onClose();
+      if (e.key === "Escape" && latest.current.dismissible) latest.current.onClose();
     };
     document.addEventListener("keydown", onKey);
     const prevOverflow = document.body.style.overflow;
@@ -43,7 +52,7 @@ export function Modal({
       document.body.style.overflow = prevOverflow;
       restore.current?.focus?.();
     };
-  }, [open, onClose, dismissible]);
+  }, [open]);
 
   if (typeof document === "undefined") return null;
   return createPortal(
