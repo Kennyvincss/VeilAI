@@ -100,7 +100,7 @@ export function WalletOnboarding({
       )}
 
       {mode === "create" && onCreateHere && (
-        <div className="mb-5 rounded-3xl border border-lavender bg-lavender/20 p-4">
+        <div className="mb-5 rounded-3xl border border-lavender/35 bg-lavender/10 p-4">
           <div className="text-sm font-semibold">Easiest: get your own name.{createSuffix} here</div>
           <p className="mt-1 text-xs leading-relaxed text-muted">A real NEAR account that works in every NEAR wallet. Your browser makes the keys; VEIL AI never sees them and pays the small creation fee.</p>
           <Button size="sm" className="mt-3" onClick={onCreateHere}>
@@ -124,7 +124,7 @@ export function WalletOnboarding({
               <strong className="font-semibold text-warning">Only type your recovery phrase into the official wallet itself</strong> — never into VEIL AI or any other site. Anyone else asking for it is trying to steal your funds.
             </p>
           </div>
-          <div className="mb-4 rounded-2xl border border-lavender bg-lavender/20 p-4">
+          <div className="mb-4 rounded-2xl border border-lavender/35 bg-lavender/10 p-4">
             <div className="text-sm font-semibold">Easiest: import on the web, nothing to install</div>
             <p className="mt-1 text-xs leading-relaxed text-muted">MyNearWallet runs in your browser. Open it, choose “Import existing account”, type your 12 words there, then come back and connect.</p>
             <a href={WEB_WALLET_URL[network]} target="_blank" rel="noopener noreferrer" className={buttonClass("primary", "sm", "mt-3")}>
@@ -212,6 +212,6 @@ function WalletIcon({ src }: { src?: string }) {
   }
   return (
     // eslint-disable-next-line @next/next/no-img-element -- wallet icons come from the official NEAR Connect manifest (remote, many hosts)
-    <img src={src} alt="" className="h-9 w-9 shrink-0 rounded-xl bg-black/[0.04] object-contain" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+    <img src={src} alt="" className="h-9 w-9 shrink-0 rounded-xl bg-white/[0.06] object-contain" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
   );
 }

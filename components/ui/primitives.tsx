@@ -4,14 +4,15 @@ import { cn } from "@/lib/utils/format";
 
 /* ---------------- Button ---------------- */
 
-type Variant = "primary" | "secondary" | "ghost" | "danger" | "outline";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "outline" | "white";
 type Size = "sm" | "md" | "lg" | "icon";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-accent text-white shadow-[0_10px_22px_-12px_rgba(17,18,22,0.7)] hover:bg-[#2a2c33] active:bg-black",
-  secondary: "bg-card text-text border border-border-strong shadow-[0_1px_2px_rgba(15,17,26,0.05)] hover:bg-card-2",
-  outline: "bg-transparent text-text border border-border-strong hover:bg-black/[0.03]",
-  ghost: "bg-transparent text-muted hover:text-text hover:bg-black/[0.04]",
+  primary: "bg-accent text-white shadow-[0_10px_26px_-12px_rgba(226,115,63,0.8)] hover:bg-[#ee8350] active:bg-[#cf6533]",
+  secondary: "bg-white/[0.04] text-text border border-border-strong hover:bg-white/[0.08]",
+  outline: "bg-transparent text-text border border-border-strong hover:bg-white/[0.05]",
+  ghost: "bg-transparent text-muted hover:text-text hover:bg-white/[0.06]",
+  white: "bg-white text-[#16120f] shadow-[0_10px_26px_-14px_rgba(255,255,255,0.5)] hover:bg-[#f1ebe5]",
   danger: "bg-danger/10 text-danger border border-danger/30 hover:bg-danger/20",
 };
 const sizes: Record<Size, string> = {
@@ -89,7 +90,7 @@ export function CardHeader({ title, subtitle, icon, action }: { title: ReactNode
 type Tone = "neutral" | "accent" | "blue" | "success" | "warning" | "danger";
 const tones: Record<Tone, string> = {
   neutral: "bg-card-2 text-muted border-border",
-  accent: "bg-lavender/40 text-accent-strong border-lavender",
+  accent: "bg-accent/15 text-accent-strong border-lavender/35",
   blue: "bg-accent-2/10 text-accent-2 border-accent-2/25",
   success: "bg-success/10 text-success border-success/30",
   warning: "bg-warning/10 text-warning border-warning/30",
@@ -135,7 +136,7 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
     <input
       ref={ref}
       className={cn(
-        "h-11 w-full rounded-xl border border-border bg-bg-2 px-3.5 text-sm text-text placeholder:text-subtle transition-colors focus:border-border-strong focus:bg-card focus:outline-none focus:ring-4 focus:ring-lavender/45",
+        "h-11 w-full rounded-xl border border-border bg-bg-2 px-3.5 text-sm text-text placeholder:text-subtle transition-colors focus:border-border-strong focus:bg-card focus:outline-none focus:ring-4 focus:ring-accent/20",
         className,
       )}
       {...props}

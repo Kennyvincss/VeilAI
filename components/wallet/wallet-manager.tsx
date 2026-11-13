@@ -112,7 +112,7 @@ export function WalletManager({ onChange }: { onChange?: () => void }) {
               </span>
             </div>
             <div className="flex gap-1.5">
-              <Link href={`/dashboard/wallet-intelligence?account=${encodeURIComponent(wallet.accountId)}`} className="rounded-lg p-1.5 text-subtle hover:bg-black/[0.04] hover:text-text" title="Investigate" aria-label="Investigate connected wallet">
+              <Link href={`/dashboard/wallet-intelligence?account=${encodeURIComponent(wallet.accountId)}`} className="rounded-lg p-1.5 text-subtle hover:bg-white/[0.06] hover:text-text" title="Investigate" aria-label="Investigate connected wallet">
                 <ScanSearch className="h-4 w-4" />
               </Link>
               <Button size="sm" variant="ghost" onClick={() => void wallet.disconnect()}>
@@ -174,7 +174,7 @@ export function WalletManager({ onChange }: { onChange?: () => void }) {
                 {w.label && <div className="text-[0.7rem] text-subtle">{w.label}</div>}
               </div>
               <div className="flex shrink-0 items-center gap-1">
-                <Link href={`/dashboard/wallet-intelligence?account=${encodeURIComponent(w.accountId)}`} className="rounded-lg p-1.5 text-subtle hover:bg-black/[0.04] hover:text-text" aria-label={`Investigate ${w.accountId}`}>
+                <Link href={`/dashboard/wallet-intelligence?account=${encodeURIComponent(w.accountId)}`} className="rounded-lg p-1.5 text-subtle hover:bg-white/[0.06] hover:text-text" aria-label={`Investigate ${w.accountId}`}>
                   <ScanSearch className="h-4 w-4" />
                 </Link>
                 <button onClick={() => void remove(w)} className="rounded-lg p-1.5 text-subtle hover:bg-danger/10 hover:text-danger" aria-label={`Remove ${w.accountId}`}>

@@ -54,7 +54,7 @@ export function HeroVisual() {
                   <span className="font-mono text-2xl font-semibold text-warning">41</span>
                   <span className="text-xs text-subtle">/ 100</span>
                 </div>
-                <div className="mt-2 h-1.5 rounded-full bg-black/[0.04]">
+                <div className="mt-2 h-1.5 rounded-full bg-white/[0.06]">
                   <div className="h-full w-[41%] rounded-full bg-gradient-to-r from-success via-warning to-warning" />
                 </div>
               </div>

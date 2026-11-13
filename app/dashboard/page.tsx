@@ -128,7 +128,7 @@ export default function DashboardPage() {
                   </thead>
                   <tbody>
                     {p.holdings.map((h) => (
-                      <tr key={h.contractId} className="border-b border-border/60 transition-colors last:border-0 hover:bg-black/[0.02]">
+                      <tr key={h.contractId} className="border-b border-border/60 transition-colors last:border-0 hover:bg-white/[0.04]">
                         <td className="px-5 py-2.5">
                           <div className="flex items-center gap-2">
                             <span className="font-medium">{h.symbol}</span>
@@ -202,7 +202,7 @@ export default function DashboardPage() {
                           {Math.round(c.score ?? 0)}
                         </span>
                       </div>
-                      <div className="mt-1 h-1.5 rounded-full bg-black/[0.04]">
+                      <div className="mt-1 h-1.5 rounded-full bg-white/[0.06]">
                         <div className="h-full rounded-full" style={{ width: `${c.score}%`, background: scoreColor(c.score ?? 0) }} />
                       </div>
                     </li>

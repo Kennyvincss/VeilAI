@@ -322,7 +322,7 @@ export function AuthForm({ mode, googleEnabled, nearSignup = null }: { mode: "lo
                 <Label htmlFor="near-name" hint="Your NEAR wallet name">
                   NEAR name
                 </Label>
-                <div className="flex items-stretch overflow-hidden rounded-xl border border-border bg-bg-2 focus-within:border-border-strong focus-within:bg-card focus-within:ring-4 focus-within:ring-lavender/45">
+                <div className="flex items-stretch overflow-hidden rounded-xl border border-border bg-bg-2 focus-within:border-border-strong focus-within:bg-card focus-within:ring-4 focus-within:ring-accent/20">
                   <input
                     id="near-name"
                     value={nearName}

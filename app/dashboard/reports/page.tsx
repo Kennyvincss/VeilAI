@@ -95,7 +95,7 @@ export default function ReportsPage() {
                   role="radio"
                   aria-checked={active}
                   onClick={() => setType(t.type)}
-                  className={cn("rounded-xl border p-4 text-left transition-all", active ? "border-text bg-white shadow-[0_6px_16px_-10px_rgba(15,17,26,0.35)]" : "border-border hover:border-border-strong")}
+                  className={cn("rounded-xl border p-4 text-left transition-all", active ? "border-accent bg-accent/10" : "border-border hover:border-border-strong")}
                 >
                   <Icon className={cn("h-5 w-5", active ? "text-accent-strong" : "text-subtle")} />
                   <div className="mt-3 text-sm font-semibold">{t.label}</div>
@@ -137,7 +137,7 @@ export default function ReportsPage() {
                     </div>
                   </button>
                   <div className="flex shrink-0 gap-1">
-                    <button onClick={() => void openSaved(r.id, true)} className="rounded-lg p-1.5 text-subtle hover:bg-black/[0.04] hover:text-text" aria-label={`Download ${r.title}`}>
+                    <button onClick={() => void openSaved(r.id, true)} className="rounded-lg p-1.5 text-subtle hover:bg-white/[0.06] hover:text-text" aria-label={`Download ${r.title}`}>
                       <Download className="h-4 w-4" />
                     </button>
                     <button onClick={() => void remove(r.id)} className="rounded-lg p-1.5 text-subtle hover:bg-danger/10 hover:text-danger" aria-label={`Delete ${r.title}`}>

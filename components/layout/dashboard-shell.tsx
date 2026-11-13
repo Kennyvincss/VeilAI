@@ -75,7 +75,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "group flex items-center gap-3 rounded-xl px-3 py-2 text-[0.85rem] transition-all",
-                    active ? "bg-white font-medium text-text shadow-[0_1px_2px_rgba(15,17,26,0.06),0_0_0_1px_rgba(15,17,26,0.05)]" : "text-muted hover:bg-black/[0.04] hover:text-text",
+                    active ? "bg-white/[0.08] font-medium text-text ring-1 ring-border" : "text-muted hover:bg-white/[0.06] hover:text-text",
                   )}
                 >
                   <Icon className={cn("h-4 w-4", active ? "text-text" : "text-subtle group-hover:text-muted")} />
@@ -95,7 +95,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <span className="hidden max-w-[180px] truncate text-xs text-muted sm:inline" title={status.session.email ?? undefined}>
         {status.session.email}
       </span>
-      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-lavender/60 text-xs font-semibold uppercase text-text">{(status.session.email ?? "?").slice(0, 1)}</span>
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/80 text-xs font-semibold uppercase text-text">{(status.session.email ?? "?").slice(0, 1)}</span>
       <form action="/auth/signout" method="post">
         <button type="submit" className="rounded-full px-3 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-danger/10">
           <LogOut className="mr-1 inline h-3.5 w-3.5 align-[-2px]" />
@@ -116,7 +116,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <NotificationPoller />
       <div className="lg:app-window flex min-h-screen flex-col lg:h-full lg:min-h-0 lg:flex-row lg:overflow-hidden lg:rounded-[30px]">
         {/* Desktop sidebar (inside the window) */}
-        <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-[#f7f8fa]/80 px-3 py-5 lg:flex">
+        <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-black/25 px-3 py-5 lg:flex">
           <Link href="/" className="mb-7 px-3" aria-label="VEIL AI home">
             <Logo />
           </Link>
@@ -124,14 +124,14 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </aside>
 
         {/* Mobile top bar */}
-        <header className="sticky top-0 z-40 border-b border-border bg-white/85 backdrop-blur-xl lg:hidden">
+        <header className="sticky top-0 z-40 border-b border-border bg-bg/85 backdrop-blur-xl lg:hidden">
           <div className="flex h-14 items-center justify-between px-4">
             <Link href="/dashboard" aria-label="Dashboard">
               <Logo />
             </Link>
             <div className="flex items-center gap-1">
               <NotificationBell />
-              <button className="rounded-full p-2 text-muted hover:bg-black/[0.04] hover:text-text" onClick={() => setOpen(true)} aria-label="Open navigation">
+              <button className="rounded-full p-2 text-muted hover:bg-white/[0.06] hover:text-text" onClick={() => setOpen(true)} aria-label="Open navigation">
                 <Menu className="h-5 w-5" />
               </button>
             </div>
@@ -140,9 +140,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         <AnimatePresence>
           {open && (
             <>
-              <motion.div className="fixed inset-0 z-50 bg-black/25 backdrop-blur-[2px] lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} />
+              <motion.div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} />
               <motion.aside
-                className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-[#f7f8fa] px-3 py-5 lg:hidden"
+                className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-bg-2 px-3 py-5 lg:hidden"
                 initial={{ x: -300 }}
                 animate={{ x: 0 }}
                 exit={{ x: -300 }}
@@ -153,7 +153,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               >
                 <div className="mb-7 flex items-center justify-between px-3">
                   <Logo />
-                  <button onClick={() => setOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-black/[0.04] hover:text-text" aria-label="Close navigation">
+                  <button onClick={() => setOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-white/[0.06] hover:text-text" aria-label="Close navigation">
                     <X className="h-5 w-5" />
                   </button>
                 </div>

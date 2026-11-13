@@ -160,7 +160,7 @@ export default function MemoryPage() {
 
 function Choice({ active, onClick, label, sub }: { active: boolean; onClick: () => void; label: string; sub?: string }) {
   return (
-    <button type="button" role="radio" aria-checked={active} onClick={onClick} className={cn("rounded-xl border px-3 py-2.5 text-left text-sm transition-all", active ? "border-text bg-white text-text shadow-[0_6px_16px_-10px_rgba(15,17,26,0.35)]" : "border-border text-muted hover:border-border-strong")}>
+    <button type="button" role="radio" aria-checked={active} onClick={onClick} className={cn("rounded-xl border px-3 py-2.5 text-left text-sm transition-all", active ? "border-accent bg-accent/15 text-text" : "border-border text-muted hover:border-border-strong")}>
       {label}
       {sub && <div className="text-[0.68rem] text-subtle">{sub}</div>}
     </button>
