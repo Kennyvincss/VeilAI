@@ -466,7 +466,7 @@ function TechnicalDetails({
                       ? "border-success/50 bg-success/[0.08]"
                       : f.state === "failed"
                         ? "border-danger/50 bg-danger/[0.08]"
-                        : "border-accent/50 bg-accent/[0.08]"
+                        : "border-text bg-white shadow-[0_6px_16px_-10px_rgba(15,17,26,0.35)]"
                     : "border-border opacity-60",
                 )}
                 aria-current={active ? "step" : undefined}

@@ -65,23 +65,21 @@ export function ActivityBars({ data, height = 180 }: { data: { date: string; cou
 }
 
 export function CategoryBars({ data }: { data: { label: string; score: number | null }[] }) {
-  const rows = data.map((d) => ({ ...d, value: d.score ?? 0 }));
+  // Plain HTML bars: labels wrap naturally, so it reads well at any width.
   return (
-    <div style={{ height: Math.max(180, rows.length * 34) }} role="img" aria-label={`Risk categories: ${data.map((d) => `${d.label} ${d.score ?? "n/a"}`).join(", ")}`}>
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={rows} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 8 }}>
-          <CartesianGrid horizontal={false} stroke="rgba(15,17,26,0.06)" />
-          <XAxis type="number" domain={[0, 100]} tick={{ fill: "#9ea2ac", fontSize: 10 }} tickLine={false} axisLine={false} />
-          <YAxis type="category" dataKey="label" width={150} tick={{ fill: "#676b76", fontSize: 11 }} tickLine={false} axisLine={false} />
-          <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(15,17,26,0.03)" }} formatter={(v, _n, item) => [(item?.payload as { score: number | null })?.score ?? "insufficient data", "Score"]} />
-          <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={16}>
-            {rows.map((r) => (
-              <Cell key={r.label} fill={r.score === null ? "#e6e7eb" : scoreColor(r.score)} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+    <ul className="space-y-3" aria-label="Risk categories">
+      {data.map((d) => (
+        <li key={d.label} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1.5 sm:grid-cols-[180px_minmax(0,1fr)_auto]">
+          <span className="text-xs text-muted">{d.label}</span>
+          <span className="order-3 col-span-2 h-2.5 overflow-hidden rounded-full bg-black/[0.06] sm:order-none sm:col-span-1">
+            <span className="block h-full rounded-full" style={{ width: `${d.score ?? 0}%`, background: d.score === null ? "#e6e7eb" : scoreColor(d.score) }} />
+          </span>
+          <span className="text-right font-mono text-xs font-semibold" style={{ color: d.score === null ? "#9ea2ac" : scoreColor(d.score) }}>
+            {d.score === null ? "n/a" : Math.round(d.score)}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
