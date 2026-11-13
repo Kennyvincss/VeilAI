@@ -23,7 +23,6 @@ import { NotificationBell, NotificationPoller } from "@/components/notifications
 import { Logo } from "@/components/ui/logo";
 import { Badge, buttonClass } from "@/components/ui/primitives";
 import { useAppStatus } from "@/components/layout/app-status";
-import { LiveStatus } from "@/components/layout/live-status";
 import { cn } from "@/lib/utils/format";
 
 const NAV_GROUPS: { title: string; items: { href: string; label: string; icon: typeof Wallet }[] }[] = [
@@ -94,13 +93,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   const footer = (
     <div className="space-y-3">
-      <div className="rounded-2xl bg-white p-3 text-xs shadow-[0_0_0_1px_rgba(15,17,26,0.05)]">
-        <div className="flex items-center justify-between">
-          <span className="font-medium text-text">Confidential AI</span>
-          {status.nearAi.configured ? <Badge tone="success">Online</Badge> : <Badge tone="neutral">Offline</Badge>}
-        </div>
-        <div className="mt-1.5 text-[0.68rem] leading-relaxed text-muted">Runs inside verified secure hardware on NEAR AI Cloud.</div>
-      </div>
       {demo && (
         <div className="grid gap-2">
           {status.accounts.enabled && (
@@ -166,9 +158,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               </button>
             </div>
           </div>
-          <div className="overflow-x-auto border-t border-border px-4 py-1.5">
-            <LiveStatus className="flex-nowrap whitespace-nowrap" showAi={false} />
-          </div>
         </header>
         <AnimatePresence>
           {open && (
@@ -206,10 +195,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
         <div className="flex min-w-0 flex-1 flex-col lg:min-h-0">
           {/* Desktop top bar (inside the window) */}
-          <div className="hidden h-16 shrink-0 items-center justify-between gap-4 border-b border-border px-6 lg:flex">
-            <div className="rounded-full bg-card-2 px-4 py-1.5">
-              <LiveStatus />
-            </div>
+          <div className="hidden h-16 shrink-0 items-center justify-end gap-4 border-b border-border px-6 lg:flex">
             <div className="flex items-center gap-2">
               <NotificationBell />
               {account}
