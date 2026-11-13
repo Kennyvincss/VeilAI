@@ -71,7 +71,6 @@ export async function recipientSafety(params: {
   tokenContract: string | null;
   receiver: { amount: string; isContract: boolean } | null;
   contacts?: string[];
-  viaUsername?: string;
 }): Promise<SafetyCheck> {
   const [rtx, rft, stx, tokens] = await Promise.all([
     params.receiver ? within(accountTransactions(params.to, SAFETY_SAMPLE), 6000) : Promise.resolve([]),
@@ -90,7 +89,6 @@ export async function recipientSafety(params: {
     sampleSize: SAFETY_SAMPLE,
     senderTxs: stx ? stx.map((t) => normalizeTxn(params.from, t)) : null,
     contacts: params.contacts,
-    viaUsername: params.viaUsername,
     knownTokenContracts: (tokens ?? []).filter((t) => t.blockchain === "near" && t.contractAddress).map((t) => t.contractAddress as string),
   });
 }
@@ -135,7 +133,7 @@ export async function walletOverview(accountId: string) {
 /* Send                                                                */
 /* ------------------------------------------------------------------ */
 
-export async function prepareSend(input: { from: string; to: string; token: string; amount: string; memo?: string | null; contacts?: string[]; viaUsername?: string }): Promise<TransactionPlan> {
+export async function prepareSend(input: { from: string; to: string; token: string; amount: string; memo?: string | null; contacts?: string[] }): Promise<TransactionPlan> {
   const { from, to, token } = input;
   if (from === to) throw new DefiError("You can't send to the same account.");
   const sender = await requireAccount(from);
@@ -149,8 +147,7 @@ export async function prepareSend(input: { from: string; to: string; token: stri
   const warnings: string[] = ["Blockchain transfers are final. Double-check the receiving account."];
   if (implicitNew) warnings.push("This is a new implicit account: the transfer will create it.");
 
-  const safetyPromise = recipientSafety({ from, to, tokenContract: token === "near" ? null : token, receiver, contacts: input.contacts, viaUsername: input.viaUsername });
-  const toLabel = input.viaUsername ? `${input.viaUsername} → ${to}` : to;
+  const safetyPromise = recipientSafety({ from, to, tokenContract: token === "near" ? null : token, receiver, contacts: input.contacts });
 
   if (token === "near") {
     const raw = parse(input.amount, NEAR_DECIMALS);
@@ -161,7 +158,7 @@ export async function prepareSend(input: { from: string; to: string; token: stri
       transactions: [nativeTransfer(to, raw)],
       review: [
         { label: "Send", value: fmtNear(raw) },
-        { label: "To", value: toLabel },
+        { label: "To", value: to },
         { label: "From", value: from },
         { label: "Network fee", value: "≈ 0.0001 NEAR (paid by your wallet)" },
       ],
@@ -194,7 +191,7 @@ export async function prepareSend(input: { from: string; to: string; token: stri
     review: [
       { label: "Send", value: `${fromBaseUnits(raw, meta.decimals, 8)} ${meta.symbol}` },
       { label: "Token contract", value: token },
-      { label: "To", value: toLabel },
+      { label: "To", value: to },
       { label: "From", value: from },
       ...(storageNote ? [{ label: "Also pays", value: storageNote }] : []),
       { label: "Network fee", value: "≈ 0.0005 NEAR + 1 yoctoNEAR security deposit" },

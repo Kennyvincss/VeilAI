@@ -3,75 +3,159 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { AlertTriangle, ArrowRight, FlaskConical, Mail } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, FlaskConical, MailCheck } from "lucide-react";
 import { toast } from "sonner";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { api } from "@/hooks/use-api";
 import { Button, buttonClass, Input, Label } from "@/components/ui/primitives";
 import { Logo } from "@/components/ui/logo";
+import { NearAccountSetup, normalizeNameInput } from "@/components/wallet/create-near-account";
+import { newAccountNameProblem } from "@/lib/username-rules";
+import { cn } from "@/lib/utils/format";
 
-const looksLikeEmail = (v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.trim());
-const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
+export interface NearSignup {
+  enabled: boolean;
+  suffix: string;
+  depositNear: string | null;
+  network: "mainnet" | "testnet";
+}
 
-export function AuthForm({ mode, googleEnabled, usernameLogin = false }: { mode: "login" | "signup"; googleEnabled: boolean; usernameLogin?: boolean }) {
+type Step = "form" | "code" | "wallet" | "done";
+const RESEND_SECONDS = 60;
+
+/**
+ * Sign in / sign up.
+ *
+ * Sign-up: email + password (+ the name.near to create) → a 6-digit code is
+ * emailed → the user types it here (no link to click) → if free accounts are
+ * on, they create their NEAR account right away → done.
+ */
+export function AuthForm({ mode, googleEnabled, nearSignup = null }: { mode: "login" | "signup"; googleEnabled: boolean; nearSignup?: NearSignup | null }) {
   const router = useRouter();
   const params = useSearchParams();
-  // New accounts land on Account, which offers to create their name.near.
-  const next = safeNext(params.get("next"), mode === "signup" ? "/dashboard/account?welcome=1" : "/dashboard");
+  const next = safeNext(params.get("next"));
   const supabase = getSupabaseBrowserClient();
+  const [step, setStep] = useState<Step>("form");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [nearName, setNearName] = useState("");
+  const [nameCheck, setNameCheck] = useState<{ for: string; available: boolean; problem: string | null } | null>(null);
+  const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(params.get("error") ? "Sign-in link was invalid or expired. Please try again." : null);
-  const [sent, setSent] = useState(false);
-  const [username, setUsername] = useState("");
-  const [check, setCheck] = useState<{ for: string; available: boolean | null; problem: string | null } | null>(null);
-  const uname = username.trim().replace(/^@/, "").toLowerCase();
+  const [error, setError] = useState<string | null>(params.get("error") ? "That sign-in link was invalid or expired. Please sign in again." : null);
+  const [info, setInfo] = useState<string | null>(null);
+  const [resendIn, setResendIn] = useState(0);
+  const [signedIn, setSignedIn] = useState(false);
+  const [createdAccount, setCreatedAccount] = useState<string | null>(null);
 
-  // Live availability check for the sign-up username.
+  const wantsNear = mode === "signup" && Boolean(nearSignup?.enabled);
+  const nameProblem = wantsNear && nearName.length >= 3 ? newAccountNameProblem(nearName) : null;
+  const shownName = nameCheck && nameCheck.for === nearName ? nameCheck : null;
+
+  // Live availability of name.near at sign-up.
   useEffect(() => {
-    if (mode !== "signup" || uname.length < 3) return;
+    if (!wantsNear || nearName.length < 3 || nameProblem) return;
     const t = setTimeout(() => {
-      api<{ available: boolean | null; problem: string | null }>(`/api/username/check?u=${encodeURIComponent(uname)}`)
-        .then((r) => setCheck({ for: uname, ...r }))
+      api<{ available: boolean; problem: string | null }>(`/api/near-account/check?name=${encodeURIComponent(nearName)}`)
+        .then((r) => setNameCheck({ for: nearName, ...r }))
         .catch(() => undefined);
-    }, 350);
+    }, 400);
     return () => clearTimeout(t);
-  }, [mode, uname]);
-  const unameCheck = check && check.for === uname ? check : null;
+  }, [wantsNear, nearName, nameProblem]);
+
+  // Resend countdown.
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
 
   const redirectTo = () => `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+
+  function afterVerified() {
+    setSignedIn(true);
+    setStep(mode === "signup" && wantsNear ? "wallet" : "done");
+  }
+
+  function goToApp() {
+    router.replace(next);
+    router.refresh();
+  }
+
+  async function sendCode() {
+    if (!supabase) return;
+    const { error } = await supabase.auth.resend({ type: "signup", email: email.trim(), options: { emailRedirectTo: redirectTo() } });
+    if (error) throw error;
+    setResendIn(RESEND_SECONDS);
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!supabase) return;
     setError(null);
+    setInfo(null);
     if (password.length < 8) return setError("Password must be at least 8 characters.");
     setLoading(true);
     try {
       if (mode === "login") {
-        if (usernameLogin && !looksLikeEmail(email)) {
-          await api("/api/auth/login", { method: "POST", json: { identifier: email, password } });
-        } else {
-          const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-          if (error) throw error;
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (error) {
+          if (/not confirmed/i.test(error.message)) {
+            await sendCode();
+            setInfo("Your email isn't verified yet. We've sent you a new code.");
+            setStep("code");
+            return;
+          }
+          throw error;
         }
         toast.success("Signed in");
-        router.replace(next);
-        router.refresh();
-      } else {
-        if (!USERNAME_RE.test(uname)) throw new Error("Choose a username: 3–20 characters, lowercase letters, numbers and _.");
-        if (unameCheck?.available === false) throw new Error(unameCheck.problem ?? "That username isn't available.");
-        const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: redirectTo(), data: { username: uname } } });
-        if (error) throw error;
-        if (data.session) {
-          toast.success("Account created");
-          router.replace(next);
-          router.refresh();
-        } else setSent(true);
+        goToApp();
+        return;
       }
+
+      if (wantsNear) {
+        if (newAccountNameProblem(nearName)) throw new Error(newAccountNameProblem(nearName) ?? "Choose a name for your NEAR account.");
+        if (shownName?.available === false) throw new Error(shownName.problem ?? "That name is taken. Choose another.");
+      }
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: { emailRedirectTo: redirectTo(), data: wantsNear ? { near_name: nearName } : undefined },
+      });
+      if (error) throw error;
+      // Supabase returns a user with no identities when the email is already registered.
+      if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        throw new Error("An account with this email already exists. Please sign in instead.");
+      }
+      if (data.session) return afterVerified(); // email confirmation is switched off
+      setResendIn(RESEND_SECONDS);
+      setStep("code");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Authentication failed");
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function verifyCode(e: FormEvent) {
+    e.preventDefault();
+    if (!supabase) return;
+    const token = code.replace(/\s+/g, "");
+    if (!/^\d{6,10}$/.test(token)) return setError("Enter the code from the email (numbers only).");
+    setLoading(true);
+    setError(null);
+    try {
+      let { data, error } = await supabase.auth.verifyOtp({ email: email.trim(), token, type: "email" });
+      if (error) ({ data, error } = await supabase.auth.verifyOtp({ email: email.trim(), token, type: "signup" }));
+      if (error) throw new Error(/expired/i.test(error.message) ? "That code has expired. Send a new one below." : "That code isn't right. Check the email and try again.");
+      if (!data.session) {
+        setStep("done");
+        return;
+      }
+      toast.success("Email verified");
+      afterVerified();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Verification failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -87,15 +171,28 @@ export function AuthForm({ mode, googleEnabled, usernameLogin = false }: { mode:
     }
   }
 
+  const heading =
+    step === "code" ? "Check your email" : step === "wallet" ? "Create your NEAR account" : step === "done" ? "You're all set" : mode === "login" ? "Welcome back" : "Create your free account";
+  const sub =
+    step === "code"
+      ? `We sent a code to ${email}. Enter it below to verify your email.`
+      : step === "wallet"
+        ? "Last step: your own NEAR account that works in every NEAR wallet."
+        : step === "done"
+          ? signedIn
+            ? "Your email is verified and you're signed in."
+            : "Your email is verified. Sign in to continue."
+          : mode === "login"
+            ? "Sign in to your confidential financial workspace."
+            : "Free forever. No subscriptions, no paywalls.";
+
   return (
     <div className="w-full max-w-md">
       <Link href="/" className="mb-10 inline-block" aria-label="VEIL AI home">
         <Logo />
       </Link>
-      <h1 className="text-2xl font-semibold tracking-tight">{mode === "login" ? "Welcome back" : "Create your free account"}</h1>
-      <p className="mt-2 text-sm text-muted">
-        {mode === "login" ? "Sign in to your confidential financial workspace." : "Free forever. No subscriptions, no paywalls, no seed phrases."}
-      </p>
+      <h1 className="text-2xl font-semibold tracking-tight">{heading}</h1>
+      <p className="mt-2 break-words text-sm text-muted">{sub}</p>
 
       {!supabase ? (
         <div className="mt-8 rounded-2xl border border-warning/30 bg-warning/[0.06] p-5 text-sm">
@@ -107,12 +204,87 @@ export function AuthForm({ mode, googleEnabled, usernameLogin = false }: { mode:
             <FlaskConical className="h-4 w-4" /> Explore demo
           </Link>
         </div>
-      ) : sent ? (
-        <div className="mt-8 rounded-2xl border border-success/30 bg-success/[0.06] p-5 text-sm">
-          <div className="flex items-center gap-2 font-medium text-success">
-            <Mail className="h-4 w-4" /> Check your inbox
+      ) : step === "code" ? (
+        <form onSubmit={verifyCode} className="mt-8 space-y-4" noValidate>
+          {info && <p className="rounded-lg border border-border bg-card-2 px-3 py-2 text-xs text-muted">{info}</p>}
+          <div>
+            <Label htmlFor="code">Verification code</Label>
+            <Input
+              id="code"
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/[^\d\s]/g, "").slice(0, 12))}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="123456"
+              className="text-center font-mono text-xl tracking-[0.4em]"
+              autoFocus
+            />
           </div>
-          <p className="mt-2 text-muted">We sent a confirmation link to {email}. Open it on this device to finish creating your account.</p>
+          {error && (
+            <p role="alert" className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
+              {error}
+            </p>
+          )}
+          <Button type="submit" size="lg" className="w-full" loading={loading} disabled={code.replace(/\s/g, "").length < 6}>
+            <MailCheck className="h-4 w-4" /> Verify email
+          </Button>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+            <button
+              type="button"
+              disabled={resendIn > 0}
+              onClick={() => sendCode().then(() => toast.success("New code sent")).catch((err) => setError(err instanceof Error ? err.message : "Couldn't send a new code."))}
+              className="font-medium text-accent-strong hover:underline disabled:cursor-not-allowed disabled:text-subtle disabled:no-underline"
+            >
+              {resendIn > 0 ? `Resend code in ${resendIn}s` : "Resend code"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStep("form");
+                setCode("");
+                setError(null);
+              }}
+              className="hover:text-text"
+            >
+              Use a different email
+            </button>
+          </div>
+          <p className="text-center text-xs text-subtle">
+            Already verified?{" "}
+            <Link href="/login" className="font-medium text-accent-strong hover:underline">
+              Sign in
+            </Link>
+          </p>
+        </form>
+      ) : step === "wallet" && nearSignup ? (
+        <div className="mt-8">
+          <NearAccountSetup
+            suffix={nearSignup.suffix}
+            depositNear={nearSignup.depositNear}
+            network={nearSignup.network}
+            initialName={nearName}
+            onCreated={(id) => setCreatedAccount(id)}
+            onDone={() => setStep("done")}
+            doneLabel="Continue"
+          />
+          <button type="button" onClick={() => setStep("done")} className="mt-4 w-full text-center text-xs text-muted hover:text-text">
+            Skip for now — I&apos;ll do it later in Account
+          </button>
+        </div>
+      ) : step === "done" ? (
+        <div className="mt-8 rounded-3xl border border-success/25 bg-success/[0.05] p-6 text-center">
+          <CheckCircle2 className="mx-auto h-11 w-11 text-success" />
+          <p className="mt-3 text-sm font-medium">Email verified</p>
+          {createdAccount && <p className="mt-1 font-mono text-sm text-text">{createdAccount} is yours</p>}
+          {signedIn ? (
+            <Button size="lg" className="mt-6 w-full" onClick={goToApp}>
+              Go to my dashboard <ArrowRight className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Link href="/login" className={buttonClass("primary", "lg", "mt-6 w-full")}>
+              Sign in <ArrowRight className="h-4 w-4" />
+            </Link>
+          )}
         </div>
       ) : (
         <>
@@ -127,33 +299,9 @@ export function AuthForm({ mode, googleEnabled, usernameLogin = false }: { mode:
             </>
           )}
           <form onSubmit={onSubmit} className={googleEnabled ? "space-y-4" : "mt-8 space-y-4"} noValidate>
-            {mode === "signup" && (
-              <div>
-                <Label htmlFor="username" hint="You can sign in with it, and get paid at @username">
-                  Username
-                </Label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-subtle">@</span>
-                  <Input id="username" autoComplete="username" required maxLength={21} value={username} onChange={(e) => setUsername(e.target.value)} placeholder="alice" spellCheck={false} className="pl-7" />
-                </div>
-                {uname.length >= 3 && unameCheck && unameCheck.available !== null && (
-                  <p className={`mt-1 text-[0.72rem] ${unameCheck.available ? "text-success" : "text-warning"}`}>{unameCheck.available ? `@${uname} is available` : unameCheck.problem}</p>
-                )}
-              </div>
-            )}
             <div>
-              <Label htmlFor="email">{mode === "login" && usernameLogin ? "Email or username" : "Email"}</Label>
-              <Input
-                id="email"
-                type={mode === "login" && usernameLogin ? "text" : "email"}
-                autoComplete={mode === "login" && usernameLogin ? "username" : "email"}
-                autoCapitalize="none"
-                spellCheck={false}
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={mode === "login" && usernameLogin ? "you@example.com or @username" : "you@example.com"}
-              />
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
             </div>
             <div>
               <Label htmlFor="password" hint={mode === "signup" ? "Min. 8 characters" : undefined}>
@@ -169,14 +317,48 @@ export function AuthForm({ mode, googleEnabled, usernameLogin = false }: { mode:
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
+            {wantsNear && nearSignup && (
+              <div>
+                <Label htmlFor="near-name" hint="Your NEAR wallet name">
+                  NEAR name
+                </Label>
+                <div className="flex items-stretch overflow-hidden rounded-xl border border-border bg-bg-2 focus-within:border-border-strong focus-within:bg-card focus-within:ring-4 focus-within:ring-lavender/45">
+                  <input
+                    id="near-name"
+                    value={nearName}
+                    onChange={(e) => setNearName(normalizeNameInput(e.target.value, nearSignup.suffix))}
+                    maxLength={20}
+                    autoComplete="off"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    placeholder="alice"
+                    className="h-11 min-w-0 flex-1 bg-transparent px-3.5 font-mono text-sm text-text placeholder:text-subtle focus:outline-none"
+                  />
+                  <span className="flex items-center border-l border-border px-3 font-mono text-sm text-muted">.{nearSignup.suffix}</span>
+                </div>
+                <p className={cn("mt-1 min-h-4 text-[0.72rem]", nameProblem || shownName?.available === false ? "text-warning" : "text-success")}>
+                  {nameProblem ?? (shownName ? (shownName.available ? `${nearName}.${nearSignup.suffix} is available` : shownName.problem) : "")}
+                </p>
+              </div>
+            )}
             {error && (
               <p role="alert" className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
                 {error}
+                {/already exists/.test(error) && (
+                  <>
+                    {" "}
+                    <Link href="/login" className="font-semibold underline">
+                      Sign in
+                    </Link>
+                  </>
+                )}
               </p>
             )}
-            <Button type="submit" size="lg" className="w-full" loading={loading}>
+            <Button type="submit" size="lg" className="w-full" loading={loading} disabled={wantsNear && (Boolean(nameProblem) || nearName.length < 3 || shownName?.available === false)}>
               {mode === "login" ? "Sign in" : "Create account"} <ArrowRight className="h-4 w-4" />
             </Button>
+            {mode === "signup" && <p className="text-center text-[0.7rem] text-subtle">We&apos;ll email you a 6-digit code to verify your address.</p>}
           </form>
           <p className="mt-6 text-center text-sm text-muted">
             {mode === "login" ? "New to VEIL AI? " : "Already have an account? "}
@@ -184,7 +366,7 @@ export function AuthForm({ mode, googleEnabled, usernameLogin = false }: { mode:
               {mode === "login" ? "Create an account" : "Sign in"}
             </Link>
           </p>
-          <div className="mt-8 rounded-xl border border-border bg-card/60 p-4 text-center">
+          <div className="mt-8 rounded-2xl border border-border bg-card/60 p-4 text-center">
             <p className="text-xs text-muted">Just looking? Explore a limited demo with sample data — no account needed.</p>
             <Link href="/demo" className={buttonClass("ghost", "sm", "mt-2")}>
               <FlaskConical className="h-3.5 w-3.5" /> Explore demo

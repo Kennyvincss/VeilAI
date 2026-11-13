@@ -29,6 +29,11 @@ interface Generated {
   sign: (bytes: Uint8Array) => Uint8Array;
 }
 
+/** Friendly input: lowercase, no spaces, and drop a typed ".near"/".testnet" suffix. */
+export function normalizeNameInput(raw: string, suffix: string): string {
+  return raw.toLowerCase().replace(/\s+/g, "").replace(new RegExp(`\\.${suffix}$`), "").slice(0, 20);
+}
+
 /** Pick three distinct word positions and four choices for each (from the phrase itself). */
 function makeQuiz(words: string[]) {
   const positions = [...words.keys()].sort(() => Math.random() - 0.5).slice(0, 3).sort((a, b) => a - b);
@@ -67,8 +72,43 @@ export function CreateNearAccount({
   network: "mainnet" | "testnet";
   onCreated: (accountId: string) => void;
 }) {
+  const [busy, setBusy] = useState(false);
+  const [round, setRound] = useState(0);
+  // Remounting the setup on close wipes the key and phrase from memory.
+  const close = () => {
+    if (busy) return;
+    setRound((r) => r + 1);
+    onClose();
+  };
+  return (
+    <Modal open={open} onClose={close} wide dismissible={!busy} title={`Create your .${suffix} account`} description="A real NEAR account that works in every NEAR wallet. Free — VEIL AI pays the small creation deposit.">
+      <NearAccountSetup key={round} suffix={suffix} depositNear={depositNear} network={network} onCreated={onCreated} onDone={close} onBusyChange={setBusy} />
+    </Modal>
+  );
+}
+
+/** The create-name.near steps, usable inline (sign-up) or inside a dialog. */
+export function NearAccountSetup({
+  suffix,
+  depositNear,
+  network,
+  onCreated,
+  onDone,
+  onBusyChange,
+  initialName = "",
+  doneLabel = "Done",
+}: {
+  suffix: string;
+  depositNear: string | null;
+  network: "mainnet" | "testnet";
+  onCreated: (accountId: string) => void;
+  onDone: () => void;
+  onBusyChange?: (busy: boolean) => void;
+  initialName?: string;
+  doneLabel?: string;
+}) {
   const [step, setStep] = useState<Step>("name");
-  const [name, setName] = useState("");
+  const [name, setName] = useState(initialName);
   const [check, setCheck] = useState<{ for: string; available: boolean; problem: string | null } | null>(null);
   const [gen, setGen] = useState<Generated | null>(null);
   const [wroteDown, setWroteDown] = useState(false);
@@ -92,17 +132,9 @@ export function CreateNearAccount({
   }, [clean, step, localProblem]);
   const shown = check && check.for === clean ? check : null;
 
-  /** Wipe the key from memory and reset. */
-  function close() {
-    if (step === "creating") return;
-    setGen(null);
-    setStep("name");
-    setWroteDown(false);
-    setAnswers({});
-    setError(null);
-    setResult(null);
-    onClose();
-  }
+  useEffect(() => {
+    onBusyChange?.(step === "creating");
+  }, [step, onBusyChange]);
 
   async function generate() {
     setError(null);
@@ -134,12 +166,22 @@ export function CreateNearAccount({
   const quizDone = quiz.length > 0 && quiz.every((q) => answers[q.index] === words[q.index]);
 
   return (
-    <Modal open={open} onClose={close} wide dismissible={step !== "creating"} title={step === "done" ? "Your NEAR account is ready" : `Create your .${suffix} account`} description={step === "done" ? undefined : "A real NEAR account that works in every NEAR wallet. Free — VEIL AI pays the small creation deposit."}>
+    <div>
       {step === "name" && (
         <div>
           <Label htmlFor="new-name">Choose your name</Label>
           <div className="flex items-stretch overflow-hidden rounded-xl border border-border-strong bg-bg-2 focus-within:border-accent/50">
-            <input id="new-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={20} autoComplete="off" spellCheck={false} placeholder="alice" className="min-w-0 flex-1 bg-transparent px-3 py-2.5 font-mono text-sm text-text placeholder:text-subtle focus:outline-none" />
+            <input
+              id="new-name"
+              value={name}
+              onChange={(e) => setName(normalizeNameInput(e.target.value, suffix))}
+              maxLength={20}
+              autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              inputMode="text"
+              placeholder="alice" className="min-w-0 flex-1 bg-transparent px-3 py-2.5 font-mono text-sm text-text placeholder:text-subtle focus:outline-none" />
             <span className="flex items-center border-l border-border px-3 font-mono text-sm text-muted">.{suffix}</span>
           </div>
           <p className={cn("mt-1.5 min-h-4 text-[0.72rem]", localProblem || shown?.available === false ? "text-warning" : "text-success")}>
@@ -261,11 +303,11 @@ export function CreateNearAccount({
               ))}
             </div>
           </div>
-          <Button className="mt-6" onClick={close}>
-            Done
+          <Button className="mt-6" onClick={onDone}>
+            {doneLabel}
           </Button>
         </div>
       )}
-    </Modal>
+    </div>
   );
 }

@@ -47,9 +47,14 @@ export function SiteNav() {
             Launch VEIL AI
           </Link>
         </div>
-        <button className="rounded-lg p-2 text-muted hover:text-text md:hidden" onClick={() => setOpen((v) => !v)} aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open}>
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-1 md:hidden">
+          <Link href="/login" className={buttonClass("secondary", "sm")}>
+            Sign in
+          </Link>
+          <button className="rounded-lg p-2 text-muted hover:text-text" onClick={() => setOpen((v) => !v)} aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open}>
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </nav>
       <AnimatePresence>
         {open && (

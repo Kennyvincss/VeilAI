@@ -25,8 +25,6 @@ app/
     preferences, reports[/id]
     defi/overview|send|stake|history   prepare (never sign) send/stake plans; activity
     contacts                   encrypted address book (signed-in users)
-    profile, username/check    username, linked receiving wallet
-    auth/login                 username + password sign-in
     defi/pulse                 balance fingerprint for notifications
     near-account[/check|create]   free name.near creation (sponsored, non-custodial)
     proof/attest               fresh attestation for a VEIL-issued proof

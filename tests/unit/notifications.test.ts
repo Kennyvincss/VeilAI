@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ActivityItem } from "@/lib/defi/history";
 import { incomingNotifications, mergeNotifications, unstakeReadyNotifications, MAX_NOTIFICATIONS } from "@/lib/notifications";
-import { normalizeUsername, usernameProblem } from "@/lib/usernames";
 
 const item = (over: Partial<ActivityItem>): ActivityItem => ({
   hash: "h1",
@@ -48,13 +47,3 @@ describe("notifications", () => {
   });
 });
 
-describe("usernames", () => {
-  it("normalises and validates", () => {
-    expect(normalizeUsername(" @Alice_9 ")).toBe("alice_9");
-    expect(usernameProblem("alice_9")).toBeNull();
-    expect(usernameProblem("ab")).toMatch(/3–20/);
-    expect(usernameProblem("al ice")).toMatch(/3–20/);
-    expect(usernameProblem("alice.near")).toMatch(/3–20/);
-    expect(usernameProblem("@Support")).toMatch(/reserved/);
-  });
-});
