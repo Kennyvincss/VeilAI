@@ -18,6 +18,7 @@ export interface WalletOverview {
   near: { totalYocto: string; spendableYocto: string; spendable: string; lockedForStorage: string; priceUsd: number | null };
   tokens: { contractId: string; symbol: string; name: string; decimals: number; rawBalance: string; amount: number; priceUsd: number | null; valueUsd: number | null; icon: string | null }[];
   totalValueUsd: number | null;
+  staking?: { staked: string; unstaked: string; withdrawable: boolean; pools: number } | null;
 }
 
 type OnPlan = (plan: ReviewPlan, meta?: { depositAddress?: string }) => void;
@@ -484,16 +485,32 @@ export function SwapTracker({ depositAddress, onClose }: { depositAddress: strin
 
 interface StakeData {
   validators: { poolId: string; stakeNear: number; feePct: number | null }[];
-  positions: { poolId: string; staked: string; unstaked: string; stakedYocto: string; unstakedYocto: string; canWithdraw: boolean }[];
+  positions: { poolId: string; staked: string; stakedExact?: string; unstaked: string; stakedYocto: string; unstakedYocto: string; canWithdraw: boolean }[];
 }
 
-export function StakePanel({ accountId, overview, onPlan, refreshKey }: { accountId: string; overview: WalletOverview | null; onPlan: OnPlan; refreshKey: number }) {
+export function StakePanel({
+  accountId,
+  overview,
+  onPlan,
+  refreshKey,
+  viewOnly = false,
+  onConnect,
+}: {
+  accountId: string;
+  overview: WalletOverview | null;
+  onPlan: OnPlan;
+  refreshKey: number;
+  /** Account shown but not connected: positions are visible, actions need the wallet. */
+  viewOnly?: boolean;
+  onConnect?: () => void;
+}) {
   const data = useApi<StakeData>(`/api/defi/stake?accountId=${encodeURIComponent(accountId)}&r=${refreshKey}`);
   const [pool, setPool] = useState("");
   const [amount, setAmount] = useState("");
   const [unstakeFor, setUnstakeFor] = useState<string | null>(null);
   const [unstakeAmount, setUnstakeAmount] = useState("");
   const { busy, error, run } = useSubmit();
+  const pos = useSubmit(); // unstake / withdraw, shown with the positions
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- default to the largest low-fee validator once loaded
@@ -506,7 +523,7 @@ export function StakePanel({ accountId, overview, onPlan, refreshKey }: { accoun
     if (plan) onPlan(plan);
   }
   async function doUnstake(poolId: string) {
-    const plan = await run(() => api<ReviewPlan>("/api/defi/stake", { method: "POST", json: { action: "unstake", from: accountId, pool: poolId, amount: unstakeAmount } }));
+    const plan = await pos.run(() => api<ReviewPlan>("/api/defi/stake", { method: "POST", json: { action: "unstake", from: accountId, pool: poolId, amount: unstakeAmount } }));
     if (plan) {
       setUnstakeFor(null);
       setUnstakeAmount("");
@@ -514,7 +531,7 @@ export function StakePanel({ accountId, overview, onPlan, refreshKey }: { accoun
     }
   }
   async function withdraw(poolId: string) {
-    const plan = await run(() => api<ReviewPlan>("/api/defi/stake", { method: "POST", json: { action: "withdraw", from: accountId, pool: poolId } }));
+    const plan = await pos.run(() => api<ReviewPlan>("/api/defi/stake", { method: "POST", json: { action: "withdraw", from: accountId, pool: poolId } }));
     if (plan) onPlan(plan);
   }
 
@@ -525,8 +542,8 @@ export function StakePanel({ accountId, overview, onPlan, refreshKey }: { accoun
       <Card>
         <CardHeader
           icon={<Layers className="h-4 w-4" />}
-          title="Your staking"
-          subtitle="NEAR delegated to validators"
+          title="Your stakes"
+          subtitle={`NEAR that ${accountId} has delegated to validators`}
           action={
             <button onClick={() => void data.reload()} className="rounded-lg p-1.5 text-subtle hover:bg-black/[0.04] hover:text-text" aria-label="Refresh staking">
               <RefreshCw className="h-4 w-4" />
@@ -547,11 +564,16 @@ export function StakePanel({ accountId, overview, onPlan, refreshKey }: { accoun
                       {p.unstakedYocto !== "0" && (
                         <>
                           {" "}
-                          · Unstaked <span className="font-mono text-text">{p.unstaked}</span> {p.canWithdraw ? <Badge tone="success">withdrawable</Badge> : <Badge tone="neutral">unlocking</Badge>}
+                          · Unstaked <span className="font-mono text-text">{p.unstaked}</span> {p.canWithdraw ? <Badge tone="success">ready to withdraw</Badge> : <Badge tone="neutral">unlocking · ~2–3 days</Badge>}
                         </>
                       )}
                     </div>
                   </div>
+                  {viewOnly ? (
+                    <Button size="sm" variant="secondary" onClick={onConnect}>
+                      Connect to {p.unstakedYocto !== "0" && p.canWithdraw ? "withdraw" : "unstake"}
+                    </Button>
+                  ) : (
                   <div className="flex gap-1.5">
                     {p.stakedYocto !== "0" && (
                       <Button size="sm" variant="secondary" onClick={() => setUnstakeFor(unstakeFor === p.poolId ? null : p.poolId)}>
@@ -559,27 +581,41 @@ export function StakePanel({ accountId, overview, onPlan, refreshKey }: { accoun
                       </Button>
                     )}
                     {p.unstakedYocto !== "0" && p.canWithdraw && (
-                      <Button size="sm" onClick={() => void withdraw(p.poolId)} loading={busy}>
+                      <Button size="sm" onClick={() => void withdraw(p.poolId)} loading={pos.busy}>
                         Withdraw
                       </Button>
                     )}
                   </div>
+                  )}
                 </div>
-                {unstakeFor === p.poolId && (
-                  <div className="mt-3 flex gap-2">
-                    <AmountInput id={`unstake-${p.poolId}`} value={unstakeAmount} onChange={setUnstakeAmount} onMax={() => setUnstakeAmount(p.staked)} suffix="NEAR" />
-                    <Button onClick={() => void doUnstake(p.poolId)} loading={busy} disabled={!unstakeAmount}>
-                      Review
-                    </Button>
+                {!viewOnly && unstakeFor === p.poolId && (
+                  <div className="mt-3">
+                    <div className="flex gap-2">
+                      <AmountInput id={`unstake-${p.poolId}`} value={unstakeAmount} onChange={setUnstakeAmount} onMax={() => setUnstakeAmount(p.stakedExact ?? p.staked)} suffix="NEAR" />
+                      <Button onClick={() => void doUnstake(p.poolId)} loading={pos.busy} disabled={!unstakeAmount}>
+                        Review
+                      </Button>
+                    </div>
+                    <p className="mt-1.5 text-[0.7rem] text-subtle">Unstaked NEAR stops earning and unlocks in about 2–3 days. Then come back and tap Withdraw to move it to your balance.</p>
                   </div>
                 )}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted">You aren&apos;t staking yet. Stake below to start earning rewards.</p>
+          <p className="text-sm text-muted">No stakes found for {accountId}. If you staked from a different account, connect that one. A brand-new stake can take a minute to appear — tap refresh.</p>
         )}
+        <ErrorLine error={viewOnly ? null : pos.error} />
       </Card>
+
+      {viewOnly ? (
+        <Card className="text-center">
+          <p className="text-sm text-muted">To stake, unstake or withdraw, connect {accountId}. Your wallet approves each step.</p>
+          <Button className="mt-3" onClick={onConnect}>
+            Connect {accountId}
+          </Button>
+        </Card>
+      ) : (
 
       <Card>
         <CardHeader icon={<Layers className="h-4 w-4" />} title="Stake NEAR" subtitle="Earn rewards by delegating to a validator. You keep ownership." />
@@ -614,6 +650,7 @@ export function StakePanel({ accountId, overview, onPlan, refreshKey }: { accoun
           </form>
         )}
       </Card>
+      )}
     </div>
   );
 }

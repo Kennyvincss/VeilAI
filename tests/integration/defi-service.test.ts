@@ -38,7 +38,7 @@ vi.mock("@/lib/blockchain/prices", async (orig) => ({ ...(await orig<typeof impo
 const quote = { response: null as unknown };
 vi.mock("@/lib/defi/oneclick", () => ({ requestQuote: vi.fn(async () => quote.response) }));
 
-import { DefiError, prepareSend, prepareStake, prepareSwap, prepareUnstake, prepareWithdraw } from "@/lib/defi/service";
+import { DefiError, prepareSend, prepareStake, prepareSwap, prepareUnstake, prepareWithdraw, stakingPositions } from "@/lib/defi/service";
 
 function q(over: Record<string, unknown> = {}, reqOver: Record<string, unknown> = {}) {
   return {
@@ -146,6 +146,13 @@ describe("staking", () => {
     expect(plan.transactions[0].receiverId).toBe("x.poolv1.near");
     expect(plan.review.find((r) => r.label === "Validator fee")?.value).toBe("5% of rewards");
     expect(plan.warnings.join(" ")).toMatch(/2–3 days/);
+  });
+  it("finds a fresh stake from recent transactions even before the index has it", async () => {
+    history.sender = [nbTx("me.near", "x.poolv1.near", 0)];
+    chain.pool = { account_id: "me.near", staked_balance: "2" + "0".repeat(24), unstaked_balance: "0", can_withdraw: false };
+    const positions = await stakingPositions("me.near");
+    expect(positions.map((p) => p.poolId)).toEqual(["x.poolv1.near"]);
+    expect(positions[0]).toMatchObject({ staked: "2", stakedExact: "2" });
   });
   it("only withdraws when unstaked NEAR is available", async () => {
     chain.pool = { account_id: "me.near", staked_balance: "0", unstaked_balance: NEAR, can_withdraw: false };

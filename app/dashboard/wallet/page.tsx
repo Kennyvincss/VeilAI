@@ -134,6 +134,7 @@ function WalletView() {
             viewOnly={viewOnly}
             busy={wallet.busy}
             onConnect={() => void connect(WEB_WALLET_ID)}
+            onShowStake={() => setTab("stake")}
             overview={overview.data}
             loading={overview.loading}
             error={overview.error}
@@ -176,7 +177,7 @@ function WalletView() {
           </div>
 
           <div className="mx-auto mt-4 max-w-2xl">
-            {viewOnly && (shownTab === "send" || shownTab === "swap" || shownTab === "stake") && <ConnectToAct accountId={viewId} busy={wallet.busy} onConnect={() => void connect(WEB_WALLET_ID)} />}
+            {viewOnly && (shownTab === "send" || shownTab === "swap") && <ConnectToAct accountId={viewId} busy={wallet.busy} onConnect={() => void connect(WEB_WALLET_ID)} />}
             {!viewOnly && wallet.accountId && shownTab === "send" && (
               <SendPanel
                 key={sendTo?.n ?? 0}
@@ -214,7 +215,16 @@ function WalletView() {
                 }}
               />
             )}
-            {!viewOnly && wallet.accountId && shownTab === "stake" && <StakePanel accountId={wallet.accountId} overview={overview.data} onPlan={(p) => setPlan(p)} refreshKey={refreshKey} />}
+            {shownTab === "stake" && (
+              <StakePanel
+                accountId={viewId}
+                overview={overview.data}
+                onPlan={(p) => setPlan(p)}
+                refreshKey={refreshKey}
+                viewOnly={viewOnly}
+                onConnect={() => void connect(WEB_WALLET_ID)}
+              />
+            )}
           </div>
 
           <p className="mx-auto mt-6 flex max-w-2xl items-start gap-2 text-[0.7rem] leading-relaxed text-subtle">
@@ -315,6 +325,7 @@ function WalletHeader({
   viewOnly = false,
   busy = false,
   onConnect,
+  onShowStake,
 }: {
   accountId: string;
   overview: WalletOverview | null;
@@ -325,7 +336,10 @@ function WalletHeader({
   viewOnly?: boolean;
   busy?: boolean;
   onConnect?: () => void;
+  onShowStake?: () => void;
 }) {
+  const st = overview?.staking;
+  const hasStake = Boolean(st && (st.staked !== "0" || st.unstaked !== "0"));
   return (
     <Card className="p-5 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -354,6 +368,14 @@ function WalletHeader({
             </div>
           ) : (
             error && <p className="mt-2 text-sm text-warning">{error}</p>
+          )}
+          {hasStake && st && (
+            <button onClick={onShowStake} className="mt-3 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-full border border-lavender bg-lavender/25 px-3 py-1 text-xs text-text hover:bg-lavender/40">
+              <Layers className="h-3.5 w-3.5 text-accent-strong" />
+              Staked <span className="font-mono font-semibold">{st.staked} NEAR</span>
+              {st.unstaked !== "0" && <span className="text-muted">· {st.withdrawable ? `${st.unstaked} ready to withdraw` : `${st.unstaked} unlocking`}</span>}
+              <span className="text-accent-strong">Manage →</span>
+            </button>
           )}
           {overview && overview.tokens.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">

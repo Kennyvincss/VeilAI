@@ -115,6 +115,8 @@ export async function walletOverview(accountId: string) {
       icon: h.icon ?? null,
     }));
   const nearHolding = portfolio?.holdings.find((h) => h.contractId === "near");
+  const positions = await stakingPositions(accountId).catch(() => null);
+  const sum = (key: "stakedYocto" | "unstakedYocto") => (positions ?? []).reduce((t, p) => t + BigInt(p[key]), BigInt(0));
   return {
     accountId,
     near: {
@@ -126,6 +128,14 @@ export async function walletOverview(accountId: string) {
     },
     tokens,
     totalValueUsd: portfolio?.totalValueUsd ?? null,
+    staking: positions
+      ? {
+          staked: fromBaseUnits(sum("stakedYocto"), NEAR_DECIMALS, 4),
+          unstaked: fromBaseUnits(sum("unstakedYocto"), NEAR_DECIMALS, 4),
+          withdrawable: positions.some((p) => p.canWithdraw && p.unstakedYocto !== "0"),
+          pools: positions.length,
+        }
+      : null,
   };
 }
 
@@ -229,15 +239,26 @@ export async function validators() {
 }
 
 export async function stakingPositions(accountId: string) {
-  const pools = await accountStakingPools(accountId).catch(() => [] as string[]);
+  // FastNEAR's index can lag a fresh stake, so also look at the account's own
+  // recent transactions to staking pools.
+  const [indexed, recent] = await Promise.all([
+    accountStakingPools(accountId).catch(() => [] as string[]),
+    accountTransactions(accountId, 50).catch(() => []),
+  ]);
+  const fromHistory = recent
+    .filter((t) => (t.signer_account_id ?? t.predecessor_account_id) === accountId && STAKING_POOL_RE.test(t.receiver_account_id))
+    .map((t) => t.receiver_account_id);
+  const pools = [...new Set([...indexed, ...fromHistory])];
   const rows = await Promise.all(
-    pools.slice(0, 12).map(async (poolId) => {
+    pools.slice(0, 15).map(async (poolId) => {
       const a = await poolAccount(poolId, accountId);
       if (!a) return null;
       return {
         poolId,
         stakedYocto: a.staked_balance,
         staked: fromBaseUnits(a.staked_balance, NEAR_DECIMALS, 5),
+        /** Exact amount, for "Max" (the short one is rounded down for display). */
+        stakedExact: fromBaseUnits(a.staked_balance, NEAR_DECIMALS),
         unstakedYocto: a.unstaked_balance,
         unstaked: fromBaseUnits(a.unstaked_balance, NEAR_DECIMALS, 5),
         canWithdraw: a.can_withdraw,
