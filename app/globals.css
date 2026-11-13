@@ -7,7 +7,7 @@
  * consumed through Tailwind utilities.
  * --------------------------------------------------------------------- */
 :root {
-  --bg: #eef2f7;
+  --bg: #e3ebf6;
   --bg-2: #f5f6f8;
   --card: #ffffff;
   --card-2: #f4f5f7;
@@ -18,13 +18,13 @@
   --subtle: #9ea2ac;
   --accent: #111216; /* near-black primary */
   --accent-strong: #5b4bd6; /* violet for links and highlights */
-  --accent-2: #3b6fe0; /* blue */
+  --accent-2: #1f55d6; /* blue */
   --lavender: #cfc3ff;
   --lime: #dff27a;
   --success: #15a150;
   --warning: #c27a06;
   --danger: #e5484d;
-  --sky: linear-gradient(180deg, #c9dcf0 0%, #dfe9f4 38%, #eef1f6 70%, #f5f3ef 100%);
+  --sky: linear-gradient(180deg, #8fb6e6 0%, #b3cdee 35%, #d6e3f3 68%, #eef0f3 100%);
   color-scheme: light;
 }
 
