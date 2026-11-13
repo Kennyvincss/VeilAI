@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { getRequestContext } from "@/lib/session";
 import { runAnalyst, type AnalystEvent } from "@/lib/ai/analyst";
-import { assertSameOrigin, clientIp, HttpError, jsonError, limitOrNull, readJson } from "@/lib/security/http";
+import { assertSameOrigin, HttpError, jsonError, limitOrNull, readJson } from "@/lib/security/http";
 import { chatRequestSchema, firstIssue } from "@/lib/security/validation";
 import { RATE_LIMITS } from "@/lib/security/rate-limit";
 import { log } from "@/lib/security/logger";
@@ -15,10 +15,8 @@ export const maxDuration = 120;
 export async function POST(req: NextRequest) {
   if (!assertSameOrigin(req)) return jsonError(403, "Cross-origin request rejected.");
   const ctx = await getRequestContext();
-  if (!ctx.user && !ctx.demo) return jsonError(401, "Sign in or start a demo session.");
-  const limited = ctx.user
-    ? limitOrNull(`ai:${ctx.user.id}`, RATE_LIMITS.aiChat)
-    : limitOrNull(`ai-anon:${clientIp(req)}`, RATE_LIMITS.aiChatAnonymous);
+  if (!ctx.user) return jsonError(401, "Sign in to continue.");
+  const limited = limitOrNull(`ai:${ctx.user.id}`, RATE_LIMITS.aiChat);
   if (limited) return limited;
 
   let body: ReturnType<typeof chatRequestSchema.parse>;

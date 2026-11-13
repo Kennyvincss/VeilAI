@@ -8,7 +8,6 @@ import { PageHeader } from "@/components/layout/dashboard-shell";
 import { CategoryBars, ScoreGauge, scoreColor } from "@/components/charts/charts";
 import { ProvenanceBar } from "@/components/dashboard/sources";
 import { Badge, Button, Card, CardHeader, EmptyState, Skeleton } from "@/components/ui/primitives";
-import { ModeBadge } from "@/components/ui/status";
 import { cn } from "@/lib/utils/format";
 
 export default function RiskEnginePage() {
@@ -18,7 +17,6 @@ export default function RiskEnginePage() {
       <PageHeader
         title="Private Risk Engine"
         description="Transparent, deterministic risk scoring over your actual holdings, price history and on-chain activity. Every input is shown."
-        badges={<ModeBadge mode={data?.provenance.mode} />}
         actions={
           <Button variant="secondary" size="sm" onClick={() => void reload()} loading={loading}>
             {!loading && <RefreshCw className="h-3.5 w-3.5" />} Recalculate

@@ -7,6 +7,6 @@ export async function GET() {
   const ctx = await getRequestContext();
   return jsonOk({
     ...getPublicStatus(),
-    session: { signedIn: Boolean(ctx.user), email: ctx.user?.email ?? null, demo: ctx.demo },
+    session: { signedIn: Boolean(ctx.user), email: ctx.user?.email ?? null },
   });
 }

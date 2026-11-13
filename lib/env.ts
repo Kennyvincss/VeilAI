@@ -27,7 +27,6 @@ const schema = z.object({
   NEAR_AI_MODEL: optionalString,
   NEAR_AI_E2EE: z.enum(["required", "preferred", "off"]).optional(),
   NEAR_AI_MAX_TOKENS: optionalString,
-  DEMO_ALLOW_LIVE_AI: optionalString,
 
   NEXT_PUBLIC_NEAR_NETWORK: z.enum(["mainnet", "testnet"]).optional(),
   NEAR_RPC_URLS: optionalString,
@@ -56,7 +55,7 @@ export function getEnv(): ServerEnv {
   const parsed = schema.safeParse(process.env);
   if (!parsed.success) {
     issues = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`);
-    // Fall back to an empty config so the app still boots in demo mode.
+    // Fall back to an empty config so the app still boots.
     cached = schema.parse({});
   } else {
     cached = parsed.data;
@@ -125,7 +124,6 @@ export function getAppStatus(): AppStatus {
     dataEncryption: { configured: dataEncryptionKey() !== null },
     googleAuth: env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true",
     network: nearNetwork(),
-    demoAllowsLiveAi: ai.configured && env.DEMO_ALLOW_LIVE_AI !== "false",
   };
 }
 
@@ -149,7 +147,7 @@ export function configurationReport(): string[] {
     );
   if (!supabaseConfigured())
     lines.push(
-      "NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY are not set: authentication and persistence are disabled; the dashboard runs as a demo.",
+      "NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY are not set: authentication and persistence are disabled, so nobody can sign in.",
     );
   if (env.DATA_ENCRYPTION_KEY && !dataEncryptionKey())
     lines.push("DATA_ENCRYPTION_KEY must be 32 bytes encoded as 64 hex chars or base64.");

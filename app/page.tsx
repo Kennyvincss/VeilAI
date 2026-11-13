@@ -62,10 +62,7 @@ export default function LandingPage() {
                 </a>
               </div>
               <p className="mt-4 text-xs text-subtle">
-                Free · no seed phrases ·{" "}
-                <Link href="/demo" className="underline decoration-dotted underline-offset-4 hover:text-muted">
-                  explore a sample workspace
-                </Link>
+                Free · no seed phrases · your own name.near
               </p>
             </FadeIn>
           </div>
@@ -326,13 +323,13 @@ export default function LandingPage() {
           <FadeIn>
             <div className="mx-auto max-w-5xl rounded-3xl border border-white/70 bg-[radial-gradient(ellipse_at_top,rgba(207,195,255,0.55),transparent_70%)] bg-white/60 backdrop-blur px-6 py-14 text-center">
               <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Your private data. Verified by NEAR.</h2>
-              <p className="mx-auto mt-4 max-w-xl text-muted">Free. No subscriptions. No seed phrases. Start with the demo or create an account in seconds.</p>
+              <p className="mx-auto mt-4 max-w-xl text-muted">Free. No subscriptions. No seed phrases. Create an account in seconds.</p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                 <Link href="/signup" className={buttonClass("primary", "lg")}>
                   Create free account
                 </Link>
-                <Link href="/demo" className={buttonClass("secondary", "lg")}>
-                  Explore the demo
+                <Link href="/login" className={buttonClass("secondary", "lg")}>
+                  Sign in
                 </Link>
               </div>
             </div>

@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { DEMO_COOKIE } from "@/lib/supabase/proxy";
 
 /** Handles OAuth and email-confirmation redirects (PKCE code exchange). */
 export async function GET(req: NextRequest) {
@@ -12,7 +11,7 @@ export async function GET(req: NextRequest) {
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) return NextResponse.redirect(new URL("/login?error=callback", url.origin));
   const res = NextResponse.redirect(new URL(next, url.origin));
-  res.cookies.delete(DEMO_COOKIE);
+  res.cookies.delete("veil_demo");
   return res;
 }
 

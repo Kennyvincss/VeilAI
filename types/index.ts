@@ -253,7 +253,6 @@ export interface AppStatus {
   dataEncryption: { configured: boolean };
   googleAuth: boolean;
   network: "mainnet" | "testnet";
-  demoAllowsLiveAi: boolean;
 }
 
 /**

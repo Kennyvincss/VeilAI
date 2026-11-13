@@ -7,7 +7,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   BrainCircuit,
   FileText,
-  FlaskConical,
   Gauge,
   KeyRound,
   LayoutDashboard,
@@ -21,7 +20,7 @@ import {
 } from "lucide-react";
 import { NotificationBell, NotificationPoller } from "@/components/notifications/notification-center";
 import { Logo } from "@/components/ui/logo";
-import { Badge, buttonClass } from "@/components/ui/primitives";
+import { buttonClass } from "@/components/ui/primitives";
 import { useAppStatus } from "@/components/layout/app-status";
 import { cn } from "@/lib/utils/format";
 
@@ -60,7 +59,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   // eslint-disable-next-line react-hooks/set-state-in-effect -- close the mobile drawer on navigation
   useEffect(() => setOpen(false), [pathname]);
 
-  const demo = !status.session.signedIn;
   const nav = (
     <nav className="flex flex-col gap-5" aria-label="Dashboard">
       {NAV_GROUPS.map((group) => (
@@ -91,22 +89,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     </nav>
   );
 
-  const footer = (
-    <div className="space-y-3">
-      {demo && (
-        <div className="grid gap-2">
-          {status.accounts.enabled && (
-            <Link href="/signup" className={buttonClass("primary", "sm", "w-full")}>
-              Create free account
-            </Link>
-          )}
-          <a href="/demo/exit" className={buttonClass("ghost", "sm", "w-full")}>
-            Exit demo
-          </a>
-        </div>
-      )}
-    </div>
-  );
 
   const account = status.session.signedIn ? (
     <div className="flex items-center gap-2">
@@ -123,12 +105,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     </div>
   ) : (
     <div className="flex items-center gap-2">
-      <Badge tone="warning">Sample workspace</Badge>
-      {status.accounts.enabled && (
-        <Link href="/signup" className={buttonClass("primary", "sm", "hidden sm:inline-flex")}>
-          Create free account
-        </Link>
-      )}
+      <Link href="/login" className={buttonClass("primary", "sm")}>
+        Sign in
+      </Link>
     </div>
   );
 
@@ -142,7 +121,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             <Logo />
           </Link>
           <div className="flex-1 overflow-y-auto pr-1">{nav}</div>
-          {footer}
         </aside>
 
         {/* Mobile top bar */}
@@ -180,7 +158,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto">{nav}</div>
-                <div className="mt-4">{footer}</div>
                 {status.session.signedIn && (
                   <form action="/auth/signout" method="post" className="mt-3 px-1">
                     <button type="submit" className="flex w-full items-center justify-center gap-1.5 rounded-full py-2 text-xs font-medium text-danger hover:bg-danger/10">
@@ -202,19 +179,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </div>
           </div>
           <div id="main-scroll" className="flex-1 lg:overflow-y-auto">
-            {demo && (
-              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-b border-warning/15 bg-warning/[0.06] px-4 py-2 text-center text-xs text-warning sm:px-6">
-                <span>
-                  <FlaskConical className="mr-1.5 inline h-3.5 w-3.5 align-[-2px]" />
-                  You&apos;re viewing a <strong className="font-semibold">sample workspace</strong>: balances, transactions and prices are illustrative, not real accounts.
-                </span>
-                {status.accounts.enabled && (
-                  <Link href="/signup" className="font-semibold underline underline-offset-2 hover:text-text lg:hidden">
-                    Use your own wallets →
-                  </Link>
-                )}
-              </div>
-            )}
             <main id="main" className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
               {children}
             </main>

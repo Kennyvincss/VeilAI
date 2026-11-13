@@ -1,7 +1,7 @@
 import "server-only";
 import type { DataSource, FinancialPreferences, NormalizedTx, PortfolioSnapshot, RiskAnalysis, VerificationResult, VerificationState } from "@/types";
 import type { RequestContext } from "@/lib/session";
-import { getAppStatus, nearAiConfig } from "@/lib/env";
+import { nearAiConfig } from "@/lib/env";
 import { explainNearAiError, NearAiError, nearAiOperatorHint, streamChatCompletion, type ChatMessageIn } from "@/lib/near-ai/client";
 import { createE2eeSession, type E2eeSession } from "@/lib/near-ai/e2ee";
 import { getAttestedEncryptionKey, verifyCompletion } from "@/lib/near-ai/verify";
@@ -13,7 +13,7 @@ import { cleanUserText, dataBlock, screenUserInput } from "@/lib/security/prompt
 import { fetchLivePortfolio } from "@/lib/portfolio/service";
 import { liveRiskAnalysis } from "@/lib/risk/service";
 import { accountTransactions, normalizeTxn } from "@/lib/blockchain/nearblocks";
-import { demoPortfolio, demoRiskAnalysis, demoTransactions } from "@/lib/demo/data";
+import { buildSnapshot } from "@/lib/portfolio/compute";
 import { templateAnswer } from "@/lib/demo/responses";
 import * as repo from "@/lib/supabase/repo";
 import { log } from "@/lib/security/logger";
@@ -67,7 +67,6 @@ const notConnected = (model: string, reason: string): VerificationResult => {
 export async function runAnalyst(input: AnalystInput): Promise<void> {
   const { ctx, emit } = input;
   const ai = nearAiConfig();
-  const status = getAppStatus();
   const question = cleanUserText(input.question);
   emit({ type: "status", state: "initialising", message: "Preparing your financial context…" });
 
@@ -100,17 +99,11 @@ export async function runAnalyst(input: AnalystInput): Promise<void> {
     } else {
       notes.push("No wallets are tracked yet — add a NEAR account on the dashboard for personalised analysis.");
     }
-  } else {
-    portfolio = demoPortfolio();
-    risk = demoRiskAnalysis();
-    if (intents.has("transactions")) txs = demoTransactions();
-    ownWallets = portfolio.wallets.map((w) => w.accountId);
-    notes.push("Demo session: analysis uses SAMPLE portfolio data.");
   }
 
-  const mode = ctx.user ? "live" : "demo";
+  const mode = "live" as const;
   const sources = dedupeSources([...(portfolio?.provenance.sources ?? []), ...(risk?.provenance.sources ?? [])]);
-  const liveAllowed = ai.configured && (ctx.user !== null || status.demoAllowsLiveAi);
+  const liveAllowed = ai.configured && ctx.user !== null;
 
   /**
    * Clearly-labelled, rule-based template answer over the same data (no
@@ -118,11 +111,9 @@ export async function runAnalyst(input: AnalystInput): Promise<void> {
    * inference is unavailable for any non-transient reason.
    */
   const emitTemplate = async (reason: string, conversationId: string | null) => {
-    const basePortfolio = portfolio ?? demoPortfolio();
+    const basePortfolio = portfolio ?? buildSnapshot([], [], { mode: "live", sources: [], generatedAt: new Date().toISOString(), notes: [] });
     let templateRisk = risk;
-    if (!templateRisk) {
-      templateRisk = basePortfolio.provenance.mode === "live" ? await liveRiskAnalysis(basePortfolio).catch(() => null) : demoRiskAnalysis();
-    }
+    if (!templateRisk && basePortfolio.wallets.length > 0) templateRisk = await liveRiskAnalysis(basePortfolio).catch(() => null);
     emit({ type: "meta", mode, inference: "demo-template", model: null, e2ee: { enabled: false, reason }, sources, notes: [...notes, reason], conversationId });
     const text = templateAnswer(question, { portfolio: basePortfolio, risk: templateRisk, transactions: txs, reason });
     for (const chunk of text.match(/[\s\S]{1,48}/g) ?? []) {

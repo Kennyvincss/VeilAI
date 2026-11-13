@@ -2,7 +2,6 @@
 
 import { Database, ExternalLink } from "lucide-react";
 import type { DataSource, Provenance } from "@/types";
-import { ModeBadge } from "@/components/ui/status";
 import { cn, timeAgo } from "@/lib/utils/format";
 
 export function SourcesList({ sources, className }: { sources: DataSource[]; className?: string }) {
@@ -33,12 +32,11 @@ export function SourcesList({ sources, className }: { sources: DataSource[]; cla
   );
 }
 
-/** Sample-data label (when relevant) plus a collapsed "Data sources" section. */
+/** Collapsed "Data sources" section. */
 export function ProvenanceBar({ provenance }: { provenance: Provenance }) {
   const hasDetails = provenance.sources.length > 0 || provenance.notes.length > 0;
   return (
-    <div className="space-y-2">
-      <ModeBadge mode={provenance.mode} />
+    <div>
       {hasDetails && (
         <details className="group">
           <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-[0.7rem] text-subtle hover:text-muted">

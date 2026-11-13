@@ -13,7 +13,6 @@ import { Markdown } from "@/components/analyst/markdown";
 import { SourcesList } from "@/components/dashboard/sources";
 import { VerificationDetails } from "@/components/privacy/verification-details";
 import { Badge, Button, Card, Toggle } from "@/components/ui/primitives";
-import { ModeBadge } from "@/components/ui/status";
 import { cn, timeAgo } from "@/lib/utils/format";
 import { looksLikeSecret } from "@/lib/near/account";
 import type { ChatAction } from "@/lib/ai/actions";
@@ -170,7 +169,7 @@ export default function AnalystPage() {
           </Button>
           <div className="mb-2 px-2 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-subtle">History</div>
           {!signedIn ? (
-            <p className="px-2 pb-2 text-xs leading-relaxed text-muted">Demo conversations are kept only in this tab and never stored. Create a free account to save history.</p>
+            <p className="px-2 pb-2 text-xs leading-relaxed text-muted">Sign in to save your conversation history.</p>
           ) : convs.data && convs.data.conversations.length > 0 ? (
             <ul className="max-h-[50vh] space-y-0.5 overflow-y-auto">
               {convs.data.conversations.map((c) => (
@@ -273,10 +272,9 @@ function AssistantMessage({ m }: { m: UiMessage }) {
   const hasDetails = !m.pending && (v || hasSources || (m.notes && m.notes.length > 0) || m.meta?.proofToken || m.inference === "near-ai");
   return (
     <div className="min-w-0 max-w-[92%] flex-1 space-y-3">
-      {(m.meta?.mode === "demo" || m.inference === "demo-template") && (
+      {m.inference === "demo-template" && (
         <div className="flex flex-wrap items-center gap-1.5">
-          {m.meta?.mode && <ModeBadge mode={m.meta.mode} />}
-          {m.inference === "demo-template" && <Badge tone="warning">Sample answer</Badge>}
+          <Badge tone="warning">Basic answer · AI offline</Badge>
         </div>
       )}
 
@@ -378,7 +376,7 @@ function WelcomeHero({ protectedChat, e2ee, signedIn, onPick }: { protectedChat:
     <div className="flex h-full flex-col items-center justify-center py-8 text-center">
       <span className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium", protectedChat ? "border-success/25 bg-success/[0.07] text-success" : "border-border bg-card-2 text-muted")}>
         <span className={cn("h-1.5 w-1.5 rounded-full", protectedChat ? "bg-success" : "bg-subtle")} />
-        {protectedChat ? "Chat is protected" : "Sample answers · live AI offline"}
+        {protectedChat ? "Chat is protected" : "Basic answers · live AI offline"}
       </span>
       <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">{name ? `Welcome, ${name}!` : "Welcome to VEIL AI"}</h2>
       <p className="mt-2 max-w-md text-sm text-muted">

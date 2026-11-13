@@ -1,8 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export const DEMO_COOKIE = "veil_demo";
-
 /**
  * Refreshes the Supabase session cookie on each request and returns the
  * verified user (if any). Runs in the Next.js proxy.

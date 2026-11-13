@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { PortfolioSnapshot, TokenHolding } from "@/types";
 import { analyseRisk, annualisedVolatility, hhi, levelFor, maxDrawdown, reconstructSeries, WEIGHTS } from "@/lib/risk/engine";
 import { buildSnapshot } from "@/lib/portfolio/compute";
-import { demoPortfolio, demoRiskAnalysis } from "@/lib/demo/data";
+import { demoPortfolio, demoRiskAnalysis } from "../fixtures/sample-data";
 
 const h = (p: Partial<TokenHolding>): TokenHolding => ({
   contractId: "near",

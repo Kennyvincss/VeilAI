@@ -7,7 +7,7 @@ import { __resetEnvForTests } from "@/lib/env";
 import { __testing, fingerprint } from "@/lib/security/logger";
 import { assertSameOrigin } from "@/lib/security/http";
 import { buildContextMessage, detectIntents, Pseudonymizer } from "@/lib/ai/context";
-import { demoPortfolio, demoTransactions } from "@/lib/demo/data";
+import { demoPortfolio, demoTransactions } from "../fixtures/sample-data";
 
 describe("prompt-injection defences", () => {
   it("strips control and bidi characters", () => {

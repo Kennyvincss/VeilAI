@@ -8,22 +8,14 @@ import { RATE_LIMITS } from "@/lib/security/rate-limit";
 import { matchesNetwork } from "@/lib/near/account";
 import { nearNetwork } from "@/lib/env";
 import { viewAccount } from "@/lib/near/rpc";
-import { DEMO_WALLETS } from "@/lib/demo/data";
 
 const MAX_WALLETS = 10;
 
 export async function GET() {
   const ctx = await getRequestContext();
-  if (!ctx.user || !ctx.supabase) {
-    if (ctx.demo)
-      return jsonOk({
-        demo: true,
-        wallets: DEMO_WALLETS.map((a, i) => ({ id: `demo-${i}`, accountId: a, label: i === 0 ? "Main (sample)" : "Trading (sample)", network: "mainnet", ownershipVerified: false, createdAt: new Date().toISOString() })),
-      });
-    return jsonError(401, "Sign in to manage wallets.");
-  }
+  if (!ctx.user || !ctx.supabase) return jsonError(401, "Sign in to manage wallets.");
   try {
-    return jsonOk({ demo: false, wallets: await listWallets(ctx.supabase, ctx.user.id) });
+    return jsonOk({ wallets: await listWallets(ctx.supabase, ctx.user.id) });
   } catch {
     return jsonError(500, "Could not load wallets.");
   }

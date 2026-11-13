@@ -11,7 +11,7 @@ export const maxDuration = 60;
 export async function POST(req: NextRequest) {
   if (!assertSameOrigin(req)) return jsonError(403, "Cross-origin request rejected.");
   const ctx = await getRequestContext();
-  if (!ctx.user && !ctx.demo) return jsonError(401, "Sign in or start a demo session.");
+  if (!ctx.user) return jsonError(401, "Sign in to continue.");
   const limited = limitOrNull(`attest:${ctx.user?.id ?? clientIp(req)}`, RATE_LIMITS.attestation);
   if (limited) return limited;
   const result = await verifyModelAttestation();

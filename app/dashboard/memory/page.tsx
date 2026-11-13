@@ -70,7 +70,7 @@ export default function MemoryPage() {
 
       {!signedIn && (
         <div className="mb-4 rounded-xl border border-warning/25 bg-warning/[0.06] px-4 py-3 text-xs text-warning">
-          Demo mode: preferences cannot be saved. Create a free account to use AI memory.
+          Sign in to save preferences.
         </div>
       )}
 

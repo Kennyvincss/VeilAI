@@ -8,7 +8,7 @@ export function explorerTxUrl(hash: string, network: "mainnet" | "testnet") {
   return network === "testnet" ? `https://testnet.nearblocks.io/txns/${hash}` : `https://nearblocks.io/txns/${hash}`;
 }
 
-export function TransactionsList({ txs, network, demo, limit = 10 }: { txs: (NormalizedTx & { wallet?: string })[]; network: "mainnet" | "testnet"; demo?: boolean; limit?: number }) {
+export function TransactionsList({ txs, network, limit = 10 }: { txs: (NormalizedTx & { wallet?: string })[]; network: "mainnet" | "testnet"; limit?: number }) {
   return (
     <ul className="divide-y divide-border">
       {txs.slice(0, limit).map((t) => {
@@ -37,13 +37,9 @@ export function TransactionsList({ txs, network, demo, limit = 10 }: { txs: (Nor
             </div>
             <div className="text-right">
               <div className="font-mono text-xs">{t.depositNear > 0 ? `${t.direction === "in" ? "+" : t.direction === "out" ? "−" : ""}${formatAmount(t.depositNear, 3)} NEAR` : "—"}</div>
-              {demo ? (
-                <div className="text-[0.65rem] text-subtle">{timeAgo(t.timestamp)} · sample</div>
-              ) : (
-                <a href={explorerTxUrl(t.hash, network)} target="_blank" rel="noopener noreferrer" className="text-[0.65rem] text-subtle hover:text-accent-strong">
-                  {timeAgo(t.timestamp)} ↗
-                </a>
-              )}
+              <a href={explorerTxUrl(t.hash, network)} target="_blank" rel="noopener noreferrer" className="text-[0.65rem] text-subtle hover:text-accent-strong">
+                {timeAgo(t.timestamp)} ↗
+              </a>
             </div>
           </li>
         );

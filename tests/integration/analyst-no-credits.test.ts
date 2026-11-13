@@ -25,7 +25,7 @@ vi.mock("@/lib/near-ai/verify", () => ({
 import { runAnalyst } from "@/lib/ai/analyst";
 import { __resetEnvForTests } from "@/lib/env";
 import { templateAnswer } from "@/lib/demo/responses";
-import { demoPortfolio, demoRiskAnalysis } from "@/lib/demo/data";
+import { demoPortfolio, demoRiskAnalysis } from "../fixtures/sample-data";
 
 beforeEach(() => {
   process.env.NEAR_AI_API_KEY = "sk-test";
@@ -40,7 +40,7 @@ describe("analyst without NEAR AI credits", () => {
   it("falls back to a labelled template answer that is never verified", async () => {
     const events: AnalystEvent[] = [];
     await runAnalyst({
-      ctx: { user: null, supabase: null, demo: true, supabaseConfigured: false },
+      ctx: { user: { id: "u1", email: null }, supabase: null, supabaseConfigured: false },
       question: "What are my biggest financial risks?",
       conversationId: null,
       clientHistory: [],

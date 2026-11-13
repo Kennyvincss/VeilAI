@@ -21,7 +21,7 @@ interface TrackedWallet {
 export function WalletManager({ onChange }: { onChange?: () => void }) {
   const { status } = useAppStatus();
   const signedIn = status.session.signedIn;
-  const { data, loading, reload } = useApi<{ demo: boolean; wallets: TrackedWallet[] }>("/api/wallet/tracked");
+  const { data, loading, reload } = useApi<{ wallets: TrackedWallet[] }>("/api/wallet/tracked");
   const wallet = useNearWallet(status.network);
   const [input, setInput] = useState("");
   const [label, setLabel] = useState("");
@@ -98,7 +98,7 @@ export function WalletManager({ onChange }: { onChange?: () => void }) {
         icon={<Wallet className="h-4 w-4" />}
         title="Tracked wallets"
         subtitle={`Public NEAR ${status.network} accounts · read-only`}
-        action={data?.demo ? <Badge tone="warning">Sample</Badge> : <Badge tone="neutral">{data?.wallets.length ?? 0} / 10</Badge>}
+        action={<Badge tone="neutral">{data?.wallets.length ?? 0} / 10</Badge>}
       />
 
       {/* Wallet connection */}
@@ -174,14 +174,12 @@ export function WalletManager({ onChange }: { onChange?: () => void }) {
                 {w.label && <div className="text-[0.7rem] text-subtle">{w.label}</div>}
               </div>
               <div className="flex shrink-0 items-center gap-1">
-                <Link href={`/dashboard/wallet-intelligence?account=${encodeURIComponent(w.accountId)}${data.demo ? "&sample=1" : ""}`} className="rounded-lg p-1.5 text-subtle hover:bg-black/[0.04] hover:text-text" aria-label={`Investigate ${w.accountId}`}>
+                <Link href={`/dashboard/wallet-intelligence?account=${encodeURIComponent(w.accountId)}`} className="rounded-lg p-1.5 text-subtle hover:bg-black/[0.04] hover:text-text" aria-label={`Investigate ${w.accountId}`}>
                   <ScanSearch className="h-4 w-4" />
                 </Link>
-                {!data.demo && (
-                  <button onClick={() => void remove(w)} className="rounded-lg p-1.5 text-subtle hover:bg-danger/10 hover:text-danger" aria-label={`Remove ${w.accountId}`}>
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
+                <button onClick={() => void remove(w)} className="rounded-lg p-1.5 text-subtle hover:bg-danger/10 hover:text-danger" aria-label={`Remove ${w.accountId}`}>
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             </li>
           ))}

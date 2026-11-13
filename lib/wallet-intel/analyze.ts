@@ -210,8 +210,10 @@ export function riskIndicators(
     out.push({
       id: "key-changes",
       severity: "info",
-      title: "Access keys were added recently",
-      evidence: keyAdds.slice(0, 3).map((t) => `ADD_KEY in ${t.hash.slice(0, 10)}… on ${dayKey(t.timestamp)}`),
+      title: "New access key added",
+      evidence: [
+        `A new key was added on ${keyAdds.slice(0, 3).map((t) => dayKey(t.timestamp)).join(", ")}. This is normal when you create the account, import it into a wallet or sign in to an app. If you didn't do any of those that day, check your keys in your wallet.`,
+      ],
       heuristic: true,
     });
   }
