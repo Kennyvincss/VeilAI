@@ -33,20 +33,28 @@ export function SourcesList({ sources, className }: { sources: DataSource[]; cla
   );
 }
 
+/** Sample-data label (when relevant) plus a collapsed "Data sources" section. */
 export function ProvenanceBar({ provenance }: { provenance: Provenance }) {
+  const hasDetails = provenance.sources.length > 0 || provenance.notes.length > 0;
   return (
-    <div className="space-y-2 rounded-xl border border-border bg-bg-2/40 p-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <ModeBadge mode={provenance.mode} />
-        <span className="text-[0.7rem] text-subtle">Generated {timeAgo(provenance.generatedAt)}</span>
-      </div>
-      <SourcesList sources={provenance.sources} />
-      {provenance.notes.length > 0 && (
-        <ul className="space-y-0.5 text-[0.7rem] leading-relaxed text-subtle">
-          {provenance.notes.map((n) => (
-            <li key={n}>• {n}</li>
-          ))}
-        </ul>
+    <div className="space-y-2">
+      <ModeBadge mode={provenance.mode} />
+      {hasDetails && (
+        <details className="group">
+          <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-[0.7rem] text-subtle hover:text-muted">
+            <Database className="h-3 w-3" aria-hidden /> Data sources · updated {timeAgo(provenance.generatedAt)}
+          </summary>
+          <div className="mt-2 space-y-2 rounded-xl border border-border bg-bg-2/40 p-3">
+            <SourcesList sources={provenance.sources} />
+            {provenance.notes.length > 0 && (
+              <ul className="space-y-0.5 text-[0.7rem] leading-relaxed text-subtle">
+                {provenance.notes.map((n) => (
+                  <li key={n}>• {n}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </details>
       )}
     </div>
   );

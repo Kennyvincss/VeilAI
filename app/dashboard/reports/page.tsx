@@ -216,11 +216,11 @@ function ReportPreview({ report, onDownload }: { report: FinancialReport; onDown
             )}
           </section>
         ))}
-        <section>
-          <h3 className="text-sm font-semibold">Data sources</h3>
+        <details className="group">
+          <summary className="cursor-pointer list-none text-sm font-semibold text-muted hover:text-text">Data sources</summary>
           <SourcesList className="mt-2" sources={report.sources} />
-          {report.sources.length === 0 && <p className="text-xs text-muted">Sample data only.</p>}
-        </section>
+          {report.sources.length === 0 && <p className="mt-2 text-xs text-muted">Sample data only.</p>}
+        </details>
         <section>
           <h3 className="text-sm font-semibold">Methodology</h3>
           <ul className="mt-1.5 space-y-1 text-xs leading-relaxed text-muted">

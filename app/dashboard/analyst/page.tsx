@@ -13,7 +13,7 @@ import { Markdown } from "@/components/analyst/markdown";
 import { SourcesList } from "@/components/dashboard/sources";
 import { VerificationDetails } from "@/components/privacy/verification-details";
 import { Badge, Button, Card, Toggle } from "@/components/ui/primitives";
-import { ModeBadge, VerificationBadge } from "@/components/ui/status";
+import { ModeBadge } from "@/components/ui/status";
 import { cn, timeAgo } from "@/lib/utils/format";
 import { looksLikeSecret } from "@/lib/near/account";
 import type { ChatAction } from "@/lib/ai/actions";
@@ -28,12 +28,6 @@ interface UiMessage extends ChatMessage {
   error?: string;
   action?: ChatAction;
 }
-
-const STEPS: { state: VerificationState; label: string }[] = [
-  { state: "initialising", label: "Initialising" },
-  { state: "processing", label: "Processing in TEE" },
-  { state: "verifying", label: "Verifying attestation" },
-];
 
 export default function AnalystPage() {
   const { status } = useAppStatus();
@@ -275,38 +269,25 @@ export default function AnalystPage() {
 
 function AssistantMessage({ m }: { m: UiMessage }) {
   const v: VerificationResult | null | undefined = m.meta?.verification;
-  const currentStep = m.status?.state;
+  const hasSources = Boolean(m.meta?.sources && m.meta.sources.length > 0);
+  const hasDetails = !m.pending && (v || hasSources || (m.notes && m.notes.length > 0) || m.meta?.proofToken || m.inference === "near-ai");
   return (
     <div className="min-w-0 max-w-[92%] flex-1 space-y-3">
-      <div className="flex flex-wrap items-center gap-1.5">
-        {m.meta?.mode && <ModeBadge mode={m.meta.mode} />}
-        {m.inference === "demo-template" && <Badge tone="warning">Template response · not NEAR AI</Badge>}
-        {m.inference === "near-ai" && <Badge tone="accent">NEAR AI · {m.meta?.model}</Badge>}
-        {m.meta?.e2ee && (
-          <Badge tone="blue">
-            <Lock className="h-3 w-3" /> E2EE
-          </Badge>
-        )}
-        {v && <VerificationBadge state={v.state} />}
-      </div>
+      {(m.meta?.mode === "demo" || m.inference === "demo-template") && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {m.meta?.mode && <ModeBadge mode={m.meta.mode} />}
+          {m.inference === "demo-template" && <Badge tone="warning">Sample answer</Badge>}
+        </div>
+      )}
 
       {m.pending && !m.content && (
-        <div className="rounded-2xl border border-border bg-bg-2/50 p-4">
-          <ol className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
-            {STEPS.map((s) => {
-              const idx = STEPS.findIndex((x) => x.state === currentStep);
-              const mine = STEPS.findIndex((x) => x.state === s.state);
-              const active = mine === idx;
-              const done = mine < idx;
-              return (
-                <li key={s.state} className={cn("flex items-center gap-1.5", active ? "text-text" : done ? "text-success" : "text-subtle")}>
-                  <span className={cn("h-1.5 w-1.5 rounded-full", active ? "bg-accent animate-pulse-soft" : done ? "bg-success" : "bg-subtle")} />
-                  {s.label}
-                </li>
-              );
-            })}
-          </ol>
-          <p className="mt-2 text-[0.7rem] text-subtle">{m.status?.message}</p>
+        <div className="inline-flex items-center gap-2 rounded-2xl rounded-tl-md border border-border bg-bg-2/50 px-4 py-3 text-sm text-muted" role="status">
+          <span className="flex gap-1" aria-hidden>
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent-2" />
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent-2 [animation-delay:150ms]" />
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent-2 [animation-delay:300ms]" />
+          </span>
+          Thinking privately…
         </div>
       )}
 
@@ -325,34 +306,38 @@ function AssistantMessage({ m }: { m: UiMessage }) {
         </p>
       )}
 
-      {m.pending && m.content && m.status?.state === "verifying" && (
-        <p className="flex items-center gap-1.5 text-[0.7rem] text-accent-2">
-          <ShieldCheck className="h-3.5 w-3.5" /> {m.status.message}
-        </p>
-      )}
-
-      {!m.pending && m.meta?.sources && m.meta.sources.length > 0 && (
-        <div>
-          <div className="mb-1 text-[0.65rem] font-semibold uppercase tracking-wider text-subtle">Sources</div>
-          <SourcesList sources={m.meta.sources} />
-        </div>
-      )}
-      {!m.pending && m.notes && m.notes.length > 0 && (
-        <ul className="text-[0.68rem] text-subtle">
-          {m.notes.map((n) => (
-            <li key={n}>• {n}</li>
-          ))}
-        </ul>
-      )}
-      {!m.pending && m.meta?.proofToken && <ShareProof token={m.meta.proofToken} />}
-
-      {v && (
-        <details className="group rounded-xl border border-border bg-bg-2/30 p-3">
-          <summary className="flex cursor-pointer list-none items-center gap-2 text-xs text-muted hover:text-text">
-            <ShieldCheck className="h-3.5 w-3.5 text-accent-strong" /> Verification details
+      {hasDetails && (
+        <details className="group">
+          <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-[0.7rem] text-subtle hover:text-muted">
+            <ShieldCheck className={cn("h-3.5 w-3.5", v?.state === "verified" ? "text-success" : "text-subtle")} />
+            {v?.state === "verified" ? "Private · verified" : "Privacy details"}
           </summary>
-          <div className="mt-3">
-            <VerificationDetails result={v} compact />
+          <div className="mt-2 space-y-3 rounded-xl border border-border bg-bg-2/30 p-3">
+            {m.inference === "near-ai" && (
+              <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted">
+                Answered by NEAR AI <span className="font-mono">{m.meta?.model}</span>
+                {m.meta?.e2ee && (
+                  <>
+                    · <Lock className="h-3 w-3" /> end-to-end encrypted
+                  </>
+                )}
+              </p>
+            )}
+            {hasSources && (
+              <div>
+                <div className="mb-1 text-[0.65rem] font-semibold uppercase tracking-wider text-subtle">Sources</div>
+                <SourcesList sources={m.meta!.sources!} />
+              </div>
+            )}
+            {m.notes && m.notes.length > 0 && (
+              <ul className="text-[0.68rem] text-subtle">
+                {m.notes.map((n) => (
+                  <li key={n}>• {n}</li>
+                ))}
+              </ul>
+            )}
+            {m.meta?.proofToken && <ShareProof token={m.meta.proofToken} />}
+            {v && <VerificationDetails result={v} compact />}
           </div>
         </details>
       )}

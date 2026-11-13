@@ -250,7 +250,7 @@ function PrivacyStatusCard() {
   const last = history.data?.entries[0];
   return (
     <Card>
-      <CardHeader icon={<ShieldCheck className="h-4 w-4" />} title="Privacy processing status" subtitle="NEAR AI Cloud · TEE" />
+      <CardHeader icon={<ShieldCheck className="h-4 w-4" />} title="Privacy processing status" subtitle="Your AI runs in secure hardware" />
       <dl className="space-y-2 text-xs">
         <Row k="End-to-end encryption" v={status.nearAi.e2ee ? <Badge tone="accent">Enabled</Badge> : <Badge tone="warning">Off</Badge>} />
         <Row k="Stored data" v={<Badge tone="success">Encrypted · owner-only</Badge>} />
