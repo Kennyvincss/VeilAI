@@ -331,7 +331,7 @@ export function SwapPanel({ accountId, overview, onPlan }: { accountId: string; 
         {tokens.data?.reason === "testnet" ? (
           <EmptyState icon={<ArrowDownUp className="h-5 w-5" />} title="Swaps run on NEAR mainnet only" description="NEAR Intents doesn't operate on testnet. Send, receive and staking work here with free test NEAR." />
         ) : (
-          <EmptyState icon={<ArrowDownUp className="h-5 w-5" />} title="Swaps are temporarily unavailable" description="Send, receive and staking still work. Please check back soon." />
+          <EmptyState icon={<ArrowDownUp className="h-5 w-5" />} title="Swaps are coming soon" description="Swap tokens across chains through NEAR Intents, right here. Meanwhile, send, receive and staking all work." />
         )}
       </Card>
     );
