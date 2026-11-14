@@ -10,6 +10,7 @@ import { explorerTx } from "@/components/wallet/review-dialog";
 import { notify } from "@/components/notifications/notification-center";
 import { cn } from "@/lib/utils/format";
 import { creationMessage, newAccountNameProblem } from "@/lib/username-rules";
+import { RecoveryBackup } from "@/components/wallet/recovery-backup";
 
 /** GET /api/near-account */
 export interface NearAccountOffer {
@@ -26,6 +27,8 @@ type Step = "preparing" | "name" | "phrase" | "confirm" | "creating" | "done";
 interface Generated {
   seedPhrase: string;
   publicKey: string;
+  /** "ed25519:..." secret key, kept only in this component's memory. */
+  privateKey: string;
   sign: (bytes: Uint8Array) => Uint8Array;
 }
 
@@ -147,7 +150,7 @@ export function NearAccountSetup({
     import("near-api-js/seed-phrase").then(({ generateSeedPhrase }) => {
       if (cancelled) return;
       const { seedPhrase, keyPair } = generateSeedPhrase();
-      setGen({ seedPhrase, publicKey: keyPair.getPublicKey().toString(), sign: (b) => keyPair.sign(b).signature });
+      setGen({ seedPhrase, publicKey: keyPair.getPublicKey().toString(), privateKey: keyPair.toString(), sign: (b) => keyPair.sign(b).signature });
       setStep("phrase");
     });
     return () => {
@@ -159,7 +162,7 @@ export function NearAccountSetup({
     setError(null);
     const { generateSeedPhrase } = await import("near-api-js/seed-phrase");
     const { seedPhrase, keyPair } = generateSeedPhrase();
-    setGen({ seedPhrase, publicKey: keyPair.getPublicKey().toString(), sign: (b) => keyPair.sign(b).signature });
+    setGen({ seedPhrase, publicKey: keyPair.getPublicKey().toString(), privateKey: keyPair.toString(), sign: (b) => keyPair.sign(b).signature });
     setStep("phrase");
   }
 
@@ -238,7 +241,7 @@ export function NearAccountSetup({
           <div className="flex gap-3 rounded-xl border border-warning/30 bg-warning/[0.07] p-3.5 text-sm text-warning/90">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
             <p>
-              <strong className="font-semibold text-warning">Write these 12 words on paper, in order.</strong> They are the only way to use or recover {clean}.{suffix}. Anyone with them controls your money. VEIL AI can&apos;t show them again and will never ask for them.
+              <strong className="font-semibold text-warning">Save these 12 words now, in order.</strong> They are the only way to use or recover {clean}.{suffix}, and anyone with them controls your money. This is the only time they are shown: VEIL AI never stores them, so it can&apos;t show them again.
             </p>
           </div>
           <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3" aria-label="Recovery phrase">
@@ -248,9 +251,10 @@ export function NearAccountSetup({
               </li>
             ))}
           </ol>
+          <RecoveryBackup accountId={`${clean}.${suffix}`} network={network} words={words} privateKey={gen.privateKey} publicKey={gen.publicKey} />
           <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-sm">
             <input type="checkbox" checked={wroteDown} onChange={(e) => setWroteDown(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[var(--color-accent)]" />
-            <span className="text-muted">I wrote down all 12 words and stored them somewhere safe and offline. No screenshots.</span>
+            <span className="text-muted">I saved all 12 words somewhere safe and offline (paper, a printed copy or a file on a USB stick). No screenshots.</span>
           </label>
           <Button
             className="mt-4 w-full"
@@ -261,14 +265,14 @@ export function NearAccountSetup({
               setStep("confirm");
             }}
           >
-            <PenLine className="h-4 w-4" /> I&apos;ve written it down
+            <PenLine className="h-4 w-4" /> I&apos;ve saved them
           </Button>
         </div>
       )}
 
       {(step === "confirm" || step === "creating") && gen && (
         <div>
-          <p className="text-sm text-muted">Check your paper copy: pick each word.</p>
+          <p className="text-sm text-muted">Check your saved copy: pick each word.</p>
           <div className="mt-4 space-y-4">
             {quiz.map((q) => (
               <div key={q.index}>

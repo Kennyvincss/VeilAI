@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   const limited = limitOrNull(`defi-quote:${clientIp(req)}`, { limit: 30, windowMs: 5 * 60_000 });
   if (limited) return limited;
   const availability = swapAvailability();
-  if (!availability.available) return jsonError(503, availability.reason === "testnet" ? "Swaps run on NEAR mainnet only." : "Swaps are temporarily unavailable.");
+  if (!availability.available) return jsonError(503, availability.reason === "testnet" ? "Swaps run on NEAR mainnet only." : "Swaps are coming soon.");
   try {
     const parsed = quoteSchema.safeParse(await readJson(req));
     if (!parsed.success) return jsonError(400, firstIssue(parsed.error));

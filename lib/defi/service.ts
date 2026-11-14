@@ -6,6 +6,7 @@ import {
   ftMetadata,
   poolAccount,
   poolFee,
+  rewardInputs,
   storageBalanceBounds,
   storageBalanceOf,
   viewAccount,
@@ -215,11 +216,38 @@ export async function prepareSend(input: { from: string; to: string; token: stri
 /* Stake                                                               */
 /* ------------------------------------------------------------------ */
 
-let validatorCache: { at: number; list: { poolId: string; stakeNear: number; feePct: number | null }[] } | null = null;
+export interface ValidatorRow {
+  poolId: string;
+  stakeNear: number;
+  feePct: number | null;
+  /** Estimated yearly reward for delegators after this validator's fee, in %. */
+  aprPct: number | null;
+}
 
-export async function validators() {
-  if (validatorCache && Date.now() - validatorCache.at < 30 * 60_000) return validatorCache.list;
-  const current = await currentValidators();
+let validatorCache: { at: number; list: ValidatorRow[]; networkAprPct: number | null } | null = null;
+
+/**
+ * Estimated staking reward before validator fees, in % a year, from live
+ * protocol data: yearly inflation × share paid to validators × total
+ * supply ÷ total stake of the current validators. An estimate: actual
+ * rewards also depend on each validator's uptime and the network changing.
+ */
+export function networkApr(inputs: { inflation: number; treasuryShare: number; totalSupplyYocto: bigint }, totalStakedYocto: bigint): number | null {
+  if (totalStakedYocto <= BigInt(0)) return null;
+  const ratio = Number((inputs.totalSupplyYocto * BigInt(1_000_000)) / totalStakedYocto) / 1_000_000;
+  const pct = inputs.inflation * (1 - inputs.treasuryShare) * ratio * 100;
+  return Number.isFinite(pct) && pct > 0 && pct < 100 ? Math.round(pct * 100) / 100 : null;
+}
+
+export async function validators(): Promise<ValidatorRow[]> {
+  return (await stakingOverview()).validators;
+}
+
+export async function stakingOverview(): Promise<{ validators: ValidatorRow[]; networkAprPct: number | null }> {
+  if (validatorCache && Date.now() - validatorCache.at < 30 * 60_000) return { validators: validatorCache.list, networkAprPct: validatorCache.networkAprPct };
+  const [current, inputs] = await Promise.all([currentValidators(), rewardInputs().catch(() => null)]);
+  const totalStaked = current.reduce((t, v) => t + BigInt(v.stake), BigInt(0));
+  const gross = inputs ? networkApr(inputs, totalStaked) : null;
   const top = current
     .filter((v) => !v.is_slashed && STAKING_POOL_RE.test(v.account_id))
     .sort((a, b) => (BigInt(b.stake) > BigInt(a.stake) ? 1 : -1))
@@ -227,15 +255,17 @@ export async function validators() {
   const list = await Promise.all(
     top.map(async (v) => {
       const fee = await poolFee(v.account_id);
+      const feePct = fee ? Math.round((fee.numerator / fee.denominator) * 10_000) / 100 : null;
       return {
         poolId: v.account_id,
         stakeNear: Number(fromBaseUnits(v.stake, NEAR_DECIMALS, 0)),
-        feePct: fee ? Math.round((fee.numerator / fee.denominator) * 10_000) / 100 : null,
+        feePct,
+        aprPct: gross !== null && feePct !== null ? Math.round(gross * (1 - feePct / 100) * 100) / 100 : null,
       };
     }),
   );
-  validatorCache = { at: Date.now(), list };
-  return list;
+  validatorCache = { at: Date.now(), list, networkAprPct: gross };
+  return { validators: list, networkAprPct: gross };
 }
 
 export async function stakingPositions(accountId: string) {

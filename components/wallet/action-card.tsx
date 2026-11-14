@@ -91,7 +91,7 @@ export function ActionCard({ action }: { action: ChatAction }) {
       }
       case "swap": {
         if (!swap.data) return { ready: false, problem: swap.error ?? undefined };
-        if (!swap.data.available) return { ready: false, problem: swap.data.reason === "testnet" ? "Swaps run on NEAR mainnet only." : "Swaps are temporarily unavailable." };
+        if (!swap.data.available) return { ready: false, problem: swap.data.reason === "testnet" ? "Swaps run on NEAR mainnet only." : "Swaps are coming soon." };
         const find = (sym: string) => {
           if (sym === "NEAR") return swap.data!.tokens.filter((t) => t.contractId === "near");
           return swap.data!.tokens.filter((t) => t.symbol.toUpperCase() === sym);

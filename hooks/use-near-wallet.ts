@@ -83,11 +83,14 @@ export interface OwnershipProof {
 export function useNearWallet(network: "mainnet" | "testnet") {
   const [accountId, setAccountId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  /** True until we know whether a wallet connection was restored (max ~4 s). */
+  const [restoring, setRestoring] = useState(true);
   const mounted = useRef(true);
 
   useEffect(() => {
     mounted.current = true;
     let cancelled = false;
+    const giveUp = setTimeout(() => !cancelled && setRestoring(false), 4000);
     getConnector(network)
       .then(async (c) => {
         c.on("wallet:signOut", () => !cancelled && setAccountId(null));
@@ -99,9 +102,14 @@ export function useNearWallet(network: "mainnet" | "testnet") {
           /* not connected */
         }
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => {
+        clearTimeout(giveUp);
+        if (!cancelled) setRestoring(false);
+      });
     return () => {
       cancelled = true;
+      clearTimeout(giveUp);
       mounted.current = false;
     };
   }, [network]);
@@ -182,5 +190,5 @@ export function useNearWallet(network: "mainnet" | "testnet") {
     setAccountId(null);
   }, [network]);
 
-  return { accountId, busy, connect, connectWithProof, disconnect, signAndSend };
+  return { accountId, busy, restoring, connect, connectWithProof, disconnect, signAndSend };
 }

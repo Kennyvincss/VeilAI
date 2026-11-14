@@ -331,7 +331,7 @@ export function SwapPanel({ accountId, overview, onPlan }: { accountId: string; 
         {tokens.data?.reason === "testnet" ? (
           <EmptyState icon={<ArrowDownUp className="h-5 w-5" />} title="Swaps run on NEAR mainnet only" description="NEAR Intents doesn't operate on testnet. Send, receive and staking work here with free test NEAR." />
         ) : (
-          <EmptyState icon={<ArrowDownUp className="h-5 w-5" />} title="Swaps are temporarily unavailable" description="Send, receive and staking still work. Please check back soon." />
+          <EmptyState icon={<ArrowDownUp className="h-5 w-5" />} title="Swaps are coming soon" description="Swap tokens across chains through NEAR Intents, right here. Meanwhile, send, receive and staking all work." />
         )}
       </Card>
     );
@@ -484,7 +484,9 @@ export function SwapTracker({ depositAddress, onClose }: { depositAddress: strin
 /* ------------------------------------------------------------------ */
 
 interface StakeData {
-  validators: { poolId: string; stakeNear: number; feePct: number | null }[];
+  validators: { poolId: string; stakeNear: number; feePct: number | null; aprPct?: number | null }[];
+  /** Estimated network staking reward before validator fees, % a year. */
+  networkAprPct?: number | null;
   positions: { poolId: string; staked: string; stakedExact?: string; unstaked: string; stakedYocto: string; unstakedYocto: string; canWithdraw: boolean }[];
 }
 
@@ -561,6 +563,16 @@ export function StakePanel({
                     <div className="truncate font-mono text-xs">{p.poolId}</div>
                     <div className="mt-0.5 text-xs text-muted">
                       Staked <span className="font-mono text-text">{p.staked}</span> NEAR
+                      {(() => {
+                        const apr = data.data?.validators.find((v) => v.poolId === p.poolId)?.aprPct ?? data.data?.networkAprPct ?? null;
+                        const n = Number(p.stakedExact ?? p.staked);
+                        return apr != null && n > 0 ? (
+                          <span className="text-success">
+                            {" "}
+                            · earning ≈ {apr}% a year (≈ <span className="font-mono">{(n * apr) / 100 < 0.01 ? ((n * apr) / 100).toFixed(4) : ((n * apr) / 100).toFixed(2)}</span> NEAR)
+                          </span>
+                        ) : null;
+                      })()}
                       {p.unstakedYocto !== "0" && (
                         <>
                           {" "}
@@ -610,6 +622,11 @@ export function StakePanel({
 
       {viewOnly ? (
         <Card className="text-center">
+          {data.data?.networkAprPct != null && (
+            <p className="mb-2 text-sm text-text">
+              Staking earns <span className="font-mono font-semibold text-success">≈ {data.data.networkAprPct}% a year</span> before the validator&apos;s fee, paid by the NEAR network.
+            </p>
+          )}
           <p className="text-sm text-muted">To stake, unstake or withdraw, connect {accountId}. Your wallet approves each step.</p>
           <Button className="mt-3" onClick={onConnect}>
             Connect {accountId}
@@ -624,18 +641,19 @@ export function StakePanel({
         ) : (
           <form onSubmit={stake} className="space-y-4" noValidate>
             <div>
-              <Label htmlFor="stake-pool" hint={selected?.feePct != null ? `Fee ${selected.feePct}% of rewards` : undefined}>
+              <Label htmlFor="stake-pool" hint={selected?.aprPct != null ? `≈ ${selected.aprPct}% a year` : selected?.feePct != null ? `Fee ${selected.feePct}% of rewards` : undefined}>
                 Validator
               </Label>
               <select id="stake-pool" value={pool} onChange={(e) => setPool(e.target.value)} className="h-11 w-full rounded-xl border border-border-strong bg-bg-2 px-3 text-sm text-text focus:border-accent/60 focus:outline-none">
                 {(data.data?.validators ?? []).map((v) => (
                   <option key={v.poolId} value={v.poolId}>
-                    {v.poolId} · fee {v.feePct ?? "?"}% · {Intl.NumberFormat("en", { notation: "compact" }).format(v.stakeNear)} NEAR staked
+                    {v.poolId} · {v.aprPct != null ? `≈ ${v.aprPct}%/yr · ` : ""}fee {v.feePct ?? "?"}% · {Intl.NumberFormat("en", { notation: "compact" }).format(v.stakeNear)} NEAR staked
                   </option>
                 ))}
               </select>
               <p className="mt-1 text-[0.68rem] text-subtle">Top validators by total stake. Lower fees mean more rewards for you; spreading stake across validators supports decentralisation.</p>
             </div>
+            {selected?.aprPct != null && <RewardEstimate aprPct={selected.aprPct} networkAprPct={data.data?.networkAprPct ?? null} feePct={selected.feePct} amount={amount} />}
             <div>
               <Label htmlFor="stake-amount" hint={`Available: ${overview?.near.spendable ?? "0"} NEAR`}>
                 Amount
@@ -651,6 +669,29 @@ export function StakePanel({
         )}
       </Card>
       )}
+    </div>
+  );
+}
+
+/** Estimated yearly reward for the chosen validator, from live NEAR network data. */
+function RewardEstimate({ aprPct, networkAprPct, feePct, amount }: { aprPct: number; networkAprPct: number | null; feePct: number | null; amount: string }) {
+  const n = Number(amount);
+  const yearly = Number.isFinite(n) && n > 0 ? (n * aprPct) / 100 : null;
+  return (
+    <div className="rounded-2xl border border-success/25 bg-success/[0.06] p-4">
+      <div className="flex flex-wrap items-baseline gap-x-2">
+        <span className="text-xs font-semibold text-text">Estimated reward</span>
+        <span className="font-mono text-lg font-semibold text-success">≈ {aprPct}% a year</span>
+        {yearly !== null && (
+          <span className="text-xs text-muted">
+            ≈ <span className="font-mono text-text">{yearly < 0.01 ? yearly.toFixed(4) : yearly.toFixed(2)}</span> NEAR a year on {amount} NEAR
+          </span>
+        )}
+      </div>
+      <p className="mt-1.5 text-[0.72rem] leading-relaxed text-muted">
+        Paid by the NEAR network and added to your stake about every 12 hours. {networkAprPct != null && <>Network rate ≈ {networkAprPct}%{feePct != null ? `, minus this validator's ${feePct}% fee` : ""}. </>}
+        An estimate from live network data: the real rate moves with total stake and validator uptime. VEIL AI takes nothing.
+      </p>
     </div>
   );
 }
