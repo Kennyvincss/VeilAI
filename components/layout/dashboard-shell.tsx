@@ -75,7 +75,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "group flex items-center gap-3 rounded-xl px-3 py-2 text-[0.85rem] transition-all",
-                    active ? "bg-white/[0.08] font-medium text-text ring-1 ring-border" : "text-muted hover:bg-white/[0.06] hover:text-text",
+                    active ? "bg-white font-medium text-text shadow-[0_1px_2px_rgba(18,52,40,0.06)] ring-1 ring-border" : "text-muted hover:bg-black/[0.04] hover:text-text",
                   )}
                 >
                   <Icon className={cn("h-4 w-4", active ? "text-text" : "text-subtle group-hover:text-muted")} />
@@ -116,7 +116,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <NotificationPoller />
       <div className="lg:app-window flex min-h-screen flex-col lg:h-full lg:min-h-0 lg:flex-row lg:overflow-hidden lg:rounded-[30px]">
         {/* Desktop sidebar (inside the window) */}
-        <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-black/25 px-3 py-5 lg:flex">
+        <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-bg-2 px-3 py-5 lg:flex">
           <Link href="/" className="mb-7 px-3" aria-label="VEIL AI home">
             <Logo />
           </Link>
@@ -131,7 +131,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </Link>
             <div className="flex items-center gap-1">
               <NotificationBell />
-              <button className="rounded-full p-2 text-muted hover:bg-white/[0.06] hover:text-text" onClick={() => setOpen(true)} aria-label="Open navigation">
+              <button className="rounded-full p-2 text-muted hover:bg-black/[0.04] hover:text-text" onClick={() => setOpen(true)} aria-label="Open navigation">
                 <Menu className="h-5 w-5" />
               </button>
             </div>
@@ -140,7 +140,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         <AnimatePresence>
           {open && (
             <>
-              <motion.div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} />
+              <motion.div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px] lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} />
               <motion.aside
                 className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-bg-2 px-3 py-5 lg:hidden"
                 initial={{ x: -300 }}
@@ -153,7 +153,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               >
                 <div className="mb-7 flex items-center justify-between px-3">
                   <Logo />
-                  <button onClick={() => setOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-white/[0.06] hover:text-text" aria-label="Close navigation">
+                  <button onClick={() => setOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-black/[0.04] hover:text-text" aria-label="Close navigation">
                     <X className="h-5 w-5" />
                   </button>
                 </div>

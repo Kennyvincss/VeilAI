@@ -8,11 +8,11 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "outline" | "white
 type Size = "sm" | "md" | "lg" | "icon";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-accent text-white shadow-[0_10px_26px_-12px_rgba(226,115,63,0.8)] hover:bg-[#ee8350] active:bg-[#cf6533]",
-  secondary: "bg-white/[0.04] text-text border border-border-strong hover:bg-white/[0.08]",
-  outline: "bg-transparent text-text border border-border-strong hover:bg-white/[0.05]",
-  ghost: "bg-transparent text-muted hover:text-text hover:bg-white/[0.06]",
-  white: "bg-white text-[#16120f] shadow-[0_10px_26px_-14px_rgba(255,255,255,0.5)] hover:bg-[#f1ebe5]",
+  primary: "bg-accent text-white shadow-[0_10px_22px_-12px_rgba(28,70,54,0.7)] hover:bg-[#245a46] active:bg-[#163a2c]",
+  secondary: "bg-card text-text border border-border-strong shadow-[0_1px_2px_rgba(18,52,40,0.05)] hover:bg-card-2",
+  outline: "bg-transparent text-text border border-border-strong hover:bg-black/[0.03]",
+  ghost: "bg-transparent text-muted hover:text-text hover:bg-black/[0.04]",
+  white: "bg-white text-accent shadow-[0_10px_26px_-14px_rgba(0,0,0,0.35)] hover:bg-[#eef3f0]",
   danger: "bg-danger/10 text-danger border border-danger/30 hover:bg-danger/20",
 };
 const sizes: Record<Size, string> = {

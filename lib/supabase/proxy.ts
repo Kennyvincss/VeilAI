@@ -7,23 +7,33 @@ import { NextResponse, type NextRequest } from "next/server";
  */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return { response, userId: null as string | null, configured: false };
+  const url = validUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  if (!url || !key)
+    return { response, userId: null as string | null, configured: false };
 
-  const supabase = createServerClient(url, key, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
+  let supabase: ReturnType<typeof createServerClient>;
+  try {
+    supabase = createServerClient(url, key, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet, headers) {
+          for (const { name, value } of cookiesToSet)
+            request.cookies.set(name, value);
+          response = NextResponse.next({ request });
+          for (const { name, value, options } of cookiesToSet)
+            response.cookies.set(name, value, options);
+          for (const [k, v] of Object.entries(headers ?? {}))
+            response.headers.set(k, v);
+        },
       },
-      setAll(cookiesToSet, headers) {
-        for (const { name, value } of cookiesToSet) request.cookies.set(name, value);
-        response = NextResponse.next({ request });
-        for (const { name, value, options } of cookiesToSet) response.cookies.set(name, value, options);
-        for (const [k, v] of Object.entries(headers ?? {})) response.headers.set(k, v);
-      },
-    },
-  });
+    });
+  } catch {
+    // A misconfigured Supabase setting must never take the whole site down.
+    return { response, userId: null as string | null, configured: false };
+  }
 
   // getUser() revalidates the token with Supabase Auth.
   let userId: string | null = null;
@@ -34,4 +44,16 @@ export async function updateSession(request: NextRequest) {
     userId = null;
   }
   return { response, userId, configured: true };
+}
+
+/** The Supabase URL if it is a well-formed http(s) URL, else null. */
+function validUrl(raw: string | undefined): string | null {
+  const v = raw?.trim();
+  if (!v) return null;
+  try {
+    const u = new URL(v);
+    return u.protocol === "https:" || u.protocol === "http:" ? v : null;
+  } catch {
+    return null;
+  }
 }

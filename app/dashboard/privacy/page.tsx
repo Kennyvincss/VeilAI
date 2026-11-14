@@ -310,7 +310,7 @@ function SummaryCard(props: {
     accent: "border-accent/30 bg-[radial-gradient(ellipse_at_top_left,rgba(207,195,255,0.45),transparent_60%)]",
     neutral: "border-border",
   }[tone];
-  const iconTone = { success: "bg-success/15 text-success", danger: "bg-danger/15 text-danger", warning: "bg-warning/15 text-warning", accent: "bg-accent/15 text-accent-strong", neutral: "bg-white/[0.06] text-muted" }[tone];
+  const iconTone = { success: "bg-success/15 text-success", danger: "bg-danger/15 text-danger", warning: "bg-warning/15 text-warning", accent: "bg-accent/15 text-accent-strong", neutral: "bg-black/[0.04] text-muted" }[tone];
 
   const verified = !running && result?.state === "verified";
 

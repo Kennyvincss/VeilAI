@@ -11,10 +11,10 @@ export function LogoMark({ className }: { className?: string }) {
       <defs>
         <linearGradient id={gid} x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
           <stop stopColor="#FFFFFF" />
-          <stop offset="1" stopColor="#FFB07F" />
+          <stop offset="1" stopColor="#BFE3D0" />
         </linearGradient>
       </defs>
-      <rect x="1.5" y="1.5" width="29" height="29" rx="9" fill="#1A1411" stroke="#E2733F" strokeOpacity="0.55" />
+      <rect x="1" y="1" width="30" height="30" rx="9" fill="#1C4636" />
       <path d="M8 11.5 16 24l8-12.5" stroke={`url(#${gid})`} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M10.5 9.5c3.4-1.6 7.6-1.6 11 0" stroke={`url(#${gid})`} strokeWidth="1.6" strokeLinecap="round" opacity="0.65" />
       <circle cx="16" cy="15" r="1.7" fill="#fff" />

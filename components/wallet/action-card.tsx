@@ -142,7 +142,7 @@ export function ActionCard({ action }: { action: ChatAction }) {
   return (
     <div className="rounded-3xl border border-lavender/35 bg-lavender/10 p-4">
       <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-accent-strong">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-black/[0.04] text-accent-strong">
           <Icon className="h-4 w-4" />
         </div>
         <div className="min-w-0 flex-1">

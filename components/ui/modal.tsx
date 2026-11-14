@@ -59,7 +59,7 @@ export function Modal({
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-4">
-          <motion.div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => dismissible && onClose()} />
+          <motion.div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => dismissible && onClose()} />
           <motion.div
             ref={ref}
             role="dialog"
@@ -82,7 +82,7 @@ export function Modal({
                 {description && <p className="mt-1 text-sm text-muted">{description}</p>}
               </div>
               {dismissible && (
-                <button onClick={onClose} className="rounded-lg p-1.5 text-subtle hover:bg-white/[0.06] hover:text-text" aria-label="Close">
+                <button onClick={onClose} className="rounded-lg p-1.5 text-subtle hover:bg-black/[0.04] hover:text-text" aria-label="Close">
                   <X className="h-5 w-5" />
                 </button>
               )}
