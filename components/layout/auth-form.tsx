@@ -193,15 +193,15 @@ export function AuthForm({ mode, googleEnabled, nearSignup = null }: { mode: "lo
       <Link href="/" className="mb-10 inline-block" aria-label="VEIL AI home">
         <Logo />
       </Link>
-      <h1 className="text-2xl font-semibold tracking-tight">{heading}</h1>
-      <p className="mt-2 break-words text-sm text-muted">{sub}</p>
+      <h1 className="text-[1.7rem] font-bold tracking-tight text-text">{heading}</h1>
+      <p className="mt-2 break-words text-[0.95rem] text-text/75">{sub}</p>
 
       {!supabase ? (
         <div className="mt-8 rounded-2xl border border-warning/30 bg-warning/[0.06] p-5 text-sm">
           <div className="flex items-center gap-2 font-medium text-warning">
             <AlertTriangle className="h-4 w-4" /> Accounts are temporarily unavailable
           </div>
-          <p className="mt-2 leading-relaxed text-muted">Sign-in is not available right now. Please try again in a little while.</p>
+          <p className="mt-2 leading-relaxed text-text/80">Sign-in is not available right now. Please try again in a little while.</p>
         </div>
       ) : step === "code" ? (
         <form onSubmit={verifyCode} className="mt-8 space-y-4" noValidate>
@@ -322,7 +322,7 @@ export function AuthForm({ mode, googleEnabled, nearSignup = null }: { mode: "lo
                 <Label htmlFor="near-name" hint="Your NEAR wallet name">
                   NEAR name
                 </Label>
-                <div className="flex items-stretch overflow-hidden rounded-xl border border-border bg-bg-2 focus-within:border-border-strong focus-within:bg-card focus-within:ring-4 focus-within:ring-accent/20">
+                <div className="flex items-stretch overflow-hidden rounded-xl border border-border-strong bg-white focus-within:border-border-strong focus-within:bg-card focus-within:ring-4 focus-within:ring-accent/20">
                   <input
                     id="near-name"
                     value={nearName}
@@ -358,9 +358,9 @@ export function AuthForm({ mode, googleEnabled, nearSignup = null }: { mode: "lo
             <Button type="submit" size="lg" className="w-full" loading={loading} disabled={wantsNear && (Boolean(nameProblem) || nearName.length < 3 || shownName?.available === false)}>
               {mode === "login" ? "Sign in" : "Create account"} <ArrowRight className="h-4 w-4" />
             </Button>
-            {mode === "signup" && <p className="text-center text-[0.7rem] text-subtle">We&apos;ll email you a 6-digit code to verify your address.</p>}
+            {mode === "signup" && <p className="text-center text-xs text-muted">We&apos;ll email you a 6-digit code to verify your address.</p>}
           </form>
-          <p className="mt-6 text-center text-sm text-muted">
+          <p className="mt-6 text-center text-sm text-text/75">
             {mode === "login" ? "New to VEIL AI? " : "Already have an account? "}
             <Link href={mode === "login" ? "/signup" : "/login"} className="font-medium text-accent-strong hover:underline">
               {mode === "login" ? "Create an account" : "Sign in"}
@@ -368,7 +368,7 @@ export function AuthForm({ mode, googleEnabled, nearSignup = null }: { mode: "lo
           </p>
         </>
       )}
-      <p className="mt-8 text-center text-[0.7rem] leading-relaxed text-subtle">VEIL AI will never ask for your seed phrase or private keys.</p>
+      <p className="mt-8 text-center text-xs font-medium leading-relaxed text-muted">VEIL AI will never ask for your seed phrase or private keys.</p>
     </div>
   );
 }

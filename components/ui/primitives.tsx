@@ -136,7 +136,7 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
     <input
       ref={ref}
       className={cn(
-        "h-11 w-full rounded-xl border border-border bg-bg-2 px-3.5 text-sm text-text placeholder:text-subtle transition-colors focus:border-border-strong focus:bg-card focus:outline-none focus:ring-4 focus:ring-accent/20",
+        "h-11 w-full rounded-xl border border-border-strong bg-white px-3.5 text-sm text-text placeholder:text-subtle transition-colors focus:border-border-strong focus:bg-card focus:outline-none focus:ring-4 focus:ring-accent/20",
         className,
       )}
       {...props}
@@ -146,9 +146,9 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
 
 export function Label({ htmlFor, children, hint }: { htmlFor: string; children: ReactNode; hint?: ReactNode }) {
   return (
-    <label htmlFor={htmlFor} className="mb-1.5 flex items-center justify-between text-xs font-medium text-muted">
+    <label htmlFor={htmlFor} className="mb-1.5 flex items-center justify-between text-[0.8rem] font-semibold text-text">
       <span>{children}</span>
-      {hint && <span className="text-subtle">{hint}</span>}
+      {hint && <span className="font-normal text-muted">{hint}</span>}
     </label>
   );
 }

@@ -32,9 +32,12 @@ function getConnector(network: "mainnet" | "testnet"): Promise<NearConnector> {
   return connectorPromise;
 }
 
-/** MyNearWallet: a web wallet that opens in a browser tab, nothing to install. */
-export const WEB_WALLET_ID = "mynearwallet";
-export const WEB_WALLET_URL = { mainnet: "https://app.mynearwallet.com", testnet: "https://testnet.mynearwallet.com" } as const;
+/** Meteor Wallet: a web wallet that opens in a browser tab, nothing to install. */
+export const WEB_WALLET_ID = "meteor-wallet";
+export const WEB_WALLET_NAME = "Meteor Wallet";
+export const WEB_WALLET_URL = { mainnet: "https://wallet.meteorwallet.app", testnet: "https://wallet.meteorwallet.app" } as const;
+/** Second web wallet to suggest if the first one has trouble. */
+export const ALT_WEB_WALLET = { id: "intear-wallet", name: "Intear Wallet", url: "https://wallet.intear.tech" } as const;
 
 export interface PlannedTx {
   receiverId: string;

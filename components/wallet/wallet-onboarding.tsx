@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils/format";
 
 /** Consumer wallets we suggest, in order. Data (links, icons) comes from the official manifest at runtime. */
 // Web wallets first: they open in a browser tab, nothing to install.
-const SUGGESTED = ["mynearwallet", "meteor-wallet", "hot-wallet", "intear-wallet", "near-mobile", "okx-wallet", "hana-wallet"];
+const SUGGESTED = ["meteor-wallet", "intear-wallet", "hot-wallet", "mynearwallet", "near-mobile", "okx-wallet", "hana-wallet"];
 
 /** Snapshot of the official manifest, used only if it can't be loaded. */
 const FALLBACK: ManifestWallet[] = [
@@ -126,9 +126,9 @@ export function WalletOnboarding({
           </div>
           <div className="mb-4 rounded-2xl border border-lavender/35 bg-lavender/10 p-4">
             <div className="text-sm font-semibold">Easiest: import on the web, nothing to install</div>
-            <p className="mt-1 text-xs leading-relaxed text-muted">MyNearWallet runs in your browser. Open it, choose “Import existing account”, type your 12 words there, then come back and connect.</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted">Meteor Wallet runs in your browser. Open it, choose “Import”, enter your 12 words there, then come back and connect.</p>
             <a href={WEB_WALLET_URL[network]} target="_blank" rel="noopener noreferrer" className={buttonClass("primary", "sm", "mt-3")}>
-              Open MyNearWallet <ExternalLink className="h-3.5 w-3.5" />
+              Open Meteor Wallet <ExternalLink className="h-3.5 w-3.5" />
             </a>
           </div>
           <ol className="mb-5 space-y-2 text-sm text-muted">
