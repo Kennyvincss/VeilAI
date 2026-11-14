@@ -6,7 +6,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <main id="main" className="grid min-h-screen lg:grid-cols-2">
       <div className="flex items-center justify-center px-4 py-12 sm:px-8">
-        <div className="w-full max-w-md rounded-[28px] bg-card/80 p-6 shadow-[0_30px_70px_-35px_rgba(0,0,0,0.8)] ring-1 ring-border backdrop-blur-xl sm:p-8 lg:bg-transparent lg:p-0 lg:shadow-none lg:ring-0 lg:backdrop-blur-none">
+        <div className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_30px_70px_-35px_rgba(10,40,30,0.5)] ring-1 ring-white/80 sm:p-9">
           <Suspense>{children}</Suspense>
         </div>
       </div>
