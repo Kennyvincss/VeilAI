@@ -620,55 +620,58 @@ export function StakePanel({
         <ErrorLine error={viewOnly ? null : pos.error} />
       </Card>
 
-      {viewOnly ? (
-        <Card className="text-center">
-          {data.data?.networkAprPct != null && (
-            <p className="mb-2 text-sm text-text">
-              Staking earns <span className="font-mono font-semibold text-success">≈ {data.data.networkAprPct}% a year</span> before the validator&apos;s fee, paid by the NEAR network.
-            </p>
+      <Card className="overflow-hidden p-0">
+        <div className="relative bg-[linear-gradient(135deg,#1f4b3b_0%,#163a2d_55%,#0e211a_100%)] px-5 py-5 text-white sm:px-6">
+          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em] text-white/70">
+            <Layers className="h-3.5 w-3.5" /> Stake NEAR
+          </div>
+          {data.data?.networkAprPct != null ? (
+            <>
+              <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span className="text-4xl font-semibold tracking-tight">≈ {data.data.networkAprPct}%</span>
+                <span className="text-sm text-white/80">a year, paid by the NEAR network</span>
+              </div>
+              <p className="mt-1.5 max-w-xl text-xs leading-relaxed text-white/70">Rewards are added to your stake about every 12 hours. Validators keep a small fee from rewards; VEIL AI takes nothing. You keep ownership.</p>
+            </>
+          ) : (
+            <p className="mt-2 text-sm text-white/85">Earn rewards by delegating NEAR to a validator. You keep ownership.</p>
           )}
-          <p className="text-sm text-muted">To stake, unstake or withdraw, connect {accountId}. Your wallet approves each step.</p>
-          <Button className="mt-3" onClick={onConnect}>
-            Connect {accountId}
-          </Button>
-        </Card>
-      ) : (
+        </div>
 
-      <Card>
-        <CardHeader icon={<Layers className="h-4 w-4" />} title="Stake NEAR" subtitle="Earn rewards by delegating to a validator. You keep ownership." />
-        {data.error ? (
-          <p className="text-sm text-muted">Validators couldn&apos;t be loaded right now. Please try again shortly.</p>
-        ) : (
-          <form onSubmit={stake} className="space-y-4" noValidate>
-            <div>
-              <Label htmlFor="stake-pool" hint={selected?.aprPct != null ? `≈ ${selected.aprPct}% a year` : selected?.feePct != null ? `Fee ${selected.feePct}% of rewards` : undefined}>
-                Validator
-              </Label>
-              <select id="stake-pool" value={pool} onChange={(e) => setPool(e.target.value)} className="h-11 w-full rounded-xl border border-border-strong bg-bg-2 px-3 text-sm text-text focus:border-accent/60 focus:outline-none">
-                {(data.data?.validators ?? []).map((v) => (
-                  <option key={v.poolId} value={v.poolId}>
-                    {v.poolId} · {v.aprPct != null ? `≈ ${v.aprPct}%/yr · ` : ""}fee {v.feePct ?? "?"}% · {Intl.NumberFormat("en", { notation: "compact" }).format(v.stakeNear)} NEAR staked
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-[0.68rem] text-subtle">Top validators by total stake. Lower fees mean more rewards for you; spreading stake across validators supports decentralisation.</p>
+        <div className="p-5 sm:p-6">
+          {data.error ? (
+            <p className="text-sm text-muted">Validators couldn&apos;t be loaded right now. Please try again shortly.</p>
+          ) : data.loading && !data.data ? (
+            <div className="space-y-2">
+              <Skeleton className="h-16" />
+              <Skeleton className="h-16" />
+              <Skeleton className="h-16" />
             </div>
-            {selected?.aprPct != null && <RewardEstimate aprPct={selected.aprPct} networkAprPct={data.data?.networkAprPct ?? null} feePct={selected.feePct} amount={amount} />}
-            <div>
-              <Label htmlFor="stake-amount" hint={`Available: ${overview?.near.spendable ?? "0"} NEAR`}>
-                Amount
-              </Label>
-              <AmountInput id="stake-amount" value={amount} onChange={setAmount} onMax={() => setAmount(overview?.near.spendable ?? "0")} suffix="NEAR" />
-            </div>
-            <ErrorLine error={error} />
-            <Button type="submit" className="w-full" loading={busy} disabled={!pool || !amount}>
-              Review stake
-            </Button>
-            <p className="text-center text-[0.68rem] text-subtle">Minimum 1 NEAR. Unstaking takes about 2–3 days before NEAR can be withdrawn.</p>
-          </form>
-        )}
+          ) : (
+            <form onSubmit={stake} className="space-y-5" noValidate>
+              <ValidatorPicker validators={data.data?.validators ?? []} value={pool} onChange={setPool} />
+              <div>
+                <Label htmlFor="stake-amount" hint={`Available: ${overview?.near.spendable ?? "0"} NEAR`}>
+                  Amount
+                </Label>
+                <AmountInput id="stake-amount" value={amount} onChange={setAmount} onMax={() => setAmount(overview?.near.spendable ?? "0")} suffix="NEAR" />
+              </div>
+              {selected?.aprPct != null && <RewardEstimate aprPct={selected.aprPct} networkAprPct={data.data?.networkAprPct ?? null} feePct={selected.feePct} amount={amount} />}
+              {!viewOnly && <ErrorLine error={error} />}
+              {viewOnly ? (
+                <Button type="button" className="w-full" size="lg" onClick={onConnect}>
+                  Connect {accountId} to stake
+                </Button>
+              ) : (
+                <Button type="submit" className="w-full" size="lg" loading={busy} disabled={!pool || !amount}>
+                  Review stake
+                </Button>
+              )}
+              <p className="text-center text-[0.72rem] text-muted">Minimum 1 NEAR. Unstaking takes about 2–3 days before NEAR can be withdrawn. Your wallet approves every step.</p>
+            </form>
+          )}
+        </div>
       </Card>
-      )}
     </div>
   );
 }
@@ -677,21 +680,113 @@ export function StakePanel({
 function RewardEstimate({ aprPct, networkAprPct, feePct, amount }: { aprPct: number; networkAprPct: number | null; feePct: number | null; amount: string }) {
   const n = Number(amount);
   const yearly = Number.isFinite(n) && n > 0 ? (n * aprPct) / 100 : null;
+  const fmt = (x: number) => (x < 0.01 ? x.toFixed(4) : x.toFixed(2));
   return (
-    <div className="rounded-2xl border border-success/25 bg-success/[0.06] p-4">
-      <div className="flex flex-wrap items-baseline gap-x-2">
-        <span className="text-xs font-semibold text-text">Estimated reward</span>
-        <span className="font-mono text-lg font-semibold text-success">≈ {aprPct}% a year</span>
-        {yearly !== null && (
-          <span className="text-xs text-muted">
-            ≈ <span className="font-mono text-text">{yearly < 0.01 ? yearly.toFixed(4) : yearly.toFixed(2)}</span> NEAR a year on {amount} NEAR
-          </span>
-        )}
+    <div className="rounded-2xl border border-success/30 bg-success/[0.07] p-4">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div>
+          <div className="text-[0.7rem] font-semibold uppercase tracking-wider text-muted">Your rate</div>
+          <div className="mt-0.5 font-mono text-xl font-bold text-success">≈ {aprPct}%</div>
+          <div className="text-[0.7rem] text-muted">a year, after fee</div>
+        </div>
+        <div>
+          <div className="text-[0.7rem] font-semibold uppercase tracking-wider text-muted">Per year</div>
+          <div className="mt-0.5 font-mono text-xl font-bold text-text">{yearly !== null ? `≈ ${fmt(yearly)}` : "—"}</div>
+          <div className="text-[0.7rem] text-muted">NEAR{yearly === null ? " · enter an amount" : ""}</div>
+        </div>
+        <div>
+          <div className="text-[0.7rem] font-semibold uppercase tracking-wider text-muted">Per month</div>
+          <div className="mt-0.5 font-mono text-xl font-bold text-text">{yearly !== null ? `≈ ${fmt(yearly / 12)}` : "—"}</div>
+          <div className="text-[0.7rem] text-muted">NEAR</div>
+        </div>
       </div>
-      <p className="mt-1.5 text-[0.72rem] leading-relaxed text-muted">
-        Paid by the NEAR network and added to your stake about every 12 hours. {networkAprPct != null && <>Network rate ≈ {networkAprPct}%{feePct != null ? `, minus this validator's ${feePct}% fee` : ""}. </>}
-        An estimate from live network data: the real rate moves with total stake and validator uptime. VEIL AI takes nothing.
+      <p className="mt-3 border-t border-success/20 pt-2.5 text-[0.72rem] leading-relaxed text-muted">
+        {networkAprPct != null && <>Network rate ≈ {networkAprPct}%{feePct != null ? ` minus this validator's ${feePct}% fee` : ""}. </>}
+        An estimate from live network data: the real rate moves with total stake and validator uptime.
       </p>
+    </div>
+  );
+}
+
+type ValidatorSort = "reward" | "size";
+
+/** Validator choice as cards: rate after fee, fee and size, with "Best rate" / "Largest" badges. */
+function ValidatorPicker({ validators, value, onChange }: { validators: StakeData["validators"]; value: string; onChange: (poolId: string) => void }) {
+  const [sort, setSort] = useState<ValidatorSort>("reward");
+  const [showAll, setShowAll] = useState(false);
+  const bestApr = Math.max(...validators.map((v) => v.aprPct ?? -1));
+  const largest = validators.reduce<string | null>((top, v) => (top === null || v.stakeNear > (validators.find((x) => x.poolId === top)?.stakeNear ?? 0) ? v.poolId : top), null);
+  const sorted = [...validators].sort((a, b) => (sort === "reward" ? (b.aprPct ?? -1) - (a.aprPct ?? -1) || b.stakeNear - a.stakeNear : b.stakeNear - a.stakeNear));
+  const visible = showAll ? sorted : sorted.slice(0, 5);
+  // Keep the chosen validator visible even when it isn't in the first five.
+  if (!showAll && value && !visible.some((v) => v.poolId === value)) {
+    const chosen = sorted.find((v) => v.poolId === value);
+    if (chosen) visible.push(chosen);
+  }
+  const compact = (n: number) => Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+
+  return (
+    <div>
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <span className="text-[0.8rem] font-semibold text-text">Choose a validator</span>
+        <div className="flex rounded-full bg-card-2 p-0.5 text-xs" role="radiogroup" aria-label="Sort validators">
+          {(["reward", "size"] as const).map((k) => (
+            <button
+              key={k}
+              type="button"
+              role="radio"
+              aria-checked={sort === k}
+              onClick={() => setSort(k)}
+              className={cn("rounded-full px-3 py-1 font-medium transition-colors", sort === k ? "bg-white text-text shadow-sm ring-1 ring-border" : "text-muted hover:text-text")}
+            >
+              {k === "reward" ? "Highest reward" : "Largest"}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-2" role="radiogroup" aria-label="Validators">
+        {visible.map((v) => {
+          const active = v.poolId === value;
+          const name = v.poolId.replace(/\.(poolv1|pool)\.near$|\.pool\.f863973\.m0$/, "");
+          return (
+            <button
+              key={v.poolId}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => onChange(v.poolId)}
+              className={cn(
+                "flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-all",
+                active ? "border-accent bg-accent/[0.06] ring-2 ring-accent/20" : "border-border bg-white hover:border-border-strong hover:bg-bg-2",
+              )}
+            >
+              <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold uppercase", active ? "bg-accent text-white" : "bg-card-2 text-accent")}>
+                {active ? <CheckCircle2 className="h-5 w-5" /> : name.slice(0, 1)}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-1.5">
+                  <span className="truncate text-sm font-semibold text-text">{name}</span>
+                  {v.aprPct != null && v.aprPct === bestApr && <Badge tone="success">Best rate</Badge>}
+                  {v.poolId === largest && <Badge tone="neutral">Largest</Badge>}
+                </span>
+                <span className="mt-0.5 block text-xs text-muted">
+                  Fee {v.feePct ?? "?"}% · {compact(v.stakeNear)} NEAR staked
+                </span>
+              </span>
+              <span className="shrink-0 text-right">
+                <span className="block font-mono text-lg font-bold text-success">{v.aprPct != null ? `${v.aprPct}%` : "—"}</span>
+                <span className="block text-[0.68rem] text-muted">a year</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      {sorted.length > 5 && (
+        <button type="button" onClick={() => setShowAll((x) => !x)} className="mt-2 w-full rounded-xl py-2 text-xs font-semibold text-accent-strong hover:bg-bg-2">
+          {showAll ? "Show fewer" : `Show all ${sorted.length} validators`}
+        </button>
+      )}
+      <p className="mt-1.5 text-[0.72rem] text-muted">Rates are after each validator&apos;s fee. Spreading stake across validators helps keep NEAR decentralised.</p>
     </div>
   );
 }

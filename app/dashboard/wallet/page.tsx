@@ -415,7 +415,7 @@ function WalletHeader({
 /** First-time help: the account exists, but to approve transactions it must be opened in a wallet once. */
 function OpenYourAccount({ accountId, network, busy, onConnect }: { accountId: string; network: "mainnet" | "testnet"; busy: boolean; onConnect: (walletId?: string) => void }) {
   return (
-    <Card className="mt-4 border-lavender/35 bg-lavender/[0.07] p-5">
+    <Card className="mt-4 border-lavender/60 bg-[#f2f8f4] p-5">
       <h2 className="text-sm font-semibold">Use {accountId} to send, swap and stake</h2>
       <ol className="mt-2 space-y-1.5 text-sm text-muted">
         <li>
