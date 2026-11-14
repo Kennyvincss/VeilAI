@@ -5,12 +5,12 @@ import Link from "next/link";
 import { BadgeCheck, ExternalLink, Mail, Sparkles, Wallet } from "lucide-react";
 import { CreateNearAccount, type NearAccountOffer } from "@/components/wallet/create-near-account";
 import { useApi } from "@/hooks/use-api";
+import { WEB_WALLET_NAME, WEB_WALLET_URL } from "@/hooks/use-near-wallet";
 import { useAppStatus } from "@/components/layout/app-status";
 import { PageHeader } from "@/components/layout/dashboard-shell";
 import { NotificationSettings } from "@/components/notifications/notification-center";
 import { Button, buttonClass, Card, CardHeader, Skeleton } from "@/components/ui/primitives";
 
-const WEB_WALLET = { mainnet: "https://app.mynearwallet.com", testnet: "https://testnet.mynearwallet.com" } as const;
 
 export default function AccountPage() {
   const { status } = useAppStatus();
@@ -66,8 +66,8 @@ function NearAccountCard({ network }: { network: "mainnet" | "testnet" }) {
             To use it, open a web wallet (no install needed), choose <strong className="text-text">Import</strong> and type your 12 words there. Then connect it on the Wallet page. VEIL AI never has your words.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <a href={WEB_WALLET[network]} target="_blank" rel="noopener noreferrer" className={buttonClass("secondary", "sm")}>
-              Open MyNearWallet <ExternalLink className="h-3.5 w-3.5" />
+            <a href={WEB_WALLET_URL[network]} target="_blank" rel="noopener noreferrer" className={buttonClass("secondary", "sm")}>
+              Open {WEB_WALLET_NAME} <ExternalLink className="h-3.5 w-3.5" />
             </a>
             <Link href="/dashboard/wallet" className={buttonClass("primary", "sm")}>
               Go to Wallet

@@ -46,7 +46,7 @@ function makeQuiz(words: string[]) {
 const WALLETS = {
   mainnet: [
     { name: "Meteor Wallet", url: "https://wallet.meteorwallet.app" },
-    { name: "MyNearWallet", url: "https://app.mynearwallet.com" },
+    { name: "Intear Wallet", url: "https://wallet.intear.tech" },
   ],
   testnet: [{ name: "MyNearWallet (testnet)", url: "https://testnet.mynearwallet.com" }],
 };

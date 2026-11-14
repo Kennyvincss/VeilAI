@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { ArrowDownLeft, ExternalLink, ArrowDownUp, ArrowUpRight, BookUser, Download, History, KeyRound, Layers, Link2, PlusCircle, RefreshCw, ShieldCheck, Unplug, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { useApi, api } from "@/hooks/use-api";
-import { useNearWallet, WEB_WALLET_ID, WEB_WALLET_URL } from "@/hooks/use-near-wallet";
+import { ALT_WEB_WALLET, useNearWallet, WEB_WALLET_ID, WEB_WALLET_NAME, WEB_WALLET_URL } from "@/hooks/use-near-wallet";
 import { useAppStatus } from "@/components/layout/app-status";
 import { PageHeader } from "@/components/layout/dashboard-shell";
 import { Button, buttonClass, Card, Skeleton } from "@/components/ui/primitives";
@@ -285,16 +285,16 @@ function ConnectHero({ busy, onConnect, onCreate, onImport }: { busy: boolean; o
           <Link2 className="h-5 w-5" />
         </div>
         <h3 className="mt-4 text-sm font-semibold">Connect wallet</h3>
-        <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted">Have a NEAR wallet? Connect it in one click. MyNearWallet works right in your browser — nothing to install.</p>
+        <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted">Have a NEAR wallet? Connect it in one click. Meteor Wallet works right in your browser — nothing to install.</p>
         <Button className="mt-5 w-full" onClick={() => onConnect(WEB_WALLET_ID)} loading={busy}>
-          Connect MyNearWallet
+          Connect {WEB_WALLET_NAME}
         </Button>
         <Button variant="ghost" size="sm" className="mt-2 w-full" onClick={() => onConnect()} disabled={busy}>
           Other wallets (Meteor, HOT…)
         </Button>
       </Card>
       <ChoiceCard icon={<PlusCircle className="h-5 w-5" />} title="Create a new wallet" body="New to NEAR? Get your own name.near right here for free, or create one in a web wallet — no install." cta="Create wallet" onClick={onCreate} />
-      <ChoiceCard icon={<Download className="h-5 w-5" />} title="Import existing wallet" body="Have a recovery phrase? Import it in MyNearWallet on the web (never into VEIL AI), then connect." cta="Import wallet" onClick={onImport} />
+      <ChoiceCard icon={<Download className="h-5 w-5" />} title="Import existing wallet" body="Have a recovery phrase? Import it in Meteor Wallet on the web (never into VEIL AI), then connect." cta="Import wallet" onClick={onImport} />
       <p className="flex items-center justify-center gap-1.5 text-[0.72rem] text-subtle md:col-span-3">
         <KeyRound className="h-3.5 w-3.5" /> VEIL AI will never ask for your recovery phrase or private key.
       </p>
@@ -413,7 +413,7 @@ function OpenYourAccount({ accountId, network, busy, onConnect }: { accountId: s
       <h2 className="text-sm font-semibold">Use {accountId} to send, swap and stake</h2>
       <ol className="mt-2 space-y-1.5 text-sm text-muted">
         <li>
-          1. Open <strong className="text-text">MyNearWallet</strong> (web, nothing to install), choose <strong className="text-text">Import existing account</strong> and type your 12 words there. You only do this once.
+          1. Open <strong className="text-text">{WEB_WALLET_NAME}</strong> (web, nothing to install), choose <strong className="text-text">Import</strong> and enter your 12 words there. You only do this once.
         </li>
         <li>
           2. Come back and tap <strong className="text-text">Connect {accountId}</strong>.
@@ -421,7 +421,7 @@ function OpenYourAccount({ accountId, network, busy, onConnect }: { accountId: s
       </ol>
       <div className="mt-4 flex flex-wrap gap-2">
         <a href={WEB_WALLET_URL[network]} target="_blank" rel="noopener noreferrer" className={buttonClass("secondary", "sm")}>
-          Open MyNearWallet <ExternalLink className="h-3.5 w-3.5" />
+          Open {WEB_WALLET_NAME} <ExternalLink className="h-3.5 w-3.5" />
         </a>
         <Button size="sm" onClick={() => onConnect(WEB_WALLET_ID)} loading={busy}>
           Connect {accountId}
@@ -430,7 +430,14 @@ function OpenYourAccount({ accountId, network, busy, onConnect }: { accountId: s
           Other wallets
         </Button>
       </div>
-      <p className="mt-3 text-[0.7rem] text-subtle">VEIL AI never has your 12 words, so it can&apos;t move funds by itself — your wallet approves every transaction.</p>
+      <p className="mt-3 text-xs leading-relaxed text-muted">
+        Wallet says the account doesn&apos;t exist? {accountId} is live on NEAR, so the words entered don&apos;t match it: check each word&apos;s spelling and order. You can also try{" "}
+        <a href={ALT_WEB_WALLET.url} target="_blank" rel="noopener noreferrer" className="font-medium text-accent-strong underline underline-offset-2">
+          {ALT_WEB_WALLET.name}
+        </a>
+        .
+      </p>
+      <p className="mt-2 text-[0.7rem] text-subtle">VEIL AI never has your 12 words, so it can&apos;t move funds by itself — your wallet approves every transaction.</p>
     </Card>
   );
 }
