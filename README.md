@@ -3,6 +3,8 @@
 **Confidential financial intelligence, powered by NEAR.**
 *Your financial intelligence. Your private data. Verified by NEAR.*
 
+**Live app: [veilainear.xyz](https://www.veilainear.xyz)**
+
 VEIL AI analyses NEAR crypto portfolios, investigates public wallets, scores portfolio risk with transparent formulas, and answers financial questions using an LLM that runs inside a hardware Trusted Execution Environment on **NEAR AI Cloud**. Every answer is checked: the response signature, request/response hashes and a fresh-nonce TEE attestation (Intel TDX + NVIDIA GPU) are verified before VEIL AI shows **VERIFIED**.
 
 Built for the **NEAR Hackathon 2026 — Privacy & Private AI track**. Free for everyone, with no subscriptions, paid tiers or paywalls.
