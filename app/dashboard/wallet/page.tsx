@@ -125,7 +125,13 @@ function WalletView() {
         </div>
       )}
 
-      {!viewId ? (
+      {!viewId && ((offer.loading && !offer.data) || wallet.restoring) ? (
+        <div className="space-y-4" aria-busy="true" aria-label="Loading your wallet">
+          <Skeleton className="h-36 w-full rounded-[22px]" />
+          <Skeleton className="h-14 w-full rounded-2xl" />
+          <Skeleton className="h-64 w-full rounded-[22px]" />
+        </div>
+      ) : !viewId ? (
         <ConnectHero busy={wallet.busy} onConnect={connect} onCreate={() => setOnboarding("create")} onImport={() => setOnboarding("import")} />
       ) : (
         <>
