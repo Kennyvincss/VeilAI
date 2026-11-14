@@ -53,13 +53,18 @@ let issues: string[] = [];
 export function getEnv(): ServerEnv {
   if (cached) return cached;
   const parsed = schema.safeParse(process.env);
-  if (!parsed.success) {
-    issues = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`);
-    // Fall back to an empty config so the app still boots.
-    cached = schema.parse({});
-  } else {
+  if (parsed.success) {
     cached = parsed.data;
+    return cached;
   }
+  // Drop only the invalid settings, so one bad value (e.g. a URL without
+  // https://) disables just that feature instead of the whole app.
+  issues = parsed.error.issues.map((i) => `${i.path.join(".")}: invalid value (ignored)`);
+  const bad = new Set(parsed.error.issues.map((i) => String(i.path[0])));
+  const input: Record<string, string | undefined> = {};
+  for (const k of Object.keys(schema.shape)) if (!bad.has(k)) input[k] = process.env[k];
+  const retry = schema.safeParse(input);
+  cached = retry.success ? retry.data : schema.parse({});
   return cached;
 }
 
