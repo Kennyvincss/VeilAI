@@ -212,6 +212,6 @@ function WalletIcon({ src }: { src?: string }) {
   }
   return (
     // eslint-disable-next-line @next/next/no-img-element -- wallet icons come from the official NEAR Connect manifest (remote, many hosts)
-    <img src={src} alt="" className="h-9 w-9 shrink-0 rounded-xl bg-white/[0.06] object-contain" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+    <img src={src} alt="" className="h-9 w-9 shrink-0 rounded-xl bg-black/[0.04] object-contain" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
   );
 }

@@ -545,7 +545,7 @@ export function StakePanel({
           title="Your stakes"
           subtitle={`NEAR that ${accountId} has delegated to validators`}
           action={
-            <button onClick={() => void data.reload()} className="rounded-lg p-1.5 text-subtle hover:bg-white/[0.06] hover:text-text" aria-label="Refresh staking">
+            <button onClick={() => void data.reload()} className="rounded-lg p-1.5 text-subtle hover:bg-black/[0.04] hover:text-text" aria-label="Refresh staking">
               <RefreshCw className="h-4 w-4" />
             </button>
           }

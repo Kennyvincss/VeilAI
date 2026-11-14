@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  ArrowUpRight,
   BrainCircuit,
   Cpu,
   FileText,
@@ -17,7 +18,7 @@ import {
 } from "lucide-react";
 import { SiteNav } from "@/components/layout/site-nav";
 import { Footer } from "@/components/layout/footer";
-import { HeroVisual } from "@/components/landing/hero-visual";
+import { VeilMask } from "@/components/ui/veil-mask";
 import { FadeIn } from "@/components/landing/motion";
 import { Faq } from "@/components/landing/faq";
 import { buttonClass, SectionTitle } from "@/components/ui/primitives";
@@ -25,66 +26,84 @@ import { buttonClass, SectionTitle } from "@/components/ui/primitives";
 export default function LandingPage() {
   return (
     <>
+      <div className="p-2 sm:p-4">
+        <div className="mx-auto max-w-[1440px] overflow-clip rounded-[24px] bg-white shadow-[0_40px_80px_-40px_rgba(10,40,30,0.45)] sm:rounded-[32px]">
       <SiteNav />
       <main id="main" className="overflow-x-clip">
         {/* HERO */}
-        <section className="relative px-4 pb-20 pt-32 sm:px-6 sm:pt-40">
-          <div className="absolute inset-x-0 bottom-0 -z-10 h-[70%] bg-[radial-gradient(ellipse_70%_60%_at_50%_100%,rgba(226,115,63,0.35),transparent_70%)]" aria-hidden />
-          <div className="mx-auto max-w-4xl text-center">
+        <section className="relative px-3 pt-6 sm:px-5 lg:pt-10">
+          <div className="mx-auto grid max-w-7xl items-center gap-y-6 px-2 sm:px-4 lg:grid-cols-[1.2fr_0.9fr_0.8fr] lg:gap-x-6 lg:pb-16">
             <FadeIn>
-              <a href="#near" className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-white/[0.04] px-3.5 py-1.5 text-xs text-muted transition-colors hover:text-text">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+              <a href="#near" className="inline-flex items-center gap-2 rounded-full bg-card-2 px-3 py-1.5 text-xs text-muted transition-colors hover:text-text">
+                <span className="h-1.5 w-1.5 rounded-full bg-success" />
                 Private AI on NEAR · free forever
-                <ArrowRight className="h-3 w-3" />
               </a>
-            </FadeIn>
-            <FadeIn delay={0.05}>
-              <h1 className="mt-7 text-[2.3rem] font-medium leading-[1.06] tracking-[-0.02em] text-white sm:text-6xl lg:text-7xl">
-                Your Financial Intelligence.
-                <br />
-                Nobody Else’s Business.
+              <h1 className="mt-5 text-[2.5rem] font-medium leading-[1.04] tracking-[-0.025em] text-accent sm:text-6xl lg:text-[4.1rem]">
+                Your Financial Intelligence. Nobody Else’s Business.
               </h1>
-            </FadeIn>
-            <FadeIn delay={0.1}>
-              <p className="mx-auto mt-6 max-w-xl text-[0.95rem] leading-relaxed text-muted sm:text-base">
-                Analyse your crypto portfolio, investigate wallets and receive intelligent financial insights through confidential AI processing powered by NEAR.
-              </p>
-            </FadeIn>
-            <FadeIn delay={0.15}>
-              <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Link href="/signup" className={buttonClass("primary", "lg", "w-full sm:w-auto")}>
+              <div className="mt-7 flex flex-wrap items-center gap-3">
+                <Link href="/signup" className="group inline-flex items-center gap-3 rounded-full bg-card-2 py-1.5 pl-5 pr-1.5 text-[0.95rem] font-medium text-text ring-1 ring-border transition-colors hover:bg-[#e8eeea]">
                   Get started for free
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-white transition-transform group-hover:rotate-45">
+                    <ArrowUpRight className="h-4 w-4" />
+                  </span>
                 </Link>
-                <Link href="/login" className={buttonClass("outline", "lg", "w-full sm:w-auto")}>
+                <Link href="/login" className="rounded-full px-4 py-2.5 text-sm font-medium text-muted hover:text-text">
                   Sign in
                 </Link>
               </div>
-              <p className="mt-4 text-xs text-muted">No seed phrases · your own name.near · works in every NEAR wallet</p>
             </FadeIn>
-            <FadeIn delay={0.2}>
-              <div className="mt-14">
-                <p className="text-[0.65rem] font-medium uppercase tracking-[0.18em] text-subtle">Built on</p>
-                <ul className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-muted sm:gap-x-12">
-                  {[
-                    [Network, "NEAR Protocol"],
-                    [BrainCircuit, "NEAR AI Cloud"],
-                    [Workflow, "NEAR Intents"],
-                    [Cpu, "Intel TDX"],
-                    [ShieldCheck, "NVIDIA Confidential Computing"],
-                  ].map(([Icon, name]) => {
-                    const I = Icon as typeof Network;
-                    return (
-                      <li key={name as string} className="inline-flex items-center gap-2 opacity-80">
-                        <I className="h-4 w-4" aria-hidden /> {name as string}
-                      </li>
-                    );
-                  })}
-                </ul>
+            <FadeIn delay={0.08} className="relative z-10 flex justify-center lg:-mb-40">
+              <VeilMask className="h-72 w-60 sm:h-[22rem] sm:w-[18rem] lg:h-[27rem] lg:w-[22rem]" />
+            </FadeIn>
+            <FadeIn delay={0.14} className="lg:pl-4">
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  {[Lock, Cpu, ShieldCheck].map((I, i) => (
+                    <span key={i} className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-white ring-2 ring-white">
+                      <I className="h-4 w-4" />
+                    </span>
+                  ))}
+                </div>
+                <span className="text-3xl font-medium tracking-tight text-accent">$0</span>
+                <span className="text-xs leading-tight text-muted">
+                  free, no
+                  <br />
+                  subscriptions
+                </span>
               </div>
+              <p className="mt-6 max-w-xs text-[0.95rem] leading-relaxed text-text/80">
+                Analyse your crypto, check any wallet and get insights from an AI that runs inside verified secure hardware. No seed phrases, ever.
+              </p>
             </FadeIn>
           </div>
-          <div className="mt-16 sm:mt-20">
-            <HeroVisual />
+
+          <div className="relative mt-6 overflow-hidden rounded-[22px] bg-[linear-gradient(180deg,#1f4b3b_0%,#173a2e_45%,#0e211a_100%)] px-5 pb-12 pt-16 sm:rounded-[28px] lg:mt-0 lg:pt-44">
+            <div
+              aria-hidden
+              className="select-none bg-gradient-to-b from-white/80 via-white/45 to-white/5 bg-clip-text text-center font-medium leading-[0.95] tracking-[-0.04em] text-transparent"
+              style={{ fontSize: "clamp(3rem, 10.5vw, 9.5rem)" }}
+            >
+              Private Intelligence
+            </div>
+            <div className="mx-auto mt-10 h-px max-w-6xl bg-white/15" />
+            <h2 className="mt-10 text-center text-2xl font-medium tracking-tight text-white sm:text-3xl">Built on</h2>
+            <ul className="mx-auto mt-7 flex max-w-5xl flex-wrap items-center justify-center gap-x-10 gap-y-4 text-[0.95rem] text-white/70 sm:gap-x-14">
+              {[
+                [Network, "NEAR Protocol"],
+                [BrainCircuit, "NEAR AI Cloud"],
+                [Workflow, "NEAR Intents"],
+                [Cpu, "Intel TDX"],
+                [ShieldCheck, "NVIDIA Confidential Computing"],
+              ].map(([Icon, name]) => {
+                const I = Icon as typeof Network;
+                return (
+                  <li key={name as string} className="inline-flex items-center gap-2">
+                    <I className="h-4 w-4" aria-hidden /> {name as string}
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </section>
 
@@ -338,14 +357,14 @@ export default function LandingPage() {
         {/* CTA */}
         <section className="px-4 pb-24 sm:px-6">
           <FadeIn>
-            <div className="mx-auto max-w-5xl rounded-3xl border border-border-strong bg-[radial-gradient(ellipse_at_bottom,rgba(226,115,63,0.4),transparent_70%)] bg-card/70 px-6 py-14 text-center backdrop-blur">
+            <div className="mx-auto max-w-5xl rounded-[28px] bg-[linear-gradient(180deg,#1f4b3b_0%,#0e211a_100%)] px-6 py-14 text-center text-white">
               <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Your private data. Verified by NEAR.</h2>
-              <p className="mx-auto mt-4 max-w-xl text-muted">Free. No subscriptions. No seed phrases. Create an account in seconds.</p>
+              <p className="mx-auto mt-4 max-w-xl text-white/70">Free. No subscriptions. No seed phrases. Create an account in seconds.</p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                <Link href="/signup" className={buttonClass("primary", "lg")}>
+                <Link href="/signup" className={buttonClass("white", "lg")}>
                   Get started for free
                 </Link>
-                <Link href="/login" className={buttonClass("outline", "lg")}>
+                <Link href="/login" className={buttonClass("outline", "lg", "border-white/25 text-white hover:bg-white/10")}>
                   Sign in
                 </Link>
               </div>
@@ -354,6 +373,8 @@ export default function LandingPage() {
         </section>
       </main>
       <Footer />
+        </div>
+      </div>
     </>
   );
 }
