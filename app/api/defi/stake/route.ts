@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { accountIdSchema, firstIssue } from "@/lib/security/validation";
 import { assertSameOrigin, clientIp, HttpError, jsonError, jsonOk, limitOrNull, readJson } from "@/lib/security/http";
-import { prepareStake, prepareUnstake, prepareWithdraw, stakingPositions, validators } from "@/lib/defi/service";
+import { prepareStake, prepareUnstake, prepareWithdraw, stakingOverview, stakingPositions } from "@/lib/defi/service";
 import { defiErrorResponse, stakeSchema } from "@/lib/defi/http";
 
 export const maxDuration = 30;
@@ -14,8 +14,8 @@ export async function GET(req: NextRequest) {
   const account = accountParam ? accountIdSchema.safeParse(accountParam) : null;
   if (account && !account.success) return jsonError(400, "Invalid account.");
   try {
-    const [list, positions] = await Promise.all([validators(), account?.success ? stakingPositions(account.data) : Promise.resolve([])]);
-    return jsonOk({ validators: list, positions });
+    const [overview, positions] = await Promise.all([stakingOverview(), account?.success ? stakingPositions(account.data) : Promise.resolve([])]);
+    return jsonOk({ validators: overview.validators, networkAprPct: overview.networkAprPct, positions });
   } catch (err) {
     return defiErrorResponse(err, "defi.validators_failed");
   }

@@ -174,6 +174,40 @@ export async function currentValidators(): Promise<CurrentValidator[]> {
   throw lastErr instanceof Error ? lastErr : new ProviderError("NEAR RPC", "validators unavailable");
 }
 
+/** Calls a JSON-RPC method on the first endpoint that answers. */
+async function rpcMethod<T>(method: string, params: unknown): Promise<T> {
+  let lastErr: unknown;
+  for (const endpoint of rpcEndpoints()) {
+    try {
+      const r = await fetchJson<{ result?: T; error?: unknown }>("NEAR RPC", endpoint, {
+        method: "POST",
+        body: { jsonrpc: "2.0", id: "veil", method, params },
+        timeoutMs: 10_000,
+        retries: 0,
+      });
+      if (r.result) return r.result;
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new ProviderError("NEAR RPC", `${method} unavailable`);
+}
+
+/**
+ * Inputs for NEAR's staking reward: the yearly inflation rate and the share
+ * of it kept by the protocol treasury (both live protocol parameters), and
+ * the current total supply.
+ */
+export async function rewardInputs(): Promise<{ inflation: number; treasuryShare: number; totalSupplyYocto: bigint }> {
+  const [cfg, block] = await Promise.all([
+    rpcMethod<{ max_inflation_rate: [number, number]; protocol_reward_rate: [number, number] }>("EXPERIMENTAL_protocol_config", { finality: "final" }),
+    rpcMethod<{ header: { total_supply: string } }>("block", { finality: "final" }),
+  ]);
+  const [in_, id] = cfg.max_inflation_rate;
+  const [pn, pd] = cfg.protocol_reward_rate;
+  return { inflation: in_ / id, treasuryShare: pd ? pn / pd : 0, totalSupplyYocto: BigInt(block.header.total_supply) };
+}
+
 /** NEP-145 storage balance; null when the account is not registered with the contract. */
 export async function storageBalanceOf(contractId: string, accountId: string): Promise<{ total: string; available: string } | null> {
   return callView<{ total: string; available: string } | null>(contractId, "storage_balance_of", { account_id: accountId });
