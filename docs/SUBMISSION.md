@@ -37,7 +37,7 @@ NEAR AI Cloud (confidential inference, attestation, signatures, E2EE) · NEAR Co
 
 ## Try it
 
-- **Live app:** _add your production URL_
+- **Live app:** https://www.veilainear.xyz
 - **Testnet version (no real money):** _add your testnet URL_ (free test NEAR: near-faucet.io)
 - **Code:** https://github.com/Kennyvincss/VeilAI
 - **Docs:** `README.md`, `docs/PRIVACY.md`, `docs/SECURITY.md`, `docs/NEAR-INTEGRATION.md`, `docs/ARCHITECTURE.md`
